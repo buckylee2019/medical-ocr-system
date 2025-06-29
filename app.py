@@ -60,6 +60,17 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'tiff'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def convert_floats_to_decimal(obj):
+    """遞歸轉換所有 float 為 Decimal，用於 DynamoDB 存儲"""
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    elif isinstance(obj, dict):
+        return {key: convert_floats_to_decimal(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_floats_to_decimal(item) for item in obj]
+    else:
+        return obj
+
 def save_image_metadata_to_dynamodb(filename, s3_key, file_size, content_type, session_id=None):
     """保存圖片元數據到現有的 DynamoDB 表格"""
     try:
