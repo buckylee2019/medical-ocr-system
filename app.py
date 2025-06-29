@@ -191,16 +191,33 @@ def run_enhanced_voting_system(image_data):
     # 依序執行每個任務
     for model_id, run_number in tasks:
         print(f"🤖 執行 {model_id} - 第 {run_number} 次...")
-        result = process_with_claude_model(image_data, model_id, run_number)
-        results.append(result)
+        try:
+            result = process_with_claude_model(image_data, model_id, run_number)
+            results.append(result)
+            if result.get('success'):
+                print(f"✅ {model_id} 處理成功")
+            else:
+                print(f"❌ {model_id} 處理失敗: {result.get('error', 'Unknown error')}")
+        except Exception as e:
+            print(f"❌ {model_id} 執行異常: {str(e)}")
+            results.append({
+                "success": False,
+                "model": model_id,
+                "run_number": run_number,
+                "error": str(e)
+            })
     
     # 分析結果並投票
+    print("📊 開始分析和投票...")
     voting_result = analyze_and_vote(results)
+    
+    # 生成摘要
+    summary = generate_summary(results, voting_result)
     
     return {
         "individual_results": results,
         "voting_result": voting_result,
-        "summary": generate_summary(results, voting_result)
+        "summary": summary
     }
 
 def get_medical_extraction_prompt():
@@ -366,14 +383,36 @@ def analyze_and_vote(results):
     successful_results = [r for r in results if r.get('success')]
     
     if not successful_results:
-        return {"error": "所有模型都處理失敗"}
+        print("❌ 所有模型都處理失敗")
+        return {
+            "error": "所有模型都處理失敗",
+            "final_result": {},
+            "vote_details": {},
+            "successful_models": 0,
+            "total_models": len(results)
+        }
+    
+    print(f"✅ {len(successful_results)}/{len(results)} 個模型處理成功")
     
     # 收集所有欄位的值
     field_votes = defaultdict(list)
     
     for result in successful_results:
         data = result.get('extracted_data', {})
+        if not data:
+            print(f"⚠️ 模型 {result.get('model', 'unknown')} 沒有提取到資料")
+            continue
         collect_field_votes(data, field_votes, result['model'], result['run_number'])
+    
+    if not field_votes:
+        print("❌ 沒有收集到任何欄位資料")
+        return {
+            "error": "沒有收集到任何欄位資料",
+            "final_result": {},
+            "vote_details": {},
+            "successful_models": len(successful_results),
+            "total_models": len(results)
+        }
     
     # 對每個欄位進行投票
     final_result = {}
@@ -383,6 +422,8 @@ def analyze_and_vote(results):
         winner, vote_detail = vote_for_field(votes)
         set_nested_field(final_result, field_path, winner)
         vote_details[field_path] = vote_detail
+    
+    print(f"✅ 投票完成，處理了 {len(vote_details)} 個欄位")
     
     return {
         "final_result": final_result,
@@ -560,6 +601,13 @@ def process_automatic():
         
         # 執行增強型投票處理 (3個模型)
         voting_results = run_enhanced_voting_system(file_data)
+        
+        # 檢查投票結果結構
+        if not voting_results or 'voting_result' not in voting_results:
+            return jsonify({'error': '投票處理失敗：無效的結果結構'}), 500
+            
+        if 'final_result' not in voting_results['voting_result']:
+            return jsonify({'error': '投票處理失敗：缺少最終結果'}), 500
         
         # 計算平均信心度
         vote_details = voting_results['voting_result'].get('vote_details', {})
