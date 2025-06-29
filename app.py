@@ -28,9 +28,13 @@ AWS_REGION = os.getenv('AWS_REGION', 'us-west-2')
 AWS_PROFILE = os.getenv('AWS_PROFILE')
 S3_BUCKET = os.getenv('S3_BUCKET', 'medical-ocr-documents')
 
-# Model Configuration - 投票系統
+# Model Configuration - Multi-model voting + Final validation
 CLAUDE_SONNET_MODEL_ID = 'us.anthropic.claude-3-5-sonnet-20241022-v2:0'
 CLAUDE_HAIKU_MODEL_ID = 'anthropic.claude-3-haiku-20240307-v1:0'
+CLAUDE_SONNET_LATEST_MODEL_ID = 'us.anthropic.claude-3-7-sonnet-20250219-v1:0'  # For automatic validation
+
+# DynamoDB Configuration
+DYNAMODB_TABLE_NAME = os.getenv('DYNAMODB_TABLE_NAME', 'medical-ocr-results')
 
 # Initialize AWS clients
 def create_aws_session():
@@ -45,11 +49,160 @@ def create_aws_session():
 aws_session = create_aws_session()
 s3_client = aws_session.client('s3')
 bedrock_client = aws_session.client('bedrock-runtime')
+dynamodb = aws_session.resource('dynamodb')
+dynamodb_table = dynamodb.Table(DYNAMODB_TABLE_NAME)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'tiff'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+def save_to_dynamodb(data, processing_mode, confidence_score=None, human_reviewed=False):
+    """Save OCR results to DynamoDB"""
+    try:
+        # Generate unique ID
+        record_id = str(uuid.uuid4())
+        timestamp = datetime.now().isoformat()
+        
+        # Prepare DynamoDB item
+        item = {
+            'id': record_id,
+            'timestamp': timestamp,
+            'processing_mode': processing_mode,  # 'automatic' or 'human_review'
+            'human_reviewed': human_reviewed,
+            'confidence_score': confidence_score,
+            'data': data,
+            'created_at': timestamp,
+            'updated_at': timestamp
+        }
+        
+        # Save to DynamoDB
+        response = dynamodb_table.put_item(Item=item)
+        
+        return {
+            'success': True,
+            'record_id': record_id,
+            'timestamp': timestamp,
+            'dynamodb_response': response
+        }
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+def process_with_claude_latest(image_data, for_human_review=False):
+    """Process with Claude 3.7 Sonnet for final validation or human review"""
+    try:
+        if for_human_review:
+            prompt = """
+            請分析這份醫療診斷證明書並提取所有資訊，以結構化的 JSON 格式返回。
+            這個結果將提供給人工審核，請確保提取的資訊準確且完整。
+            
+            請返回以下格式的 JSON（只返回 JSON，不要其他格式）：
+            {
+                "certificate_info": {
+                    "certificate_no": "",
+                    "certificate_date": ""
+                },
+                "patient_info": {
+                    "name": "",
+                    "sex": "",
+                    "date_of_birth": "",
+                    "nationality": "",
+                    "passport_no_or_id": "",
+                    "medical_history_no": "",
+                    "address": ""
+                },
+                "examination_info": {
+                    "date_of_examination": "",
+                    "department": ""
+                },
+                "medical_content": {
+                    "diagnosis": "",
+                    "doctors_comment": ""
+                },
+                "hospital_info": {
+                    "hospital_name_chinese": "",
+                    "hospital_name_english": "",
+                    "superintendent": "",
+                    "certified_by": "",
+                    "attending_physician": ""
+                },
+                "additional_info": {
+                    "stamp_or_seal": "",
+                    "other_notes": ""
+                }
+            }
+            
+            請仔細提取所有可見的文字並適當地組織到相應的欄位中。
+            如果某個欄位沒有資訊，請留空字串。
+            只返回 JSON，不要 markdown 格式。
+            """
+        else:
+            prompt = get_medical_extraction_prompt()
+
+        # Call Claude 3.7 Sonnet
+        response = bedrock_client.converse(
+            modelId=CLAUDE_SONNET_LATEST_MODEL_ID,
+            messages=[{
+                "role": "user",
+                "content": [
+                    {"text": prompt},
+                    {"image": {"format": "png", "source": {"bytes": image_data}}}
+                ]
+            }],
+            inferenceConfig={"maxTokens": 2000, "temperature": 0.1}
+        )
+
+        response_text = response['output']['message']['content'][0]['text']
+        extracted_data = parse_json_response(response_text)
+        
+        return {
+            "success": True,
+            "model": "claude-3.7-sonnet",
+            "extracted_data": extracted_data,
+            "raw_response": response_text
+        }
+
+    except Exception as e:
+        return {
+            "success": False,
+            "model": "claude-3.7-sonnet",
+            "error": str(e)
+        }
+
+def run_enhanced_voting_system(image_data):
+    """Enhanced voting system with Claude 3.7 Sonnet for automatic path"""
+    print("🗳️ 開始增強型多模型投票處理...")
+    
+    # 準備所有任務 - 包含 Claude 3.7 Sonnet
+    tasks = [
+        # Claude 3.5 Sonnet 跑一次
+        (CLAUDE_SONNET_MODEL_ID, 1),
+        # Claude 3 Haiku 跑一次  
+        (CLAUDE_HAIKU_MODEL_ID, 1),
+        # Claude 3.7 Sonnet 跑一次
+        (CLAUDE_SONNET_LATEST_MODEL_ID, 1)
+    ]
+    
+    results = []
+    
+    # 依序執行每個任務
+    for model_id, run_number in tasks:
+        print(f"🤖 執行 {model_id} - 第 {run_number} 次...")
+        result = process_with_claude_model(image_data, model_id, run_number)
+        results.append(result)
+    
+    # 分析結果並投票
+    voting_result = analyze_and_vote(results)
+    
+    return {
+        "individual_results": results,
+        "voting_result": voting_result,
+        "summary": generate_summary(results, voting_result)
+    }
 
 def get_medical_extraction_prompt():
     """根據診斷證明書表格結構的醫療文件提取提示詞"""
@@ -336,11 +489,11 @@ def generate_summary(individual_results, voting_result):
 # Routes
 @app.route('/')
 def index():
-    return render_template('voting_ocr.html')
+    return render_template('enhanced_voting_ocr.html')
 
 @app.route('/upload_and_vote', methods=['POST'])
 def upload_and_vote():
-    """上傳文件並執行投票處理"""
+    """上傳文件並執行投票處理 - 原有功能保持不變"""
     if 'file' not in request.files:
         return jsonify({'error': '沒有上傳檔案'}), 400
     
@@ -388,6 +541,177 @@ def upload_and_vote():
         
     except Exception as e:
         return jsonify({'error': f'處理失敗: {str(e)}'}), 500
+
+@app.route('/process_automatic', methods=['POST'])
+def process_automatic():
+    """路徑1: 全自動處理 - 3個模型投票後直接存入DynamoDB"""
+    if 'file' not in request.files:
+        return jsonify({'error': '沒有上傳檔案'}), 400
+    
+    file = request.files['file']
+    if file.filename == '' or not allowed_file(file.filename):
+        return jsonify({'error': '無效的檔案'}), 400
+    
+    try:
+        # 讀取和處理檔案
+        file_data = file.read()
+        session_id = str(uuid.uuid4())
+        
+        # 儲存到 S3
+        s3_key = f"automatic_uploads/{session_id}/{secure_filename(file.filename)}"
+        s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=file_data, ContentType=file.content_type)
+        
+        # 執行增強型投票處理 (3個模型)
+        voting_results = run_enhanced_voting_system(file_data)
+        
+        # 計算平均信心度
+        vote_details = voting_results['voting_result'].get('vote_details', {})
+        avg_confidence = sum(detail['confidence'] for detail in vote_details.values()) / len(vote_details) if vote_details else 0
+        
+        # 自動存入 DynamoDB
+        final_result = voting_results['voting_result']['final_result']
+        db_result = save_to_dynamodb(
+            data=final_result,
+            processing_mode='automatic',
+            confidence_score=avg_confidence,
+            human_reviewed=False
+        )
+        
+        # 儲存處理結果到 S3
+        results_key = f"automatic_results/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
+        s3_client.put_object(
+            Bucket=S3_BUCKET,
+            Key=results_key,
+            Body=json.dumps({
+                'session_id': session_id,
+                'filename': secure_filename(file.filename),
+                'processed_at': datetime.now().isoformat(),
+                'processing_mode': 'automatic',
+                'voting_results': voting_results,
+                'dynamodb_result': db_result
+            }, indent=2, ensure_ascii=False),
+            ContentType='application/json'
+        )
+        
+        # 準備圖片顯示
+        file_base64 = base64.b64encode(file_data).decode('utf-8')
+        file_type = file.content_type.split('/')[-1]
+        
+        return jsonify({
+            'success': True,
+            'session_id': session_id,
+            'filename': secure_filename(file.filename),
+            'image_data': f"data:image/{file_type};base64,{file_base64}",
+            'processing_mode': 'automatic',
+            'voting_results': voting_results,
+            'dynamodb_result': db_result,
+            'confidence_score': avg_confidence
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'自動處理失敗: {str(e)}'}), 500
+
+@app.route('/process_human_review', methods=['POST'])
+def process_human_review():
+    """路徑2: 人工審核 - Claude 3.7 Sonnet處理後等待人工確認"""
+    if 'file' not in request.files:
+        return jsonify({'error': '沒有上傳檔案'}), 400
+    
+    file = request.files['file']
+    if file.filename == '' or not allowed_file(file.filename):
+        return jsonify({'error': '無效的檔案'}), 400
+    
+    try:
+        # 讀取和處理檔案
+        file_data = file.read()
+        session_id = str(uuid.uuid4())
+        
+        # 儲存到 S3
+        s3_key = f"human_review_uploads/{session_id}/{secure_filename(file.filename)}"
+        s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=file_data, ContentType=file.content_type)
+        
+        # 使用 Claude 3.7 Sonnet 處理
+        claude_result = process_with_claude_latest(file_data, for_human_review=True)
+        
+        # 儲存待審核結果到 S3
+        pending_key = f"pending_review/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
+        s3_client.put_object(
+            Bucket=S3_BUCKET,
+            Key=pending_key,
+            Body=json.dumps({
+                'session_id': session_id,
+                'filename': secure_filename(file.filename),
+                'processed_at': datetime.now().isoformat(),
+                'processing_mode': 'human_review',
+                'status': 'pending_review',
+                'claude_result': claude_result
+            }, indent=2, ensure_ascii=False),
+            ContentType='application/json'
+        )
+        
+        # 準備圖片顯示
+        file_base64 = base64.b64encode(file_data).decode('utf-8')
+        file_type = file.content_type.split('/')[-1]
+        
+        return jsonify({
+            'success': True,
+            'session_id': session_id,
+            'filename': secure_filename(file.filename),
+            'image_data': f"data:image/{file_type};base64,{file_base64}",
+            'processing_mode': 'human_review',
+            'status': 'pending_review',
+            'claude_result': claude_result,
+            's3_pending_key': pending_key
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'人工審核處理失敗: {str(e)}'}), 500
+
+@app.route('/submit_human_review', methods=['POST'])
+def submit_human_review():
+    """提交人工審核後的結果到DynamoDB"""
+    try:
+        data = request.json
+        session_id = data.get('session_id')
+        reviewed_data = data.get('reviewed_data')
+        
+        if not session_id or not reviewed_data:
+            return jsonify({'error': '缺少必要參數'}), 400
+        
+        # 存入 DynamoDB
+        db_result = save_to_dynamodb(
+            data=reviewed_data,
+            processing_mode='human_review',
+            confidence_score=1.0,  # 人工審核後信心度設為100%
+            human_reviewed=True
+        )
+        
+        # 更新 S3 中的狀態
+        final_key = f"human_reviewed/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
+        s3_client.put_object(
+            Bucket=S3_BUCKET,
+            Key=final_key,
+            Body=json.dumps({
+                'session_id': session_id,
+                'processed_at': datetime.now().isoformat(),
+                'reviewed_at': datetime.now().isoformat(),
+                'processing_mode': 'human_review',
+                'status': 'completed',
+                'reviewed_data': reviewed_data,
+                'dynamodb_result': db_result
+            }, indent=2, ensure_ascii=False),
+            ContentType='application/json'
+        )
+        
+        return jsonify({
+            'success': True,
+            'session_id': session_id,
+            'status': 'completed',
+            'dynamodb_result': db_result
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'提交審核結果失敗: {str(e)}'}), 500
 
 @app.route('/health')
 def health_check():
