@@ -402,6 +402,16 @@ def analyze_and_vote(results):
         if not data:
             print(f"⚠️ 模型 {result.get('model', 'unknown')} 沒有提取到資料")
             continue
+        
+        # 調試：打印每個模型提取的資料結構
+        print(f"🔍 模型 {result.get('model', 'unknown')} 提取的資料:")
+        for section, content in data.items():
+            if isinstance(content, dict):
+                non_empty_fields = [k for k, v in content.items() if v]
+                print(f"  - {section}: {len(content)} 個欄位, {len(non_empty_fields)} 個有值")
+            else:
+                print(f"  - {section}: {type(content)}")
+        
         collect_field_votes(data, field_votes, result['model'], result['run_number'])
     
     if not field_votes:
@@ -601,6 +611,17 @@ def process_automatic():
         
         # 執行增強型投票處理 (3個模型)
         voting_results = run_enhanced_voting_system(file_data)
+        
+        # 調試：打印投票結果結構
+        print("🔍 調試 - 投票結果結構:")
+        if voting_results and 'voting_result' in voting_results:
+            final_result = voting_results['voting_result'].get('final_result', {})
+            print(f"  - final_result 鍵: {list(final_result.keys())}")
+            for section, content in final_result.items():
+                if isinstance(content, dict):
+                    print(f"  - {section}: {list(content.keys())}")
+                else:
+                    print(f"  - {section}: {type(content)}")
         
         # 檢查投票結果結構
         if not voting_results or 'voting_result' not in voting_results:

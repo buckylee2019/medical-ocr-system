@@ -576,7 +576,6 @@
         }
 
         function displayFinalResultAsHtmlTable(data) {
-            // 這個函數與之前的實現相同，顯示 HTML 表格
             let htmlContent = '';
             
             // 證明書資訊
@@ -599,7 +598,122 @@
                 `;
             }
             
-            // 其他部分的實現...（為了簡潔，這裡省略，實際使用時需要完整實現）
+            // 病患資訊
+            if (data.patient_info) {
+                htmlContent += `
+                    <div class="mb-4">
+                        <h5 class="text-info mb-3"><i class="fas fa-user"></i> 病患資訊</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-info">
+                                    <tr><th>欄位</th><th>內容</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><strong>姓名</strong></td><td>${data.patient_info.name || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>性別</strong></td><td>${data.patient_info.sex || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>出生日期</strong></td><td>${data.patient_info.date_of_birth || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>國籍</strong></td><td>${data.patient_info.nationality || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>身分證/護照</strong></td><td>${data.patient_info.passport_no_or_id || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>病歷號碼</strong></td><td>${data.patient_info.medical_history_no || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>住址</strong></td><td>${data.patient_info.address || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 診療資訊
+            if (data.examination_info) {
+                htmlContent += `
+                    <div class="mb-4">
+                        <h5 class="text-success mb-3"><i class="fas fa-stethoscope"></i> 診療資訊</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-success">
+                                    <tr><th>欄位</th><th>內容</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><strong>診療日期</strong></td><td>${data.examination_info.date_of_examination || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>診療科別</strong></td><td>${data.examination_info.department || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 醫療內容
+            if (data.medical_content) {
+                htmlContent += `
+                    <div class="mb-4">
+                        <h5 class="text-warning mb-3"><i class="fas fa-notes-medical"></i> 醫療內容</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-warning">
+                                    <tr><th>欄位</th><th>內容</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><strong>診斷</strong></td><td>${data.medical_content.diagnosis || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>醫師意見</strong></td><td>${data.medical_content.doctors_comment || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 醫院資訊
+            if (data.hospital_info) {
+                htmlContent += `
+                    <div class="mb-4">
+                        <h5 class="text-secondary mb-3"><i class="fas fa-hospital"></i> 醫療院所資訊</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-secondary">
+                                    <tr><th>欄位</th><th>內容</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><strong>醫院名稱 (中文)</strong></td><td>${data.hospital_info.hospital_name_chinese || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>醫院名稱 (英文)</strong></td><td>${data.hospital_info.hospital_name_english || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>院長</strong></td><td>${data.hospital_info.superintendent || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>主治醫師</strong></td><td>${data.hospital_info.attending_physician || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 其他資訊
+            if (data.additional_info && (data.additional_info.stamp_or_seal || data.additional_info.other_notes)) {
+                htmlContent += `
+                    <div class="mb-4">
+                        <h5 class="text-dark mb-3"><i class="fas fa-info-circle"></i> 其他資訊</h5>
+                        <div class="table-responsive">
+                            <table class="table table-striped table-hover">
+                                <thead class="table-dark">
+                                    <tr><th>欄位</th><th>內容</th></tr>
+                                </thead>
+                                <tbody>
+                                    <tr><td><strong>印章/戳記</strong></td><td>${data.additional_info.stamp_or_seal || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>其他備註</strong></td><td>${data.additional_info.other_notes || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                `;
+            }
+            
+            // 如果沒有任何資料，顯示提示
+            if (!htmlContent) {
+                htmlContent = `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i>
+                        沒有提取到任何資料，請檢查文件內容或重新上傳。
+                    </div>
+                `;
+            }
             
             document.getElementById('finalResult').innerHTML = htmlContent;
         }
