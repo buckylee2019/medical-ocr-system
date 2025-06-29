@@ -1203,6 +1203,55 @@ def review_image(image_id):
     """人工審核頁面"""
     return render_template('enhanced_voting_ocr.html', review_mode=True, image_id=image_id)
 
+@app.route('/api/images/<image_id>/ocr-result', methods=['GET'])
+def api_get_image_ocr_result(image_id):
+    """API: 獲取圖片的OCR結果詳情"""
+    try:
+        print(f"🔍 Getting OCR result for image: {image_id}")
+        
+        # 獲取圖片信息
+        response = dynamodb_table.get_item(Key={'id': image_id})
+        if 'Item' not in response:
+            return jsonify({'error': '圖片不存在'}), 404
+        
+        image_item = response['Item']
+        if image_item.get('record_type') != 'image_metadata':
+            return jsonify({'error': '無效的圖片記錄'}), 400
+        
+        ocr_result_id = image_item.get('ocr_result_id')
+        if not ocr_result_id:
+            return jsonify({'error': '此圖片尚未處理或處理失敗'}), 404
+        
+        # 獲取OCR結果
+        ocr_response = dynamodb_table.get_item(Key={'id': ocr_result_id})
+        if 'Item' not in ocr_response:
+            return jsonify({'error': 'OCR結果不存在'}), 404
+        
+        ocr_item = ocr_response['Item']
+        
+        return jsonify({
+            'success': True,
+            'image_info': {
+                'id': image_item['id'],
+                'filename': image_item['filename'],
+                'processing_status': image_item['processing_status'],
+                'created_at': image_item['created_at'],
+                'updated_at': image_item['updated_at']
+            },
+            'ocr_result': {
+                'id': ocr_item['id'],
+                'processing_mode': ocr_item['processing_mode'],
+                'human_reviewed': ocr_item.get('human_reviewed', False),
+                'confidence_score': float(ocr_item.get('confidence_score', 0)) if ocr_item.get('confidence_score') else None,
+                'data': ocr_item['data'],
+                'created_at': ocr_item['created_at']
+            }
+        })
+        
+    except Exception as e:
+        print(f"❌ OCR result API error: {str(e)}")
+        return jsonify({'error': f'獲取OCR結果失敗: {str(e)}'}), 500
+
 @app.route('/api/images/<image_id>/delete', methods=['DELETE'])
 def api_delete_image(image_id):
     """API: 刪除圖片"""
