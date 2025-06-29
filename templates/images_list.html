@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>醫療 OCR - 圖片管理</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .image-card {
+            transition: transform 0.2s ease-in-out;
+            cursor: pointer;
+        }
+        
+        .image-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+        }
+        
+        .status-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+        
+        .status-uploaded { background-color: #6c757d; }
+        .status-processing { background-color: #ffc107; }
+        .status-completed { background-color: #28a745; }
+        .status-failed { background-color: #dc3545; }
+        .status-pending_review { background-color: #17a2b8; }
+        
+        .image-thumbnail {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+            border-radius: 8px 8px 0 0;
+        }
+        
+        .loading-spinner {
+            display: none;
+        }
+        
+        .image-actions {
+            display: flex;
+            gap: 5px;
+            margin-top: 10px;
+        }
+        
+        .modal-image {
+            max-width: 100%;
+            max-height: 70vh;
+            object-fit: contain;
+        }
+        
+        .file-info {
+            font-size: 0.85em;
+            color: #6c757d;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h2><i class="fas fa-images"></i> 醫療 OCR 圖片管理</h2>
+                    <div>
+                        <a href="/" class="btn btn-primary">
+                            <i class="fas fa-plus"></i> 新增處理
+                        </a>
+                        <button class="btn btn-secondary" onclick="refreshImages()">
+                            <i class="fas fa-sync-alt"></i> 重新整理
+                        </button>
+                    </div>
+                </div>
+                
+                <!-- 統計信息 -->
+                <div class="row mb-4">
+                    <div class="col-md-3">
+                        <div class="card bg-primary text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">總圖片數</h5>
+                                <h3 id="totalCount">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-success text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">已完成</h5>
+                                <h3 id="completedCount">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-warning text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">處理中</h5>
+                                <h3 id="processingCount">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-md-3">
+                        <div class="card bg-danger text-white">
+                            <div class="card-body">
+                                <h5 class="card-title">失敗</h5>
+                                <h3 id="failedCount">-</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- 載入指示器 -->
+                <div class="text-center loading-spinner" id="loadingSpinner">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">載入中...</span>
+                    </div>
+                    <p class="mt-2">載入圖片列表中...</p>
+                </div>
+                
+                <!-- 圖片網格 -->
+                <div class="row" id="imagesGrid">
+                    <!-- 圖片卡片將在這裡動態生成 -->
+                </div>
+                
+                <!-- 空狀態 -->
+                <div class="text-center py-5" id="emptyState" style="display: none;">
+                    <i class="fas fa-images fa-5x text-muted mb-3"></i>
+                    <h4 class="text-muted">尚無上傳的圖片</h4>
+                    <p class="text-muted">開始上傳您的第一份醫療診斷證明書</p>
+                    <a href="/" class="btn btn-primary">
+                        <i class="fas fa-plus"></i> 立即上傳
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 圖片詳情模態框 -->
+    <div class="modal fade" id="imageModal" tabindex="-1">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="imageModalTitle">圖片詳情</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <div class="col-md-6">
+                            <img id="modalImage" class="modal-image" alt="圖片預覽">
+                        </div>
+                        <div class="col-md-6">
+                            <div id="imageDetails">
+                                <!-- 圖片詳情將在這裡顯示 -->
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                    <button type="button" class="btn btn-warning" id="reprocessBtn">
+                        <i class="fas fa-redo"></i> 重新處理
+                    </button>
+                    <button type="button" class="btn btn-danger" id="deleteBtn">
+                        <i class="fas fa-trash"></i> 刪除
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 重新處理模態框 -->
+    <div class="modal fade" id="reprocessModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">重新處理圖片</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p>選擇處理模式：</p>
+                    <div class="form-check">
+                        <input class="form-check-input" type="radio" name="reprocessMode" id="autoMode" value="automatic" checked>
+                        <label class="form-check-label" for="autoMode">
+                            <strong>全自動處理</strong><br>
+                            <small class="text-muted">3個AI模型投票後直接存入資料庫</small>
+                        </label>
+                    </div>
+                    <div class="form-check mt-2">
+                        <input class="form-check-input" type="radio" name="reprocessMode" id="humanMode" value="human_review">
+                        <label class="form-check-label" for="humanMode">
+                            <strong>人工審核</strong><br>
+                            <small class="text-muted">Claude 3.7 Sonnet處理後等待人工確認</small>
+                        </label>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="confirmReprocessBtn">
+                        <i class="fas fa-play"></i> 開始處理
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentImageId = null;
+        let imagesData = [];
+
+        // 頁面載入時獲取圖片列表
+        document.addEventListener('DOMContentLoaded', function() {
+            loadImages();
+        });
+
+        function loadImages() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('imagesGrid').innerHTML = '';
+            document.getElementById('emptyState').style.display = 'none';
+
+            fetch('/api/images')
+                .then(response => response.json())
+                .then(data => {
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    
+                    if (data.success) {
+                        imagesData = data.images;
+                        displayImages(data.images);
+                        updateStatistics(data.images);
+                    } else {
+                        showError('載入圖片列表失敗: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    document.getElementById('loadingSpinner').style.display = 'none';
+                    showError('載入圖片列表失敗: ' + error.message);
+                });
+        }
+
+        function displayImages(images) {
+            const grid = document.getElementById('imagesGrid');
+            
+            if (images.length === 0) {
+                document.getElementById('emptyState').style.display = 'block';
+                return;
+            }
+
+            grid.innerHTML = images.map(image => `
+                <div class="col-md-4 col-lg-3 mb-4">
+                    <div class="card image-card" onclick="showImageDetails('${image.id}')">
+                        <div class="position-relative">
+                            <span class="badge status-${image.processing_status} status-badge">
+                                ${getStatusText(image.processing_status)}
+                            </span>
+                            ${image.presigned_url ? 
+                                `<img src="${image.presigned_url}" class="image-thumbnail" alt="${image.filename}">` :
+                                `<div class="image-thumbnail d-flex align-items-center justify-content-center bg-light">
+                                    <i class="fas fa-image fa-3x text-muted"></i>
+                                </div>`
+                            }
+                        </div>
+                        <div class="card-body">
+                            <h6 class="card-title text-truncate" title="${image.filename}">
+                                ${image.filename}
+                            </h6>
+                            <div class="file-info">
+                                <div><i class="fas fa-calendar"></i> ${formatDate(image.created_at)}</div>
+                                <div><i class="fas fa-hdd"></i> ${formatFileSize(image.file_size)}</div>
+                                ${image.ocr_result_id ? `<div><i class="fas fa-check-circle text-success"></i> 已處理</div>` : ''}
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function updateStatistics(images) {
+            const stats = {
+                total: images.length,
+                completed: images.filter(img => img.processing_status === 'completed').length,
+                processing: images.filter(img => img.processing_status === 'processing').length,
+                failed: images.filter(img => img.processing_status === 'failed').length
+            };
+
+            document.getElementById('totalCount').textContent = stats.total;
+            document.getElementById('completedCount').textContent = stats.completed;
+            document.getElementById('processingCount').textContent = stats.processing;
+            document.getElementById('failedCount').textContent = stats.failed;
+        }
+
+        function showImageDetails(imageId) {
+            const image = imagesData.find(img => img.id === imageId);
+            if (!image) return;
+
+            currentImageId = imageId;
+            
+            document.getElementById('imageModalTitle').textContent = image.filename;
+            document.getElementById('modalImage').src = image.presigned_url || '';
+            
+            document.getElementById('imageDetails').innerHTML = `
+                <h6>基本資訊</h6>
+                <table class="table table-sm">
+                    <tr><td><strong>檔名</strong></td><td>${image.filename}</td></tr>
+                    <tr><td><strong>大小</strong></td><td>${formatFileSize(image.file_size)}</td></tr>
+                    <tr><td><strong>類型</strong></td><td>${image.content_type}</td></tr>
+                    <tr><td><strong>狀態</strong></td><td><span class="badge status-${image.processing_status}">${getStatusText(image.processing_status)}</span></td></tr>
+                    <tr><td><strong>上傳時間</strong></td><td>${formatDate(image.created_at)}</td></tr>
+                    <tr><td><strong>更新時間</strong></td><td>${formatDate(image.updated_at)}</td></tr>
+                    ${image.session_id ? `<tr><td><strong>會話ID</strong></td><td><code>${image.session_id}</code></td></tr>` : ''}
+                    ${image.ocr_result_id ? `<tr><td><strong>OCR結果ID</strong></td><td><code>${image.ocr_result_id}</code></td></tr>` : ''}
+                </table>
+            `;
+
+            new bootstrap.Modal(document.getElementById('imageModal')).show();
+        }
+
+        function getStatusText(status) {
+            const statusMap = {
+                'uploaded': '已上傳',
+                'processing': '處理中',
+                'completed': '已完成',
+                'failed': '失敗',
+                'pending_review': '待審核'
+            };
+            return statusMap[status] || status;
+        }
+
+        function formatDate(dateString) {
+            return new Date(dateString).toLocaleString('zh-TW');
+        }
+
+        function formatFileSize(bytes) {
+            if (bytes === 0) return '0 Bytes';
+            const k = 1024;
+            const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+        }
+
+        function refreshImages() {
+            loadImages();
+        }
+
+        function showError(message) {
+            alert('錯誤: ' + message);
+        }
+
+        // 重新處理按鈕事件
+        document.getElementById('reprocessBtn').addEventListener('click', function() {
+            bootstrap.Modal.getInstance(document.getElementById('imageModal')).hide();
+            new bootstrap.Modal(document.getElementById('reprocessModal')).show();
+        });
+
+        // 確認重新處理
+        document.getElementById('confirmReprocessBtn').addEventListener('click', function() {
+            const mode = document.querySelector('input[name="reprocessMode"]:checked').value;
+            reprocessImage(currentImageId, mode);
+        });
+
+        // 刪除按鈕事件
+        document.getElementById('deleteBtn').addEventListener('click', function() {
+            if (confirm('確定要刪除這張圖片嗎？此操作無法復原。')) {
+                deleteImage(currentImageId);
+            }
+        });
+
+        function reprocessImage(imageId, mode) {
+            bootstrap.Modal.getInstance(document.getElementById('reprocessModal')).hide();
+            
+            fetch(`/api/images/${imageId}/reprocess`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    processing_mode: mode
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('重新處理已開始');
+                    loadImages(); // 重新載入列表
+                } else {
+                    showError('重新處理失敗: ' + data.error);
+                }
+            })
+            .catch(error => {
+                showError('重新處理失敗: ' + error.message);
+            });
+        }
+
+        function deleteImage(imageId) {
+            fetch(`/api/images/${imageId}/delete`, {
+                method: 'DELETE'
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    bootstrap.Modal.getInstance(document.getElementById('imageModal')).hide();
+                    alert('圖片已刪除');
+                    loadImages(); // 重新載入列表
+                } else {
+                    showError('刪除失敗: ' + data.error);
+                }
+            })
+            .catch(error => {
+                showError('刪除失敗: ' + error.message);
+            });
+        }
+    </script>
+</body>
+</html>

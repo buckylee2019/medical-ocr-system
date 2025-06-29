@@ -110,11 +110,20 @@
             <div class="col-md-12">
                 <div class="card shadow">
                     <div class="card-header bg-primary text-white">
-                        <h3 class="mb-0">
-                            <i class="fas fa-database"></i>
-                            醫療 OCR - 增強型系統 + DynamoDB 整合
-                        </h3>
-                        <p class="mb-0 mt-2">選擇處理路徑：全自動投票存儲 或 人工審核確認</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <div>
+                                <h3 class="mb-0">
+                                    <i class="fas fa-database"></i>
+                                    醫療 OCR - 增強型系統 + DynamoDB 整合
+                                </h3>
+                                <p class="mb-0 mt-2">選擇處理路徑：全自動投票存儲 或 人工審核確認</p>
+                            </div>
+                            <div>
+                                <a href="/images" class="btn btn-light btn-sm">
+                                    <i class="fas fa-images"></i> 圖片管理
+                                </a>
+                            </div>
+                        </div>
                     </div>
                     <div class="card-body">
                         
@@ -249,6 +258,7 @@
         let selectedPath = null;
         let currentResult = null;
         let currentSessionId = null;
+        let currentImageId = null;
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {
@@ -358,6 +368,7 @@
             if (data.success) {
                 currentResult = data;
                 currentSessionId = data.session_id;
+                currentImageId = data.image_id;  // 保存 image_id
                 displayHumanReview(data);
             } else {
                 showError(data.error);
@@ -519,6 +530,7 @@
                 },
                 body: JSON.stringify({
                     session_id: currentSessionId,
+                    image_id: currentImageId,
                     reviewed_data: reviewedData
                 })
             })

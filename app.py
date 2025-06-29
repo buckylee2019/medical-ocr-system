@@ -36,6 +36,7 @@ CLAUDE_SONNET_LATEST_MODEL_ID = 'us.anthropic.claude-3-7-sonnet-20250219-v1:0'  
 
 # DynamoDB Configuration
 DYNAMODB_TABLE_NAME = os.getenv('DYNAMODB_TABLE_NAME', 'medical-ocr-results')
+DYNAMODB_IMAGES_TABLE_NAME = os.getenv('DYNAMODB_IMAGES_TABLE_NAME', 'medical-ocr-images')
 
 # Initialize AWS clients
 def create_aws_session():
@@ -52,13 +53,129 @@ s3_client = aws_session.client('s3')
 bedrock_client = aws_session.client('bedrock-runtime')
 dynamodb = aws_session.resource('dynamodb')
 dynamodb_table = dynamodb.Table(DYNAMODB_TABLE_NAME)
+dynamodb_images_table = dynamodb.Table(DYNAMODB_IMAGES_TABLE_NAME)
 
 ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'tiff'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
-def convert_floats_to_decimal(obj):
+def save_image_metadata_to_dynamodb(filename, s3_key, file_size, content_type, session_id=None):
+    """保存圖片元數據到現有的 DynamoDB 表格"""
+    try:
+        record_id = str(uuid.uuid4())
+        timestamp = datetime.now().isoformat()
+        
+        # 使用現有表格，添加 record_type 來區分數據類型
+        item = {
+            'id': record_id,
+            'record_type': 'image_metadata',  # 區分圖片元數據和OCR結果
+            'timestamp': timestamp,
+            'filename': filename,
+            's3_key': s3_key,
+            'file_size': file_size,
+            'content_type': content_type,
+            'processing_status': 'uploaded',  # uploaded, processing, completed, failed
+            'created_at': timestamp,
+            'updated_at': timestamp
+        }
+        
+        if session_id:
+            item['session_id'] = session_id
+        
+        response = dynamodb_table.put_item(Item=item)
+        
+        return {
+            'success': True,
+            'image_id': record_id,
+            'timestamp': timestamp
+        }
+        
+    except Exception as e:
+        print(f"❌ 圖片元數據存儲錯誤: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+def update_image_processing_status(image_id, status, ocr_result_id=None):
+    """更新圖片處理狀態"""
+    try:
+        update_expression = "SET processing_status = :status, updated_at = :updated_at"
+        expression_values = {
+            ':status': status,
+            ':updated_at': datetime.now().isoformat()
+        }
+        
+        if ocr_result_id:
+            update_expression += ", ocr_result_id = :ocr_result_id"
+            expression_values[':ocr_result_id'] = ocr_result_id
+        
+        response = dynamodb_table.update_item(
+            Key={'id': image_id},
+            UpdateExpression=update_expression,
+            ExpressionAttributeValues=expression_values
+        )
+        
+        return {'success': True}
+        
+    except Exception as e:
+        print(f"❌ 更新圖片狀態錯誤: {str(e)}")
+        return {'success': False, 'error': str(e)}
+
+def get_uploaded_images(limit=50):
+    """獲取已上傳的圖片列表"""
+    try:
+        # 使用 scan 操作查找所有圖片元數據記錄
+        response = dynamodb_table.scan(
+            FilterExpression='record_type = :record_type',
+            ExpressionAttributeValues={':record_type': 'image_metadata'},
+            Limit=limit
+        )
+        
+        images = []
+        for item in response.get('Items', []):
+            # 生成預簽名URL用於圖片預覽
+            try:
+                presigned_url = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={'Bucket': S3_BUCKET, 'Key': item['s3_key']},
+                    ExpiresIn=3600  # 1小時有效期
+                )
+            except:
+                presigned_url = None
+            
+            images.append({
+                'id': item['id'],
+                'filename': item['filename'],
+                's3_key': item['s3_key'],
+                'file_size': item['file_size'],
+                'content_type': item['content_type'],
+                'processing_status': item['processing_status'],
+                'created_at': item['created_at'],
+                'updated_at': item['updated_at'],
+                'session_id': item.get('session_id'),
+                'ocr_result_id': item.get('ocr_result_id'),
+                'presigned_url': presigned_url
+            })
+        
+        # 按創建時間排序（最新的在前）
+        images.sort(key=lambda x: x['created_at'], reverse=True)
+        
+        return {
+            'success': True,
+            'images': images,
+            'count': len(images)
+        }
+        
+    except Exception as e:
+        print(f"❌ 獲取圖片列表錯誤: {str(e)}")
+        return {
+            'success': False,
+            'error': str(e),
+            'images': [],
+            'count': 0
+        }
     """遞歸轉換所有 float 為 Decimal，用於 DynamoDB 存儲"""
     if isinstance(obj, float):
         return Decimal(str(obj))
@@ -627,10 +744,38 @@ def process_automatic():
         # 讀取和處理檔案
         file_data = file.read()
         session_id = str(uuid.uuid4())
+        filename = secure_filename(file.filename)
         
         # 儲存到 S3
-        s3_key = f"automatic_uploads/{session_id}/{secure_filename(file.filename)}"
-        s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=file_data, ContentType=file.content_type)
+        s3_key = f"automatic_uploads/{datetime.now().strftime('%Y/%m/%d')}/{session_id}/{filename}"
+        s3_client.put_object(
+            Bucket=S3_BUCKET, 
+            Key=s3_key, 
+            Body=file_data, 
+            ContentType=file.content_type,
+            Metadata={
+                'session_id': session_id,
+                'processing_mode': 'automatic',
+                'original_filename': filename
+            }
+        )
+        
+        # 保存圖片元數據到 DynamoDB
+        image_metadata = save_image_metadata_to_dynamodb(
+            filename=filename,
+            s3_key=s3_key,
+            file_size=len(file_data),
+            content_type=file.content_type,
+            session_id=session_id
+        )
+        
+        if not image_metadata['success']:
+            return jsonify({'error': f'圖片元數據保存失敗: {image_metadata["error"]}'}), 500
+        
+        image_id = image_metadata['image_id']
+        
+        # 更新處理狀態為 processing
+        update_image_processing_status(image_id, 'processing')
         
         # 執行增強型投票處理 (3個模型)
         voting_results = run_enhanced_voting_system(file_data)
@@ -648,9 +793,11 @@ def process_automatic():
         
         # 檢查投票結果結構
         if not voting_results or 'voting_result' not in voting_results:
+            update_image_processing_status(image_id, 'failed')
             return jsonify({'error': '投票處理失敗：無效的結果結構'}), 500
             
         if 'final_result' not in voting_results['voting_result']:
+            update_image_processing_status(image_id, 'failed')
             return jsonify({'error': '投票處理失敗：缺少最終結果'}), 500
         
         # 計算平均信心度
@@ -666,6 +813,12 @@ def process_automatic():
             human_reviewed=False
         )
         
+        # 更新圖片處理狀態
+        if db_result['success']:
+            update_image_processing_status(image_id, 'completed', db_result['record_id'])
+        else:
+            update_image_processing_status(image_id, 'failed')
+        
         # 儲存處理結果到 S3
         results_key = f"automatic_results/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
         s3_client.put_object(
@@ -673,7 +826,8 @@ def process_automatic():
             Key=results_key,
             Body=json.dumps({
                 'session_id': session_id,
-                'filename': secure_filename(file.filename),
+                'image_id': image_id,
+                'filename': filename,
                 'processed_at': datetime.now().isoformat(),
                 'processing_mode': 'automatic',
                 'voting_results': voting_results,
@@ -689,15 +843,20 @@ def process_automatic():
         return jsonify({
             'success': True,
             'session_id': session_id,
-            'filename': secure_filename(file.filename),
+            'image_id': image_id,
+            'filename': filename,
             'image_data': f"data:image/{file_type};base64,{file_base64}",
             'processing_mode': 'automatic',
             'voting_results': voting_results,
             'dynamodb_result': db_result,
-            'confidence_score': avg_confidence
+            'confidence_score': avg_confidence,
+            's3_key': s3_key
         })
         
     except Exception as e:
+        # 如果有 image_id，更新狀態為失敗
+        if 'image_id' in locals():
+            update_image_processing_status(image_id, 'failed')
         return jsonify({'error': f'自動處理失敗: {str(e)}'}), 500
 
 @app.route('/process_human_review', methods=['POST'])
@@ -714,13 +873,48 @@ def process_human_review():
         # 讀取和處理檔案
         file_data = file.read()
         session_id = str(uuid.uuid4())
+        filename = secure_filename(file.filename)
         
         # 儲存到 S3
-        s3_key = f"human_review_uploads/{session_id}/{secure_filename(file.filename)}"
-        s3_client.put_object(Bucket=S3_BUCKET, Key=s3_key, Body=file_data, ContentType=file.content_type)
+        s3_key = f"human_review_uploads/{datetime.now().strftime('%Y/%m/%d')}/{session_id}/{filename}"
+        s3_client.put_object(
+            Bucket=S3_BUCKET, 
+            Key=s3_key, 
+            Body=file_data, 
+            ContentType=file.content_type,
+            Metadata={
+                'session_id': session_id,
+                'processing_mode': 'human_review',
+                'original_filename': filename
+            }
+        )
+        
+        # 保存圖片元數據到 DynamoDB
+        image_metadata = save_image_metadata_to_dynamodb(
+            filename=filename,
+            s3_key=s3_key,
+            file_size=len(file_data),
+            content_type=file.content_type,
+            session_id=session_id
+        )
+        
+        if not image_metadata['success']:
+            return jsonify({'error': f'圖片元數據保存失敗: {image_metadata["error"]}'}), 500
+        
+        image_id = image_metadata['image_id']
+        
+        # 更新處理狀態為 processing
+        update_image_processing_status(image_id, 'processing')
         
         # 使用 Claude 3.7 Sonnet 處理
         claude_result = process_with_claude_latest(file_data, for_human_review=True)
+        
+        if claude_result['success']:
+            # 更新狀態為待審核
+            update_image_processing_status(image_id, 'pending_review')
+        else:
+            # 更新狀態為失敗
+            update_image_processing_status(image_id, 'failed')
         
         # 儲存待審核結果到 S3
         pending_key = f"pending_review/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
@@ -729,10 +923,11 @@ def process_human_review():
             Key=pending_key,
             Body=json.dumps({
                 'session_id': session_id,
-                'filename': secure_filename(file.filename),
+                'image_id': image_id,
+                'filename': filename,
                 'processed_at': datetime.now().isoformat(),
                 'processing_mode': 'human_review',
-                'status': 'pending_review',
+                'status': 'pending_review' if claude_result['success'] else 'failed',
                 'claude_result': claude_result
             }, indent=2, ensure_ascii=False),
             ContentType='application/json'
@@ -745,15 +940,20 @@ def process_human_review():
         return jsonify({
             'success': True,
             'session_id': session_id,
-            'filename': secure_filename(file.filename),
+            'image_id': image_id,
+            'filename': filename,
             'image_data': f"data:image/{file_type};base64,{file_base64}",
             'processing_mode': 'human_review',
-            'status': 'pending_review',
+            'status': 'pending_review' if claude_result['success'] else 'failed',
             'claude_result': claude_result,
-            's3_pending_key': pending_key
+            's3_pending_key': pending_key,
+            's3_key': s3_key
         })
         
     except Exception as e:
+        # 如果有 image_id，更新狀態為失敗
+        if 'image_id' in locals():
+            update_image_processing_status(image_id, 'failed')
         return jsonify({'error': f'人工審核處理失敗: {str(e)}'}), 500
 
 @app.route('/submit_human_review', methods=['POST'])
@@ -762,6 +962,7 @@ def submit_human_review():
     try:
         data = request.json
         session_id = data.get('session_id')
+        image_id = data.get('image_id')  # 從前端傳入
         reviewed_data = data.get('reviewed_data')
         
         if not session_id or not reviewed_data:
@@ -775,6 +976,12 @@ def submit_human_review():
             human_reviewed=True
         )
         
+        # 如果有 image_id，更新圖片處理狀態
+        if image_id and db_result['success']:
+            update_image_processing_status(image_id, 'completed', db_result['record_id'])
+        elif image_id:
+            update_image_processing_status(image_id, 'failed')
+        
         # 更新 S3 中的狀態
         final_key = f"human_reviewed/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
         s3_client.put_object(
@@ -782,6 +989,7 @@ def submit_human_review():
             Key=final_key,
             Body=json.dumps({
                 'session_id': session_id,
+                'image_id': image_id,
                 'processed_at': datetime.now().isoformat(),
                 'reviewed_at': datetime.now().isoformat(),
                 'processing_mode': 'human_review',
@@ -795,15 +1003,127 @@ def submit_human_review():
         return jsonify({
             'success': True,
             'session_id': session_id,
+            'image_id': image_id,
             'status': 'completed',
             'dynamodb_result': db_result
         })
         
     except Exception as e:
+        # 如果有 image_id，更新狀態為失敗
+        if 'image_id' in locals():
+            update_image_processing_status(image_id, 'failed')
         return jsonify({'error': f'提交審核結果失敗: {str(e)}'}), 500
 
-@app.route('/health')
-def health_check():
+@app.route('/images')
+def images_list():
+    """圖片管理頁面"""
+    return render_template('images_list.html')
+
+@app.route('/api/images')
+def api_get_images():
+    """API: 獲取圖片列表"""
+    limit = request.args.get('limit', 50, type=int)
+    result = get_uploaded_images(limit)
+    return jsonify(result)
+
+@app.route('/api/images/<image_id>/reprocess', methods=['POST'])
+def api_reprocess_image(image_id):
+    """API: 重新處理指定圖片"""
+    try:
+        # 獲取圖片信息
+        response = dynamodb_table.get_item(Key={'id': image_id})
+        if 'Item' not in response:
+            return jsonify({'error': '圖片不存在'}), 404
+        
+        image_item = response['Item']
+        if image_item.get('record_type') != 'image_metadata':
+            return jsonify({'error': '無效的圖片記錄'}), 400
+        
+        # 從 S3 下載圖片
+        s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
+        file_data = s3_response['Body'].read()
+        
+        # 更新處理狀態
+        update_image_processing_status(image_id, 'processing')
+        
+        # 執行處理
+        processing_mode = request.json.get('processing_mode', 'automatic')
+        
+        if processing_mode == 'automatic':
+            # 執行自動處理
+            voting_results = run_enhanced_voting_system(file_data)
+            
+            if voting_results and 'voting_result' in voting_results and 'final_result' in voting_results['voting_result']:
+                vote_details = voting_results['voting_result'].get('vote_details', {})
+                avg_confidence = sum(detail['confidence'] for detail in vote_details.values()) / len(vote_details) if vote_details else 0
+                
+                final_result = voting_results['voting_result']['final_result']
+                db_result = save_to_dynamodb(
+                    data=final_result,
+                    processing_mode='automatic_reprocess',
+                    confidence_score=avg_confidence,
+                    human_reviewed=False
+                )
+                
+                if db_result['success']:
+                    update_image_processing_status(image_id, 'completed', db_result['record_id'])
+                    return jsonify({
+                        'success': True,
+                        'message': '重新處理完成',
+                        'ocr_result_id': db_result['record_id']
+                    })
+                else:
+                    update_image_processing_status(image_id, 'failed')
+                    return jsonify({'error': f'OCR結果保存失敗: {db_result["error"]}'}), 500
+            else:
+                update_image_processing_status(image_id, 'failed')
+                return jsonify({'error': '處理失敗：無效的結果結構'}), 500
+        else:
+            # 人工審核模式
+            claude_result = process_with_claude_latest(file_data, for_human_review=True)
+            if claude_result['success']:
+                update_image_processing_status(image_id, 'pending_review')
+                return jsonify({
+                    'success': True,
+                    'message': '準備人工審核',
+                    'claude_result': claude_result,
+                    'image_id': image_id
+                })
+            else:
+                update_image_processing_status(image_id, 'failed')
+                return jsonify({'error': f'處理失敗: {claude_result["error"]}'}), 500
+        
+    except Exception as e:
+        if 'image_id' in locals():
+            update_image_processing_status(image_id, 'failed')
+        return jsonify({'error': f'重新處理失敗: {str(e)}'}), 500
+
+@app.route('/api/images/<image_id>/delete', methods=['DELETE'])
+def api_delete_image(image_id):
+    """API: 刪除圖片"""
+    try:
+        # 獲取圖片信息
+        response = dynamodb_table.get_item(Key={'id': image_id})
+        if 'Item' not in response:
+            return jsonify({'error': '圖片不存在'}), 404
+        
+        image_item = response['Item']
+        if image_item.get('record_type') != 'image_metadata':
+            return jsonify({'error': '無效的圖片記錄'}), 400
+        
+        # 從 S3 刪除圖片
+        try:
+            s3_client.delete_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
+        except Exception as s3_error:
+            print(f"⚠️ S3 刪除警告: {str(s3_error)}")
+        
+        # 從 DynamoDB 刪除記錄
+        dynamodb_table.delete_item(Key={'id': image_id})
+        
+        return jsonify({'success': True, 'message': '圖片已刪除'})
+        
+    except Exception as e:
+        return jsonify({'error': f'刪除失敗: {str(e)}'}), 500
     return jsonify({
         'status': 'healthy', 
         'timestamp': datetime.now().isoformat(),
