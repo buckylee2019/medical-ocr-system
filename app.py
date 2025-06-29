@@ -127,7 +127,6 @@ def process_with_claude_latest(image_data, for_human_review=False):
                     "hospital_name_chinese": "",
                     "hospital_name_english": "",
                     "superintendent": "",
-                    "certified_by": "",
                     "attending_physician": ""
                 },
                 "additional_info": {
@@ -236,7 +235,6 @@ def get_medical_extraction_prompt():
             "hospital_name_chinese": "",
             "hospital_name_english": "",
             "superintendent": "",
-            "certified_by": "",
             "attending_physician": ""
         },
         "additional_info": {
@@ -261,7 +259,6 @@ def get_medical_extraction_prompt():
     - hospital_name_chinese: 醫療院所名稱（中文）
     - hospital_name_english: 醫療院所名稱（英文）
     - superintendent: 院長
-    - certified_by: 診治醫師
     - attending_physician: 主治醫師
     - certificate_date: 證明書日期
 
