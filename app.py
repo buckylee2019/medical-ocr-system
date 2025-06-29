@@ -15,6 +15,7 @@ from collections import Counter, defaultdict
 import difflib
 import asyncio
 import concurrent.futures
+from decimal import Decimal
 
 app = Flask(__name__)
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
@@ -57,6 +58,17 @@ ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'tiff'}
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
+def convert_floats_to_decimal(obj):
+    """遞歸轉換所有 float 為 Decimal，用於 DynamoDB 存儲"""
+    if isinstance(obj, float):
+        return Decimal(str(obj))
+    elif isinstance(obj, dict):
+        return {key: convert_floats_to_decimal(value) for key, value in obj.items()}
+    elif isinstance(obj, list):
+        return [convert_floats_to_decimal(item) for item in obj]
+    else:
+        return obj
+
 def save_to_dynamodb(data, processing_mode, confidence_score=None, human_reviewed=False):
     """Save OCR results to DynamoDB"""
     try:
@@ -64,17 +76,27 @@ def save_to_dynamodb(data, processing_mode, confidence_score=None, human_reviewe
         record_id = str(uuid.uuid4())
         timestamp = datetime.now().isoformat()
         
+        # Convert confidence_score to Decimal if it's a float
+        if confidence_score is not None:
+            confidence_score = Decimal(str(confidence_score))
+        
+        # Convert all float values in data to Decimal
+        converted_data = convert_floats_to_decimal(data)
+        
         # Prepare DynamoDB item
         item = {
             'id': record_id,
             'timestamp': timestamp,
             'processing_mode': processing_mode,  # 'automatic' or 'human_review'
             'human_reviewed': human_reviewed,
-            'confidence_score': confidence_score,
-            'data': data,
+            'data': converted_data,
             'created_at': timestamp,
             'updated_at': timestamp
         }
+        
+        # Only add confidence_score if it's not None
+        if confidence_score is not None:
+            item['confidence_score'] = confidence_score
         
         # Save to DynamoDB
         response = dynamodb_table.put_item(Item=item)
@@ -87,6 +109,7 @@ def save_to_dynamodb(data, processing_mode, confidence_score=None, human_reviewe
         }
         
     except Exception as e:
+        print(f"❌ DynamoDB 存儲錯誤: {str(e)}")
         return {
             'success': False,
             'error': str(e)
@@ -748,7 +771,7 @@ def submit_human_review():
         db_result = save_to_dynamodb(
             data=reviewed_data,
             processing_mode='human_review',
-            confidence_score=1.0,  # 人工審核後信心度設為100%
+            confidence_score=Decimal('1.0'),  # 人工審核後信心度設為100%
             human_reviewed=True
         )
         

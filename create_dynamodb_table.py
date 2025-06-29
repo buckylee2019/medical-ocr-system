@@ -74,8 +74,7 @@ def create_dynamodb_table():
                     ],
                     'Projection': {
                         'ProjectionType': 'ALL'
-                    },
-                    'BillingMode': 'PAY_PER_REQUEST'
+                    }
                 },
                 {
                     'IndexName': 'processing-mode-index',
@@ -91,8 +90,7 @@ def create_dynamodb_table():
                     ],
                     'Projection': {
                         'ProjectionType': 'ALL'
-                    },
-                    'BillingMode': 'PAY_PER_REQUEST'
+                    }
                 }
             ],
             BillingMode='PAY_PER_REQUEST'
