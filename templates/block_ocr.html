@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tactical Block-Based Medical OCR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #0056b3;
+            background-color: #e3f2fd;
+        }
+        .upload-area.dragover {
+            border-color: #28a745;
+            background-color: #d4edda;
+        }
+        
+        .image-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .document-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .selection-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+        }
+        
+        .block-selection {
+            position: absolute;
+            border: 2px solid #007bff;
+            background-color: rgba(0, 123, 255, 0.1);
+            cursor: move;
+            pointer-events: all;
+        }
+        
+        .block-selection.selected {
+            border-color: #28a745;
+            background-color: rgba(40, 167, 69, 0.2);
+        }
+        
+        .block-label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 12px;
+            white-space: nowrap;
+        }
+        
+        .block-selection.selected .block-label {
+            background: #28a745;
+        }
+        
+        .resize-handle {
+            position: absolute;
+            width: 10px;
+            height: 10px;
+            background: #007bff;
+            border: 1px solid white;
+        }
+        
+        .resize-handle.nw { top: -5px; left: -5px; cursor: nw-resize; }
+        .resize-handle.ne { top: -5px; right: -5px; cursor: ne-resize; }
+        .resize-handle.sw { bottom: -5px; left: -5px; cursor: sw-resize; }
+        .resize-handle.se { bottom: -5px; right: -5px; cursor: se-resize; }
+        
+        .block-controls {
+            margin-top: 20px;
+        }
+        
+        .block-type-selector {
+            margin-bottom: 10px;
+        }
+        
+        .processing {
+            display: none;
+        }
+        
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .block-result {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .block-result.success {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        
+        .block-result.error {
+            border-color: #dc3545;
+            background-color: #fff8f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h3 class="mb-0">
+                            <i class="fas fa-th-large"></i>
+                            Tactical Block-Based Medical OCR
+                        </h3>
+                        <p class="mb-0 mt-2">Select specific blocks of your medical document for targeted OCR processing</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Upload Section -->
+                        <div id="upload-section">
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h5>Drop your medical document here or click to browse</h5>
+                                <p class="text-muted">Supported formats: PNG, JPG, JPEG, PDF, TIFF</p>
+                                <p class="text-muted">Maximum file size: 16MB</p>
+                                <input type="file" id="fileInput" class="d-none" accept=".png,.jpg,.jpeg,.pdf,.tiff">
+                            </div>
+                        </div>
+
+                        <!-- Block Selection Section -->
+                        <div id="block-selection-section" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <h5>Select Blocks for OCR Processing</h5>
+                                    <div class="image-container" id="imageContainer">
+                                        <img id="documentImage" class="document-image" alt="Medical Document">
+                                        <div class="selection-overlay" id="selectionOverlay"></div>
+                                    </div>
+                                </div>
+                                <div class="col-md-4">
+                                    <div class="block-controls">
+                                        <h6>Block Controls</h6>
+                                        
+                                        <div class="block-type-selector">
+                                            <label class="form-label">Block Type:</label>
+                                            <select class="form-select" id="blockTypeSelect">
+                                                <option value="patient_info">Patient Information</option>
+                                                <option value="hospital_info">Hospital Information</option>
+                                                <option value="provider_info">Provider Information</option>
+                                                <option value="diagnosis">Diagnosis</option>
+                                                <option value="medications">Medications</option>
+                                                <option value="dates">Dates</option>
+                                                <option value="general">General Text</option>
+                                            </select>
+                                        </div>
+                                        
+                                        <div class="mb-3">
+                                            <label class="form-label">Block Label:</label>
+                                            <input type="text" class="form-control" id="blockLabel" placeholder="e.g., Patient Name Section">
+                                        </div>
+                                        
+                                        <button class="btn btn-primary btn-sm" id="addBlockBtn">
+                                            <i class="fas fa-plus"></i> Add Block
+                                        </button>
+                                        
+                                        <button class="btn btn-secondary btn-sm" id="clearBlocksBtn">
+                                            <i class="fas fa-trash"></i> Clear All
+                                        </button>
+                                        
+                                        <hr>
+                                        
+                                        <h6>Selected Blocks (<span id="blockCount">0</span>)</h6>
+                                        <div id="blocksList" class="mb-3">
+                                            <!-- Selected blocks will be listed here -->
+                                        </div>
+                                        
+                                        <button class="btn btn-success" id="processBlocksBtn" disabled>
+                                            <i class="fas fa-cogs"></i> Process Selected Blocks
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Processing Section -->
+                        <div id="processing" class="processing text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5 class="mt-3">Processing blocks with Amazon Nova...</h5>
+                            <p class="text-muted">This may take a few moments</p>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div id="results-section" class="results-section">
+                            <h5>OCR Processing Results</h5>
+                            <div id="results-container">
+                                <!-- Results will be displayed here -->
+                            </div>
+                            
+                            <div class="mt-3">
+                                <button class="btn btn-primary" id="downloadResultsBtn">
+                                    <i class="fas fa-download"></i> Download Results
+                                </button>
+                                <button class="btn btn-secondary" id="startOverBtn">
+                                    <i class="fas fa-redo"></i> Process Another Document
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Error Section -->
+                        <div id="error" class="alert alert-danger" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentSessionId = null;
+        let currentS3Key = null;
+        let selectedBlocks = [];
+        let isSelecting = false;
+        let currentSelection = null;
+        let imageContainer = null;
+        let selectionOverlay = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            imageContainer = document.getElementById('imageContainer');
+            selectionOverlay = document.getElementById('selectionOverlay');
+            
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // File upload
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Block selection
+            imageContainer.addEventListener('mousedown', startSelection);
+            document.addEventListener('mousemove', updateSelection);
+            document.addEventListener('mouseup', endSelection);
+
+            // Controls
+            document.getElementById('addBlockBtn').addEventListener('click', addCurrentBlock);
+            document.getElementById('clearBlocksBtn').addEventListener('click', clearAllBlocks);
+            document.getElementById('processBlocksBtn').addEventListener('click', processBlocks);
+            document.getElementById('startOverBtn').addEventListener('click', startOver);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/upload_for_blocking', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    currentSessionId = data.session_id;
+                    currentS3Key = data.s3_key;
+                    
+                    // Show the image and enable block selection
+                    document.getElementById('upload-section').style.display = 'none';
+                    document.getElementById('block-selection-section').style.display = 'block';
+                    
+                    const img = document.getElementById('documentImage');
+                    img.src = data.image_data;
+                    img.onload = function() {
+                        // Image loaded, ready for block selection
+                        console.log('Image loaded, ready for block selection');
+                    };
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                showError('Upload failed: ' + error.message);
+            });
+        }
+
+        function startSelection(e) {
+            if (e.target !== document.getElementById('documentImage')) return;
+            
+            isSelecting = true;
+            const rect = imageContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            currentSelection = {
+                startX: x,
+                startY: y,
+                element: null
+            };
+            
+            // Create selection rectangle
+            const selectionDiv = document.createElement('div');
+            selectionDiv.className = 'block-selection';
+            selectionDiv.style.left = x + 'px';
+            selectionDiv.style.top = y + 'px';
+            selectionDiv.style.width = '0px';
+            selectionDiv.style.height = '0px';
+            
+            selectionOverlay.appendChild(selectionDiv);
+            currentSelection.element = selectionDiv;
+            
+            e.preventDefault();
+        }
+
+        function updateSelection(e) {
+            if (!isSelecting || !currentSelection) return;
+            
+            const rect = imageContainer.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            
+            const width = Math.abs(x - currentSelection.startX);
+            const height = Math.abs(y - currentSelection.startY);
+            const left = Math.min(x, currentSelection.startX);
+            const top = Math.min(y, currentSelection.startY);
+            
+            currentSelection.element.style.left = left + 'px';
+            currentSelection.element.style.top = top + 'px';
+            currentSelection.element.style.width = width + 'px';
+            currentSelection.element.style.height = height + 'px';
+        }
+
+        function endSelection(e) {
+            if (!isSelecting) return;
+            
+            isSelecting = false;
+            
+            if (currentSelection && currentSelection.element) {
+                const rect = currentSelection.element.getBoundingClientRect();
+                const containerRect = imageContainer.getBoundingClientRect();
+                
+                // Check if selection is large enough
+                if (rect.width < 20 || rect.height < 20) {
+                    // Remove small selections
+                    currentSelection.element.remove();
+                } else {
+                    // Add label to selection
+                    const label = document.createElement('div');
+                    label.className = 'block-label';
+                    label.textContent = 'New Block';
+                    currentSelection.element.appendChild(label);
+                    
+                    // Make it clickable for selection
+                    currentSelection.element.addEventListener('click', function() {
+                        selectBlock(this);
+                    });
+                }
+            }
+            
+            currentSelection = null;
+        }
+
+        function selectBlock(blockElement) {
+            // Remove selection from other blocks
+            document.querySelectorAll('.block-selection').forEach(block => {
+                block.classList.remove('selected');
+            });
+            
+            // Select this block
+            blockElement.classList.add('selected');
+        }
+
+        function addCurrentBlock() {
+            const selectedBlock = document.querySelector('.block-selection.selected');
+            if (!selectedBlock) {
+                alert('Please select a block first by clicking on it');
+                return;
+            }
+            
+            const blockType = document.getElementById('blockTypeSelect').value;
+            const blockLabel = document.getElementById('blockLabel').value || `Block ${selectedBlocks.length + 1}`;
+            
+            // Calculate coordinates as percentages
+            const containerRect = imageContainer.getBoundingClientRect();
+            const blockRect = selectedBlock.getBoundingClientRect();
+            
+            const coordinates = {
+                x: ((blockRect.left - containerRect.left) / containerRect.width) * 100,
+                y: ((blockRect.top - containerRect.top) / containerRect.height) * 100,
+                width: (blockRect.width / containerRect.width) * 100,
+                height: (blockRect.height / containerRect.height) * 100
+            };
+            
+            // Add to selected blocks
+            const block = {
+                id: Date.now(),
+                type: blockType,
+                label: blockLabel,
+                coordinates: coordinates,
+                element: selectedBlock
+            };
+            
+            selectedBlocks.push(block);
+            
+            // Update block label
+            selectedBlock.querySelector('.block-label').textContent = blockLabel;
+            selectedBlock.classList.remove('selected');
+            selectedBlock.classList.add('added');
+            
+            // Update UI
+            updateBlocksList();
+            updateProcessButton();
+            
+            // Clear form
+            document.getElementById('blockLabel').value = '';
+        }
+
+        function clearAllBlocks() {
+            selectedBlocks = [];
+            document.querySelectorAll('.block-selection').forEach(block => {
+                block.remove();
+            });
+            updateBlocksList();
+            updateProcessButton();
+        }
+
+        function updateBlocksList() {
+            const blocksList = document.getElementById('blocksList');
+            const blockCount = document.getElementById('blockCount');
+            
+            blockCount.textContent = selectedBlocks.length;
+            
+            blocksList.innerHTML = '';
+            selectedBlocks.forEach((block, index) => {
+                const blockItem = document.createElement('div');
+                blockItem.className = 'mb-2 p-2 border rounded';
+                blockItem.innerHTML = `
+                    <strong>${block.label}</strong><br>
+                    <small class="text-muted">Type: ${block.type}</small>
+                    <button class="btn btn-sm btn-outline-danger float-end" onclick="removeBlock(${index})">
+                        <i class="fas fa-times"></i>
+                    </button>
+                `;
+                blocksList.appendChild(blockItem);
+            });
+        }
+
+        function removeBlock(index) {
+            const block = selectedBlocks[index];
+            if (block.element) {
+                block.element.remove();
+            }
+            selectedBlocks.splice(index, 1);
+            updateBlocksList();
+            updateProcessButton();
+        }
+
+        function updateProcessButton() {
+            const processBtn = document.getElementById('processBlocksBtn');
+            processBtn.disabled = selectedBlocks.length === 0;
+        }
+
+        function processBlocks() {
+            if (selectedBlocks.length === 0) return;
+            
+            // Show processing
+            document.getElementById('block-selection-section').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+            
+            // Prepare blocks data
+            const blocksData = selectedBlocks.map(block => ({
+                type: block.type,
+                label: block.label,
+                coordinates: block.coordinates
+            }));
+            
+            fetch('/process_blocks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    s3_key: currentS3Key,
+                    blocks: blocksData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('processing').style.display = 'none';
+                
+                if (data.success) {
+                    displayResults(data.results);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                document.getElementById('processing').style.display = 'none';
+                showError('Processing failed: ' + error.message);
+            });
+        }
+
+        function displayResults(results) {
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.innerHTML = '';
+            
+            results.forEach((result, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `block-result ${result.success ? 'success' : 'error'}`;
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h6><i class="fas fa-check-circle text-success"></i> ${result.block_label}</h6>
+                        <p><strong>Type:</strong> ${result.block_type}</p>
+                        <div class="mt-2">
+                            <strong>Extracted Data:</strong>
+                            <pre class="bg-light p-2 mt-1 rounded">${JSON.stringify(result.extracted_data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h6><i class="fas fa-exclamation-circle text-danger"></i> ${result.block_label}</h6>
+                        <p><strong>Type:</strong> ${result.block_type}</p>
+                        <p class="text-danger"><strong>Error:</strong> ${result.error}</p>
+                    `;
+                }
+                
+                resultsContainer.appendChild(resultDiv);
+            });
+            
+            document.getElementById('results-section').style.display = 'block';
+        }
+
+        function startOver() {
+            location.reload();
+        }
+
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        // Make removeBlock function global
+        window.removeBlock = removeBlock;
+    </script>
+</body>
+</html>

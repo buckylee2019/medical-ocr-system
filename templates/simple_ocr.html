@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Medical OCR - Nova & Claude</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover { border-color: #0056b3; background-color: #e3f2fd; }
+        .upload-area.dragover { border-color: #28a745; background-color: #d4edda; }
+        
+        .model-selector {
+            background: #f8f9fa;
+            border-radius: 8px;
+            padding: 20px;
+            margin-bottom: 20px;
+        }
+        
+        .document-preview {
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            margin-bottom: 20px;
+        }
+        
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .json-output {
+            background: #f8f9fa;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            font-family: 'Courier New', monospace;
+            font-size: 14px;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .processing {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+        
+        .model-badge {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            z-index: 10;
+        }
+    </style>
+</head>
+<body>
+    <div class="container mt-4">
+        <div class="row justify-content-center">
+            <div class="col-md-10">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white position-relative">
+                        <h3 class="mb-0">
+                            <i class="fas fa-stethoscope"></i>
+                            Medical OCR - Direct Processing
+                        </h3>
+                        <p class="mb-0 mt-2">Upload medical document → Choose AI model → Get structured data</p>
+                        <div class="model-badge">
+                            <span class="badge bg-light text-dark">Nova & Claude Available</span>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Upload and Model Selection -->
+                        <div id="upload-section">
+                            <div class="model-selector">
+                                <h5><i class="fas fa-robot"></i> Choose AI Model</h5>
+                                <div class="row">
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="model" id="nova" value="nova" checked>
+                                            <label class="form-check-label" for="nova">
+                                                <strong>Amazon Nova</strong>
+                                                <br><small class="text-muted">Fast, cost-effective, good for standard documents</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <div class="form-check">
+                                            <input class="form-check-input" type="radio" name="model" id="claude" value="claude">
+                                            <label class="form-check-label" for="claude">
+                                                <strong>Claude 3.5 Sonnet</strong>
+                                                <br><small class="text-muted">Advanced reasoning, better for complex documents</small>
+                                            </label>
+                                        </div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mt-3">
+                                    <label class="form-label">Extraction Type:</label>
+                                    <select class="form-select" id="extractionType">
+                                        <option value="comprehensive">Comprehensive (All Information)</option>
+                                        <option value="patient_info">Patient Information Only</option>
+                                        <option value="clinical_info">Clinical Information Only</option>
+                                        <option value="provider_info">Provider Information Only</option>
+                                    </select>
+                                </div>
+                            </div>
+                            
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h5>Upload Medical Document</h5>
+                                <p class="text-muted">Selected AI model will extract and structure all medical information</p>
+                                <p class="text-muted">Supported: PNG, JPG, JPEG, PDF, TIFF | Max: 16MB</p>
+                                <input type="file" id="fileInput" class="d-none" accept=".png,.jpg,.jpeg,.pdf,.tiff">
+                            </div>
+                        </div>
+
+                        <!-- Processing -->
+                        <div id="processing" class="processing">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <h5 class="mt-3">Processing with <span id="processingModel">AI</span>...</h5>
+                            <p class="text-muted">Extracting and structuring medical information</p>
+                        </div>
+
+                        <!-- Results -->
+                        <div id="results-section" class="results-section">
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <h5>Document Preview</h5>
+                                    <img id="documentPreview" class="document-preview" alt="Document">
+                                    <div class="text-center">
+                                        <span class="badge bg-info" id="modelUsed">Model: </span>
+                                        <span class="badge bg-secondary" id="extractionUsed">Type: </span>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <h5>Extracted Data</h5>
+                                    <div class="json-output" id="jsonOutput"></div>
+                                    
+                                    <div class="mt-3">
+                                        <button class="btn btn-success" onclick="downloadResults()">
+                                            <i class="fas fa-download"></i> Download JSON
+                                        </button>
+                                        <button class="btn btn-primary" onclick="copyToClipboard()">
+                                            <i class="fas fa-copy"></i> Copy JSON
+                                        </button>
+                                        <button class="btn btn-secondary" onclick="processAnother()">
+                                            <i class="fas fa-redo"></i> Process Another
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <!-- Structured View -->
+                            <div class="mt-4">
+                                <h5>Structured View</h5>
+                                <div id="structuredView"></div>
+                            </div>
+                        </div>
+
+                        <!-- Error -->
+                        <div id="error" class="alert alert-danger" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentResult = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('dragover'); });
+            uploadArea.addEventListener('dragleave', e => { e.preventDefault(); e.currentTarget.classList.remove('dragover'); });
+            uploadArea.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', e => processFile(e.target.files[0]));
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) processFile(files[0]);
+        }
+
+        function processFile(file) {
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+            formData.append('model', document.querySelector('input[name="model"]:checked').value);
+            formData.append('extraction_type', document.getElementById('extractionType').value);
+
+            // Show processing
+            document.getElementById('upload-section').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+            document.getElementById('processingModel').textContent = 
+                document.querySelector('input[name="model"]:checked').value === 'nova' ? 'Amazon Nova' : 'Claude 3.5 Sonnet';
+
+            fetch('/upload_and_process', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('processing').style.display = 'none';
+                
+                if (data.success) {
+                    currentResult = data;
+                    displayResults(data);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                document.getElementById('processing').style.display = 'none';
+                showError('Processing failed: ' + error.message);
+            });
+        }
+
+        function displayResults(data) {
+            // Show document preview
+            document.getElementById('documentPreview').src = data.image_data;
+            document.getElementById('modelUsed').textContent = `Model: ${data.model_used.toUpperCase()}`;
+            document.getElementById('extractionUsed').textContent = `Type: ${data.extraction_type}`;
+            
+            // Show JSON output
+            const jsonOutput = document.getElementById('jsonOutput');
+            if (data.result.success) {
+                jsonOutput.innerHTML = `<pre>${JSON.stringify(data.result.extracted_data, null, 2)}</pre>`;
+                displayStructuredView(data.result.extracted_data);
+            } else {
+                jsonOutput.innerHTML = `<div class="text-danger">
+                    <strong>Processing Error:</strong><br>
+                    ${data.result.error}<br><br>
+                    <strong>Raw Response:</strong><br>
+                    <pre>${data.result.raw_response || 'No response'}</pre>
+                </div>`;
+            }
+            
+            document.getElementById('results-section').style.display = 'block';
+        }
+
+        function displayStructuredView(data) {
+            const structuredView = document.getElementById('structuredView');
+            let html = '';
+            
+            // Patient Information
+            if (data.patient_info) {
+                html += `<div class="card mb-3">
+                    <div class="card-header bg-primary text-white">
+                        <h6 class="mb-0"><i class="fas fa-user"></i> Patient Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Name:</strong> ${data.patient_info.patient_name || 'N/A'}<br>
+                                <strong>DOB:</strong> ${data.patient_info.date_of_birth || 'N/A'}<br>
+                                <strong>ID:</strong> ${data.patient_info.patient_id || 'N/A'}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Address:</strong> ${data.patient_info.address || 'N/A'}<br>
+                                <strong>Phone:</strong> ${data.patient_info.phone || 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            // Hospital Information
+            if (data.hospital_info) {
+                html += `<div class="card mb-3">
+                    <div class="card-header bg-info text-white">
+                        <h6 class="mb-0"><i class="fas fa-hospital"></i> Hospital Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Hospital:</strong> ${data.hospital_info.hospital_name || 'N/A'}<br>
+                                <strong>Department:</strong> ${data.hospital_info.department || 'N/A'}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>Address:</strong> ${data.hospital_info.hospital_address || 'N/A'}<br>
+                                <strong>Phone:</strong> ${data.hospital_info.phone_number || 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            // Provider Information
+            if (data.provider_info) {
+                html += `<div class="card mb-3">
+                    <div class="card-header bg-success text-white">
+                        <h6 class="mb-0"><i class="fas fa-user-md"></i> Provider Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <strong>Provider:</strong> ${data.provider_info.provider_name || 'N/A'}<br>
+                                <strong>Title:</strong> ${data.provider_info.provider_title || 'N/A'}
+                            </div>
+                            <div class="col-md-6">
+                                <strong>License:</strong> ${data.provider_info.license_number || 'N/A'}<br>
+                                <strong>NPI:</strong> ${data.provider_info.npi || 'N/A'}
+                            </div>
+                        </div>
+                    </div>
+                </div>`;
+            }
+            
+            // Clinical Information
+            if (data.clinical_info) {
+                html += `<div class="card mb-3">
+                    <div class="card-header bg-warning text-dark">
+                        <h6 class="mb-0"><i class="fas fa-notes-medical"></i> Clinical Information</h6>
+                    </div>
+                    <div class="card-body">
+                        <strong>Diagnosis:</strong> ${data.clinical_info.diagnosis || 'N/A'}<br>
+                        <strong>Medications:</strong> ${Array.isArray(data.clinical_info.medications) ? 
+                            data.clinical_info.medications.join(', ') : (data.clinical_info.medications || 'N/A')}<br>
+                        <strong>Instructions:</strong> ${data.clinical_info.instructions || 'N/A'}
+                    </div>
+                </div>`;
+            }
+            
+            structuredView.innerHTML = html;
+        }
+
+        function downloadResults() {
+            if (!currentResult || !currentResult.result.success) return;
+            
+            const dataStr = JSON.stringify(currentResult.result.extracted_data, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `medical_ocr_${currentResult.session_id}.json`;
+            link.click();
+            URL.revokeObjectURL(url);
+        }
+
+        function copyToClipboard() {
+            if (!currentResult || !currentResult.result.success) return;
+            
+            const dataStr = JSON.stringify(currentResult.result.extracted_data, null, 2);
+            navigator.clipboard.writeText(dataStr).then(() => {
+                alert('JSON copied to clipboard!');
+            });
+        }
+
+        function processAnother() {
+            location.reload();
+        }
+
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+    </script>
+</body>
+</html>

@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Generated Block OCR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover {
+            border-color: #0056b3;
+            background-color: #e3f2fd;
+        }
+        
+        .image-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .document-image {
+            max-width: 100%;
+            height: auto;
+            display: block;
+        }
+        
+        .auto-block {
+            position: absolute;
+            border: 2px solid #007bff;
+            background-color: rgba(0, 123, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .auto-block:hover {
+            border-color: #0056b3;
+            background-color: rgba(0, 123, 255, 0.2);
+        }
+        
+        .auto-block.selected {
+            border-color: #28a745;
+            background-color: rgba(40, 167, 69, 0.2);
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+        
+        .auto-block.editing {
+            border-color: #ffc107;
+            background-color: rgba(255, 193, 7, 0.2);
+        }
+        
+        .block-label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .auto-block.selected .block-label {
+            background: #28a745;
+        }
+        
+        .auto-block.editing .block-label {
+            background: #ffc107;
+            color: #000;
+        }
+        
+        .resize-handle {
+            position: absolute;
+            width: 8px;
+            height: 8px;
+            background: #007bff;
+            border: 1px solid white;
+            border-radius: 50%;
+        }
+        
+        .resize-handle.nw { top: -4px; left: -4px; cursor: nw-resize; }
+        .resize-handle.ne { top: -4px; right: -4px; cursor: ne-resize; }
+        .resize-handle.sw { bottom: -4px; left: -4px; cursor: sw-resize; }
+        .resize-handle.se { bottom: -4px; right: -4px; cursor: se-resize; }
+        
+        .block-info-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .block-item {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .block-item:hover {
+            border-color: #007bff;
+            background-color: #f8f9fa;
+        }
+        
+        .block-item.selected {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        
+        .block-item.editing {
+            border-color: #ffc107;
+            background-color: #fffbf0;
+        }
+        
+        .confidence-badge {
+            font-size: 0.8em;
+        }
+        
+        .processing {
+            display: none;
+        }
+        
+        .results-section {
+            display: none;
+            margin-top: 30px;
+        }
+        
+        .block-result {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .block-result.success {
+            border-color: #28a745;
+            background-color: #f8fff9;
+        }
+        
+        .block-result.error {
+            border-color: #dc3545;
+            background-color: #fff8f8;
+        }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-magic"></i>
+                            Auto-Generated Block OCR
+                        </h4>
+                        <p class="mb-0 mt-2">AI automatically detects blocks, then you can modify and process them</p>
+                    </div>
+                    <div class="card-body">
+                        <!-- Upload Section -->
+                        <div id="upload-section">
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h5>Upload Medical Document for Auto Block Detection</h5>
+                                <p class="text-muted">AI will automatically detect text blocks using Amazon Textract</p>
+                                <p class="text-muted">Supported: PNG, JPG, JPEG, PDF, TIFF | Max: 16MB</p>
+                                <input type="file" id="fileInput" class="d-none" accept=".png,.jpg,.jpeg,.pdf,.tiff">
+                            </div>
+                        </div>
+
+                        <!-- Auto Detection Section -->
+                        <div id="auto-detection-section" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5>Auto-Detected Blocks</h5>
+                                        <div>
+                                            <span class="badge bg-info" id="totalBlocksCount">0 blocks</span>
+                                            <span class="badge bg-success" id="selectedBlocksCount">0 selected</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="image-container" id="imageContainer">
+                                        <img id="documentImage" class="document-image" alt="Medical Document">
+                                        <div id="blocksOverlay"></div>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <button class="btn btn-success" id="processSelectedBtn" disabled>
+                                            <i class="fas fa-cogs"></i> Process Selected Blocks (<span id="processCount">0</span>)
+                                        </button>
+                                        <button class="btn btn-secondary" id="selectAllBtn">
+                                            <i class="fas fa-check-double"></i> Select All
+                                        </button>
+                                        <button class="btn btn-outline-secondary" id="clearSelectionBtn">
+                                            <i class="fas fa-times"></i> Clear Selection
+                                        </button>
+                                        <button class="btn btn-outline-primary" id="addManualBlockBtn">
+                                            <i class="fas fa-plus"></i> Add Manual Block
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Block Management</h6>
+                                        </div>
+                                        <div class="card-body block-info-panel" id="blockInfoPanel">
+                                            <!-- Auto-detected blocks will be listed here -->
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Block Editor -->
+                                    <div class="card mt-3" id="blockEditor" style="display: none;">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Edit Block</h6>
+                                        </div>
+                                        <div class="card-body">
+                                            <div class="mb-3">
+                                                <label class="form-label">Block Type:</label>
+                                                <select class="form-select" id="editBlockType">
+                                                    <option value="patient_info">Patient Information</option>
+                                                    <option value="hospital_info">Hospital Information</option>
+                                                    <option value="provider_info">Provider Information</option>
+                                                    <option value="diagnosis">Diagnosis</option>
+                                                    <option value="medications">Medications</option>
+                                                    <option value="dates">Dates</option>
+                                                    <option value="vitals">Vital Signs</option>
+                                                    <option value="general">General Text</option>
+                                                </select>
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Block Label:</label>
+                                                <input type="text" class="form-control" id="editBlockLabel" placeholder="Custom label">
+                                            </div>
+                                            <div class="mb-3">
+                                                <label class="form-label">Text Preview:</label>
+                                                <textarea class="form-control" id="editTextPreview" rows="3" readonly></textarea>
+                                            </div>
+                                            <button class="btn btn-primary btn-sm" id="saveBlockBtn">
+                                                <i class="fas fa-save"></i> Save Changes
+                                            </button>
+                                            <button class="btn btn-secondary btn-sm" id="cancelEditBtn">
+                                                <i class="fas fa-times"></i> Cancel
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Processing Section -->
+                        <div id="processing" class="processing text-center">
+                            <div class="spinner-border text-primary" role="status">
+                                <span class="visually-hidden">Loading...</span>
+                            </div>
+                            <h5 class="mt-3">Processing selected blocks with Amazon Nova...</h5>
+                            <p class="text-muted">This may take a few moments</p>
+                            <div class="progress mt-3" style="width: 300px; margin: 0 auto;">
+                                <div class="progress-bar" role="progressbar" id="processingProgress" style="width: 0%"></div>
+                            </div>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div id="results-section" class="results-section">
+                            <h5>OCR Processing Results</h5>
+                            <div id="results-container">
+                                <!-- Results will be displayed here -->
+                            </div>
+                            
+                            <div class="mt-3">
+                                <button class="btn btn-primary" id="downloadResultsBtn">
+                                    <i class="fas fa-download"></i> Download Results
+                                </button>
+                                <button class="btn btn-secondary" id="startOverBtn">
+                                    <i class="fas fa-redo"></i> Process Another Document
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Error Section -->
+                        <div id="error" class="alert alert-danger" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentSessionId = null;
+        let currentS3Key = null;
+        let autoBlocks = [];
+        let selectedBlocks = [];
+        let editingBlock = null;
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // File upload
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', handleDragOver);
+            uploadArea.addEventListener('dragleave', handleDragLeave);
+            uploadArea.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', handleFileSelect);
+
+            // Controls
+            document.getElementById('processSelectedBtn').addEventListener('click', processSelectedBlocks);
+            document.getElementById('selectAllBtn').addEventListener('click', selectAllBlocks);
+            document.getElementById('clearSelectionBtn').addEventListener('click', clearSelection);
+            document.getElementById('saveBlockBtn').addEventListener('click', saveBlockEdit);
+            document.getElementById('cancelEditBtn').addEventListener('click', cancelBlockEdit);
+            document.getElementById('startOverBtn').addEventListener('click', startOver);
+        }
+
+        function handleDragOver(e) {
+            e.preventDefault();
+            e.currentTarget.classList.add('dragover');
+        }
+
+        function handleDragLeave(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                processFile(files[0]);
+            }
+        }
+
+        function handleFileSelect(e) {
+            const file = e.target.files[0];
+            if (file) {
+                processFile(file);
+            }
+        }
+
+        function processFile(file) {
+            const formData = new FormData();
+            formData.append('file', file);
+
+            // Show loading
+            document.getElementById('upload-section').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+
+            fetch('/upload_and_auto_detect', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('processing').style.display = 'none';
+                
+                if (data.success) {
+                    currentSessionId = data.session_id;
+                    currentS3Key = data.s3_key;
+                    autoBlocks = data.auto_blocks;
+                    
+                    // Show the image and auto-detected blocks
+                    displayImageWithBlocks(data.image_data, data.auto_blocks);
+                    updateBlocksList();
+                    updateCounters();
+                    
+                    document.getElementById('auto-detection-section').style.display = 'block';
+                    
+                    if (data.textract_error) {
+                        showWarning(`Auto-detection had issues: ${data.textract_error}. You can still add blocks manually.`);
+                    }
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                document.getElementById('processing').style.display = 'none';
+                showError('Upload failed: ' + error.message);
+            });
+        }
+
+        function displayImageWithBlocks(imageData, blocks) {
+            const img = document.getElementById('documentImage');
+            const overlay = document.getElementById('blocksOverlay');
+            
+            img.src = imageData;
+            img.onload = function() {
+                // Clear existing blocks
+                overlay.innerHTML = '';
+                
+                // Add auto-detected blocks
+                blocks.forEach((block, index) => {
+                    createBlockElement(block, index);
+                });
+            };
+        }
+
+        function createBlockElement(block, index) {
+            const overlay = document.getElementById('blocksOverlay');
+            const blockDiv = document.createElement('div');
+            blockDiv.className = 'auto-block';
+            blockDiv.id = `block_${block.id}`;
+            blockDiv.style.left = block.coordinates.x + '%';
+            blockDiv.style.top = block.coordinates.y + '%';
+            blockDiv.style.width = block.coordinates.width + '%';
+            blockDiv.style.height = block.coordinates.height + '%';
+            
+            // Add label
+            const label = document.createElement('div');
+            label.className = 'block-label';
+            label.textContent = block.suggested_label || `Block ${index + 1}`;
+            blockDiv.appendChild(label);
+            
+            // Add click handler
+            blockDiv.addEventListener('click', function(e) {
+                e.stopPropagation();
+                toggleBlockSelection(block.id);
+            });
+            
+            // Add double-click handler for editing
+            blockDiv.addEventListener('dblclick', function(e) {
+                e.stopPropagation();
+                editBlock(block.id);
+            });
+            
+            overlay.appendChild(blockDiv);
+        }
+
+        function updateBlocksList() {
+            const panel = document.getElementById('blockInfoPanel');
+            panel.innerHTML = '';
+            
+            autoBlocks.forEach((block, index) => {
+                const blockItem = document.createElement('div');
+                blockItem.className = 'block-item';
+                blockItem.id = `item_${block.id}`;
+                
+                const typeColor = getTypeColor(block.suggested_type);
+                
+                blockItem.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="badge ${typeColor} me-2">${block.suggested_type}</span>
+                                <span class="badge bg-secondary confidence-badge">
+                                    ${block.confidence}% confidence
+                                </span>
+                            </div>
+                            <div class="fw-bold mb-1">${block.suggested_label}</div>
+                            <div class="text-muted small">${block.text_preview}</div>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check_${block.id}">
+                        </div>
+                    </div>
+                `;
+                
+                // Add click handler
+                blockItem.addEventListener('click', function() {
+                    toggleBlockSelection(block.id);
+                });
+                
+                // Add double-click handler for editing
+                blockItem.addEventListener('dblclick', function() {
+                    editBlock(block.id);
+                });
+                
+                panel.appendChild(blockItem);
+            });
+        }
+
+        function getTypeColor(type) {
+            const colors = {
+                'patient_info': 'bg-primary',
+                'hospital_info': 'bg-info',
+                'provider_info': 'bg-success',
+                'diagnosis': 'bg-warning',
+                'medications': 'bg-danger',
+                'dates': 'bg-secondary',
+                'vitals': 'bg-dark',
+                'general': 'bg-light text-dark'
+            };
+            return colors[type] || 'bg-light text-dark';
+        }
+
+        function toggleBlockSelection(blockId) {
+            const block = autoBlocks.find(b => b.id === blockId);
+            if (!block) return;
+            
+            const blockElement = document.getElementById(`block_${blockId}`);
+            const itemElement = document.getElementById(`item_${blockId}`);
+            const checkbox = document.getElementById(`check_${blockId}`);
+            
+            if (selectedBlocks.includes(blockId)) {
+                // Deselect
+                selectedBlocks = selectedBlocks.filter(id => id !== blockId);
+                blockElement.classList.remove('selected');
+                itemElement.classList.remove('selected');
+                checkbox.checked = false;
+            } else {
+                // Select
+                selectedBlocks.push(blockId);
+                blockElement.classList.add('selected');
+                itemElement.classList.add('selected');
+                checkbox.checked = true;
+            }
+            
+            updateCounters();
+        }
+
+        function selectAllBlocks() {
+            selectedBlocks = autoBlocks.map(block => block.id);
+            
+            autoBlocks.forEach(block => {
+                const blockElement = document.getElementById(`block_${block.id}`);
+                const itemElement = document.getElementById(`item_${block.id}`);
+                const checkbox = document.getElementById(`check_${block.id}`);
+                
+                blockElement.classList.add('selected');
+                itemElement.classList.add('selected');
+                checkbox.checked = true;
+            });
+            
+            updateCounters();
+        }
+
+        function clearSelection() {
+            selectedBlocks = [];
+            
+            autoBlocks.forEach(block => {
+                const blockElement = document.getElementById(`block_${block.id}`);
+                const itemElement = document.getElementById(`item_${block.id}`);
+                const checkbox = document.getElementById(`check_${block.id}`);
+                
+                blockElement.classList.remove('selected');
+                itemElement.classList.remove('selected');
+                checkbox.checked = false;
+            });
+            
+            updateCounters();
+        }
+
+        function updateCounters() {
+            document.getElementById('totalBlocksCount').textContent = `${autoBlocks.length} blocks`;
+            document.getElementById('selectedBlocksCount').textContent = `${selectedBlocks.length} selected`;
+            document.getElementById('processCount').textContent = selectedBlocks.length;
+            document.getElementById('processSelectedBtn').disabled = selectedBlocks.length === 0;
+        }
+
+        function editBlock(blockId) {
+            const block = autoBlocks.find(b => b.id === blockId);
+            if (!block) return;
+            
+            editingBlock = block;
+            
+            // Highlight editing block
+            document.querySelectorAll('.auto-block').forEach(el => el.classList.remove('editing'));
+            document.querySelectorAll('.block-item').forEach(el => el.classList.remove('editing'));
+            
+            document.getElementById(`block_${blockId}`).classList.add('editing');
+            document.getElementById(`item_${blockId}`).classList.add('editing');
+            
+            // Populate editor
+            document.getElementById('editBlockType').value = block.suggested_type;
+            document.getElementById('editBlockLabel').value = block.suggested_label;
+            document.getElementById('editTextPreview').value = block.text_preview;
+            
+            // Show editor
+            document.getElementById('blockEditor').style.display = 'block';
+        }
+
+        function saveBlockEdit() {
+            if (!editingBlock) return;
+            
+            // Update block properties
+            editingBlock.suggested_type = document.getElementById('editBlockType').value;
+            editingBlock.suggested_label = document.getElementById('editBlockLabel').value;
+            
+            // Update UI
+            const blockElement = document.getElementById(`block_${editingBlock.id}`);
+            const label = blockElement.querySelector('.block-label');
+            label.textContent = editingBlock.suggested_label;
+            
+            // Update list item
+            updateBlocksList();
+            
+            // Clear editing state
+            cancelBlockEdit();
+        }
+
+        function cancelBlockEdit() {
+            document.querySelectorAll('.auto-block').forEach(el => el.classList.remove('editing'));
+            document.querySelectorAll('.block-item').forEach(el => el.classList.remove('editing'));
+            document.getElementById('blockEditor').style.display = 'none';
+            editingBlock = null;
+        }
+
+        function processSelectedBlocks() {
+            if (selectedBlocks.length === 0) return;
+            
+            // Show processing
+            document.getElementById('auto-detection-section').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+            
+            // Prepare selected blocks data
+            const blocksToProcess = autoBlocks.filter(block => selectedBlocks.includes(block.id));
+            
+            fetch('/process_selected_blocks', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    s3_key: currentS3Key,
+                    selected_blocks: blocksToProcess
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('processing').style.display = 'none';
+                
+                if (data.success) {
+                    displayResults(data.results, data.summary);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                document.getElementById('processing').style.display = 'none';
+                showError('Processing failed: ' + error.message);
+            });
+        }
+
+        function displayResults(results, summary) {
+            const resultsContainer = document.getElementById('results-container');
+            resultsContainer.innerHTML = '';
+            
+            // Add summary
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'alert alert-info';
+            summaryDiv.innerHTML = `
+                <h6><i class="fas fa-info-circle"></i> Processing Summary</h6>
+                <p class="mb-0">
+                    Total: ${summary.total_processed} | 
+                    Successful: <span class="text-success">${summary.successful}</span> | 
+                    Failed: <span class="text-danger">${summary.failed}</span>
+                </p>
+            `;
+            resultsContainer.appendChild(summaryDiv);
+            
+            // Add individual results
+            results.forEach((result, index) => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `block-result ${result.success ? 'success' : 'error'}`;
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h6><i class="fas fa-check-circle text-success"></i> ${result.block_label}</h6>
+                        <p><strong>Type:</strong> ${result.block_type}</p>
+                        <p><strong>Original Text:</strong> <em>${result.original_text_preview}</em></p>
+                        <div class="mt-2">
+                            <strong>Extracted Data:</strong>
+                            <pre class="bg-light p-2 mt-1 rounded">${JSON.stringify(result.extracted_data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h6><i class="fas fa-exclamation-circle text-danger"></i> ${result.block_label}</h6>
+                        <p><strong>Type:</strong> ${result.block_type}</p>
+                        <p class="text-danger"><strong>Error:</strong> ${result.error}</p>
+                    `;
+                }
+                
+                resultsContainer.appendChild(resultDiv);
+            });
+            
+            document.getElementById('results-section').style.display = 'block';
+        }
+
+        function startOver() {
+            location.reload();
+        }
+
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        function showWarning(message) {
+            const warningDiv = document.createElement('div');
+            warningDiv.className = 'alert alert-warning alert-dismissible fade show';
+            warningDiv.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.card-body').insertBefore(warningDiv, document.querySelector('.card-body').firstChild);
+        }
+    </script>
+</body>
+</html>

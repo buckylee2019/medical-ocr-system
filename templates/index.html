@@ -1,0 +1,496 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Auto-Block Medical OCR</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        .upload-area {
+            border: 2px dashed #007bff;
+            border-radius: 10px;
+            padding: 40px;
+            text-align: center;
+            background-color: #f8f9fa;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        .upload-area:hover { border-color: #0056b3; background-color: #e3f2fd; }
+        .upload-area.dragover { border-color: #28a745; background-color: #d4edda; }
+        
+        .image-container {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        
+        .document-image { max-width: 100%; height: auto; display: block; }
+        
+        .auto-block {
+            position: absolute;
+            border: 2px solid #007bff;
+            background-color: rgba(0, 123, 255, 0.1);
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .auto-block:hover {
+            border-color: #0056b3;
+            background-color: rgba(0, 123, 255, 0.2);
+        }
+        
+        .auto-block.selected {
+            border-color: #28a745;
+            background-color: rgba(40, 167, 69, 0.2);
+            box-shadow: 0 0 10px rgba(40, 167, 69, 0.5);
+        }
+        
+        .block-label {
+            position: absolute;
+            top: -25px;
+            left: 0;
+            background: #007bff;
+            color: white;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            white-space: nowrap;
+            max-width: 200px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        
+        .auto-block.selected .block-label { background: #28a745; }
+        
+        .block-item {
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+        
+        .block-item:hover { border-color: #007bff; background-color: #f8f9fa; }
+        .block-item.selected { border-color: #28a745; background-color: #f8fff9; }
+        
+        .processing { display: none; }
+        .results-section { display: none; margin-top: 30px; }
+        
+        .block-result {
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 15px;
+        }
+        
+        .block-result.success { border-color: #28a745; background-color: #f8fff9; }
+        .block-result.error { border-color: #dc3545; background-color: #fff8f8; }
+    </style>
+</head>
+<body>
+    <div class="container-fluid mt-3">
+        <div class="row">
+            <div class="col-12">
+                <div class="card shadow">
+                    <div class="card-header bg-primary text-white">
+                        <h4 class="mb-0">
+                            <i class="fas fa-magic"></i>
+                            Auto-Block Medical OCR
+                        </h4>
+                        <p class="mb-0 mt-2">Textract detects layout regions → You select which to process → Nova extracts text intelligently</p>
+                    </div>
+                    <div class="card-body">
+                        
+                        <!-- Upload Section -->
+                        <div id="upload-section">
+                            <div class="upload-area" id="uploadArea">
+                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <h5>Upload Medical Document</h5>
+                                <p class="text-muted">Textract will detect layout regions (bounding boxes only)</p>
+                                <p class="text-muted">Nova will extract and classify text from selected regions</p>
+                                <p class="text-muted">Supported: PNG, JPG, JPEG, PDF, TIFF | Max: 16MB</p>
+                                <input type="file" id="fileInput" class="d-none" accept=".png,.jpg,.jpeg,.pdf,.tiff">
+                            </div>
+                        </div>
+
+                        <!-- Block Selection Section -->
+                        <div id="block-section" style="display: none;">
+                            <div class="row">
+                                <div class="col-md-8">
+                                    <div class="d-flex justify-content-between align-items-center mb-3">
+                                        <h5>Auto-Detected Layout Regions</h5>
+                                        <div>
+                                            <span class="badge bg-info" id="totalCount">0 regions</span>
+                                            <span class="badge bg-success" id="selectedCount">0 selected</span>
+                                        </div>
+                                    </div>
+                                    
+                                    <div class="image-container" id="imageContainer">
+                                        <img id="documentImage" class="document-image" alt="Medical Document">
+                                        <div id="blocksOverlay"></div>
+                                    </div>
+                                    
+                                    <div class="mt-3">
+                                        <button class="btn btn-success" id="processBtn" disabled>
+                                            <i class="fas fa-cogs"></i> Process Selected (<span id="processCount">0</span>)
+                                        </button>
+                                        <button class="btn btn-secondary" id="selectAllBtn">
+                                            <i class="fas fa-check-double"></i> Select All
+                                        </button>
+                                        <button class="btn btn-outline-secondary" id="clearBtn">
+                                            <i class="fas fa-times"></i> Clear
+                                        </button>
+                                    </div>
+                                </div>
+                                
+                                <div class="col-md-4">
+                                    <div class="card">
+                                        <div class="card-header">
+                                            <h6 class="mb-0">Layout Regions</h6>
+                                        </div>
+                                        <div class="card-body" style="max-height: 400px; overflow-y: auto;" id="blocksList">
+                                            <!-- Blocks will be listed here -->
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Processing Section -->
+                        <div id="processing" class="processing text-center">
+                            <div class="spinner-border text-primary" role="status"></div>
+                            <h5 class="mt-3">Processing with Amazon Nova...</h5>
+                            <p class="text-muted">This may take a few moments</p>
+                        </div>
+
+                        <!-- Results Section -->
+                        <div id="results-section" class="results-section">
+                            <h5>OCR Results</h5>
+                            <div id="results-container"></div>
+                            <div class="mt-3">
+                                <button class="btn btn-primary" onclick="downloadResults()">
+                                    <i class="fas fa-download"></i> Download Results
+                                </button>
+                                <button class="btn btn-secondary" onclick="location.reload()">
+                                    <i class="fas fa-redo"></i> Process Another
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Error Section -->
+                        <div id="error" class="alert alert-danger" style="display: none;">
+                            <i class="fas fa-exclamation-triangle"></i>
+                            <span id="error-message"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let sessionId = null;
+        let s3Key = null;
+        let autoBlocks = [];
+        let selectedBlocks = [];
+
+        // Initialize
+        document.addEventListener('DOMContentLoaded', function() {
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            const uploadArea = document.getElementById('uploadArea');
+            const fileInput = document.getElementById('fileInput');
+
+            uploadArea.addEventListener('click', () => fileInput.click());
+            uploadArea.addEventListener('dragover', e => { e.preventDefault(); e.currentTarget.classList.add('dragover'); });
+            uploadArea.addEventListener('dragleave', e => { e.preventDefault(); e.currentTarget.classList.remove('dragover'); });
+            uploadArea.addEventListener('drop', handleDrop);
+            fileInput.addEventListener('change', e => processFile(e.target.files[0]));
+
+            document.getElementById('processBtn').addEventListener('click', processSelectedBlocks);
+            document.getElementById('selectAllBtn').addEventListener('click', selectAll);
+            document.getElementById('clearBtn').addEventListener('click', clearSelection);
+        }
+
+        function handleDrop(e) {
+            e.preventDefault();
+            e.currentTarget.classList.remove('dragover');
+            const files = e.dataTransfer.files;
+            if (files.length > 0) processFile(files[0]);
+        }
+
+        function processFile(file) {
+            if (!file) return;
+            
+            const formData = new FormData();
+            formData.append('file', file);
+
+            document.getElementById('upload-section').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+
+            fetch('/upload_and_detect', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('processing').style.display = 'none';
+                
+                if (data.success) {
+                    sessionId = data.session_id;
+                    s3Key = data.s3_key;
+                    autoBlocks = data.auto_blocks;
+                    
+                    displayImageWithBlocks(data.image_data, data.auto_blocks);
+                    updateBlocksList();
+                    updateCounters();
+                    
+                    document.getElementById('block-section').style.display = 'block';
+                    
+                    if (!data.detection_success) {
+                        showWarning(data.message);
+                    }
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                document.getElementById('processing').style.display = 'none';
+                showError('Upload failed: ' + error.message);
+            });
+        }
+
+        function displayImageWithBlocks(imageData, blocks) {
+            const img = document.getElementById('documentImage');
+            const overlay = document.getElementById('blocksOverlay');
+            
+            img.src = imageData;
+            img.onload = function() {
+                overlay.innerHTML = '';
+                blocks.forEach(block => createBlockElement(block));
+            };
+        }
+
+        function createBlockElement(block) {
+            const overlay = document.getElementById('blocksOverlay');
+            const blockDiv = document.createElement('div');
+            blockDiv.className = 'auto-block';
+            blockDiv.id = `block_${block.id}`;
+            blockDiv.style.left = block.coordinates.x + '%';
+            blockDiv.style.top = block.coordinates.y + '%';
+            blockDiv.style.width = block.coordinates.width + '%';
+            blockDiv.style.height = block.coordinates.height + '%';
+            
+            const label = document.createElement('div');
+            label.className = 'block-label';
+            label.textContent = block.suggested_label;
+            blockDiv.appendChild(label);
+            
+            blockDiv.addEventListener('click', e => {
+                e.stopPropagation();
+                toggleBlockSelection(block.id);
+            });
+            
+            overlay.appendChild(blockDiv);
+        }
+
+        function updateBlocksList() {
+            const list = document.getElementById('blocksList');
+            list.innerHTML = '';
+            
+            autoBlocks.forEach(block => {
+                const item = document.createElement('div');
+                item.className = 'block-item';
+                item.id = `item_${block.id}`;
+                
+                const typeColors = {
+                    'patient_info': 'bg-primary',
+                    'hospital_info': 'bg-info',
+                    'provider_info': 'bg-success',
+                    'diagnosis': 'bg-warning',
+                    'medications': 'bg-danger',
+                    'dates': 'bg-secondary',
+                    'vitals': 'bg-dark',
+                    'general': 'bg-light text-dark'
+                };
+                
+                item.innerHTML = `
+                    <div class="d-flex justify-content-between align-items-start">
+                        <div class="flex-grow-1">
+                            <div class="d-flex align-items-center mb-1">
+                                <span class="badge ${typeColors[block.suggested_type] || 'bg-light text-dark'} me-2">
+                                    ${block.suggested_type}
+                                </span>
+                                <span class="badge bg-secondary" style="font-size: 0.7em;">
+                                    ${block.confidence}%
+                                </span>
+                            </div>
+                            <div class="fw-bold mb-1">${block.suggested_label}</div>
+                            <div class="text-muted small">${block.text_preview}</div>
+                        </div>
+                        <div class="form-check">
+                            <input class="form-check-input" type="checkbox" id="check_${block.id}">
+                        </div>
+                    </div>
+                `;
+                
+                item.addEventListener('click', () => toggleBlockSelection(block.id));
+                list.appendChild(item);
+            });
+        }
+
+        function toggleBlockSelection(blockId) {
+            const blockElement = document.getElementById(`block_${blockId}`);
+            const itemElement = document.getElementById(`item_${blockId}`);
+            const checkbox = document.getElementById(`check_${blockId}`);
+            
+            if (selectedBlocks.includes(blockId)) {
+                selectedBlocks = selectedBlocks.filter(id => id !== blockId);
+                blockElement.classList.remove('selected');
+                itemElement.classList.remove('selected');
+                checkbox.checked = false;
+            } else {
+                selectedBlocks.push(blockId);
+                blockElement.classList.add('selected');
+                itemElement.classList.add('selected');
+                checkbox.checked = true;
+            }
+            
+            updateCounters();
+        }
+
+        function selectAll() {
+            selectedBlocks = autoBlocks.map(block => block.id);
+            autoBlocks.forEach(block => {
+                document.getElementById(`block_${block.id}`).classList.add('selected');
+                document.getElementById(`item_${block.id}`).classList.add('selected');
+                document.getElementById(`check_${block.id}`).checked = true;
+            });
+            updateCounters();
+        }
+
+        function clearSelection() {
+            selectedBlocks = [];
+            autoBlocks.forEach(block => {
+                document.getElementById(`block_${block.id}`).classList.remove('selected');
+                document.getElementById(`item_${block.id}`).classList.remove('selected');
+                document.getElementById(`check_${block.id}`).checked = false;
+            });
+            updateCounters();
+        }
+
+        function updateCounters() {
+            document.getElementById('totalCount').textContent = `${autoBlocks.length} regions`;
+            document.getElementById('selectedCount').textContent = `${selectedBlocks.length} selected`;
+            document.getElementById('processCount').textContent = selectedBlocks.length;
+            document.getElementById('processBtn').disabled = selectedBlocks.length === 0;
+        }
+
+        function processSelectedBlocks() {
+            if (selectedBlocks.length === 0) return;
+            
+            document.getElementById('block-section').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+            
+            const blocksToProcess = autoBlocks.filter(block => selectedBlocks.includes(block.id));
+            
+            fetch('/process_blocks', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    session_id: sessionId,
+                    s3_key: s3Key,
+                    selected_blocks: blocksToProcess
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('processing').style.display = 'none';
+                
+                if (data.success) {
+                    displayResults(data.results, data.summary);
+                } else {
+                    showError(data.error);
+                }
+            })
+            .catch(error => {
+                document.getElementById('processing').style.display = 'none';
+                showError('Processing failed: ' + error.message);
+            });
+        }
+
+        function displayResults(results, summary) {
+            const container = document.getElementById('results-container');
+            container.innerHTML = '';
+            
+            // Summary
+            const summaryDiv = document.createElement('div');
+            summaryDiv.className = 'alert alert-info';
+            summaryDiv.innerHTML = `
+                <h6><i class="fas fa-info-circle"></i> Processing Summary</h6>
+                <p class="mb-0">
+                    Total: ${summary.total} | 
+                    Successful: <span class="text-success">${summary.successful}</span> | 
+                    Failed: <span class="text-danger">${summary.failed}</span>
+                </p>
+            `;
+            container.appendChild(summaryDiv);
+            
+            // Results
+            results.forEach(result => {
+                const resultDiv = document.createElement('div');
+                resultDiv.className = `block-result ${result.success ? 'success' : 'error'}`;
+                
+                if (result.success) {
+                    resultDiv.innerHTML = `
+                        <h6><i class="fas fa-check-circle text-success"></i> ${result.block_label}</h6>
+                        <p><strong>Type:</strong> ${result.block_type}</p>
+                        <p><strong>Original:</strong> <em>${result.original_text}</em></p>
+                        <div class="mt-2">
+                            <strong>Extracted Data:</strong>
+                            <pre class="bg-light p-2 mt-1 rounded">${JSON.stringify(result.extracted_data, null, 2)}</pre>
+                        </div>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `
+                        <h6><i class="fas fa-exclamation-circle text-danger"></i> ${result.block_label || 'Block'}</h6>
+                        <p class="text-danger"><strong>Error:</strong> ${result.error}</p>
+                    `;
+                }
+                
+                container.appendChild(resultDiv);
+            });
+            
+            document.getElementById('results-section').style.display = 'block';
+        }
+
+        function downloadResults() {
+            // Implementation for downloading results
+            alert('Download functionality would be implemented here');
+        }
+
+        function showError(message) {
+            document.getElementById('error-message').textContent = message;
+            document.getElementById('error').style.display = 'block';
+        }
+
+        function showWarning(message) {
+            const warning = document.createElement('div');
+            warning.className = 'alert alert-warning alert-dismissible fade show';
+            warning.innerHTML = `
+                <i class="fas fa-exclamation-triangle"></i> ${message}
+                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+            `;
+            document.querySelector('.card-body').insertBefore(warning, document.querySelector('.card-body').firstChild);
+        }
+    </script>
+</body>
+</html>
