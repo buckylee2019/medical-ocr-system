@@ -400,32 +400,30 @@
                 </div>
             `;
 
-            // 顯示證明書資訊
-            if (data.certificate_info) {
+            // 顯示醫療內容 (診斷和醫師建議)
+            if (data.medical_content) {
                 contentHtml += `
                     <div class="card mb-3">
-                        <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0"><i class="fas fa-certificate"></i> 證明書資訊</h6>
+                        <div class="card-header bg-danger text-white">
+                            <h6 class="mb-0"><i class="fas fa-stethoscope"></i> 診斷與治療</h6>
                         </div>
                         <div class="card-body">
-                            <div class="row">
                 `;
                 
-                if (data.certificate_info.certificate_no) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>證明書字號:</strong> ${data.certificate_info.certificate_no}</div>`;
+                if (data.medical_content.diagnosis) {
+                    contentHtml += `<div class="mb-3"><strong>診斷:</strong> <span class="text-danger">${data.medical_content.diagnosis}</span></div>`;
                 }
-                if (data.certificate_info.certificate_date) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>開立日期:</strong> ${data.certificate_info.certificate_date}</div>`;
+                if (data.medical_content.doctors_comment) {
+                    contentHtml += `<div class="mb-2"><strong>醫師建議:</strong> ${data.medical_content.doctors_comment}</div>`;
                 }
-                if (data.certificate_info.hospital_name) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>醫療院所:</strong> ${data.certificate_info.hospital_name}</div>`;
+                if (data.medical_content.treatment_period) {
+                    contentHtml += `<div class="mb-2"><strong>治療期間:</strong> ${data.medical_content.treatment_period}</div>`;
                 }
-                if (data.certificate_info.doctor_name) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>醫師姓名:</strong> ${data.certificate_info.doctor_name}</div>`;
+                if (data.medical_content.rest_days) {
+                    contentHtml += `<div class="mb-2"><strong>建議休息天數:</strong> ${data.medical_content.rest_days}</div>`;
                 }
                 
                 contentHtml += `
-                            </div>
                         </div>
                     </div>
                 `;
@@ -445,14 +443,24 @@
                 if (data.patient_info.name) {
                     contentHtml += `<div class="col-md-6 mb-2"><strong>姓名:</strong> ${data.patient_info.name}</div>`;
                 }
-                if (data.patient_info.sex) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>性別:</strong> ${data.patient_info.sex}</div>`;
+                if (data.patient_info.sex || data.patient_info.gender) {
+                    const gender = data.patient_info.sex || data.patient_info.gender;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>性別:</strong> ${gender}</div>`;
                 }
-                if (data.patient_info.birth_date) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>出生日期:</strong> ${data.patient_info.birth_date}</div>`;
+                if (data.patient_info.date_of_birth) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>出生日期:</strong> ${data.patient_info.date_of_birth}</div>`;
                 }
                 if (data.patient_info.id_number) {
                     contentHtml += `<div class="col-md-6 mb-2"><strong>身分證字號:</strong> ${data.patient_info.id_number}</div>`;
+                }
+                if (data.patient_info.address) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>地址:</strong> ${data.patient_info.address}</div>`;
+                }
+                if (data.patient_info.nationality) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>國籍:</strong> ${data.patient_info.nationality}</div>`;
+                }
+                if (data.patient_info.medical_history_no) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>病歷號:</strong> ${data.patient_info.medical_history_no}</div>`;
                 }
                 
                 contentHtml += `
@@ -462,30 +470,88 @@
                 `;
             }
 
-            // 顯示診斷資訊
-            if (data.diagnosis_info) {
+            // 顯示檢查資訊
+            if (data.examination_info) {
+                contentHtml += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fas fa-calendar-check"></i> 檢查資訊</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                if (data.examination_info.date_of_examination) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>檢查日期:</strong> ${data.examination_info.date_of_examination}</div>`;
+                }
+                if (data.examination_info.department) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>科別:</strong> ${data.examination_info.department}</div>`;
+                }
+                if (data.examination_info.examination_type) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>檢查類型:</strong> ${data.examination_info.examination_type}</div>`;
+                }
+                
+                contentHtml += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 顯示醫院資訊
+            if (data.hospital_info) {
+                contentHtml += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-primary text-white">
+                            <h6 class="mb-0"><i class="fas fa-hospital"></i> 醫院資訊</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                if (data.hospital_info.hospital_name_chinese) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>醫院名稱:</strong> ${data.hospital_info.hospital_name_chinese}</div>`;
+                }
+                if (data.hospital_info.hospital_name_english) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>醫院英文名:</strong> ${data.hospital_info.hospital_name_english}</div>`;
+                }
+                if (data.hospital_info.attending_physician) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>主治醫師:</strong> ${data.hospital_info.attending_physician}</div>`;
+                }
+                if (data.hospital_info.superintendent) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>院長:</strong> ${data.hospital_info.superintendent}</div>`;
+                }
+                if (data.hospital_info.hospital_address) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>醫院地址:</strong> ${data.hospital_info.hospital_address}</div>`;
+                }
+                
+                contentHtml += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 顯示證明書資訊
+            if (data.certificate_info && (data.certificate_info.certificate_no || data.certificate_info.certificate_date)) {
                 contentHtml += `
                     <div class="card mb-3">
                         <div class="card-header bg-warning text-dark">
-                            <h6 class="mb-0"><i class="fas fa-stethoscope"></i> 診斷資訊</h6>
+                            <h6 class="mb-0"><i class="fas fa-certificate"></i> 證明書資訊</h6>
                         </div>
                         <div class="card-body">
+                            <div class="row">
                 `;
                 
-                if (data.diagnosis_info.diagnosis) {
-                    contentHtml += `<div class="mb-2"><strong>診斷:</strong> ${data.diagnosis_info.diagnosis}</div>`;
+                if (data.certificate_info.certificate_no) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>證明書字號:</strong> ${data.certificate_info.certificate_no}</div>`;
                 }
-                if (data.diagnosis_info.treatment_period) {
-                    contentHtml += `<div class="mb-2"><strong>治療期間:</strong> ${data.diagnosis_info.treatment_period}</div>`;
-                }
-                if (data.diagnosis_info.rest_days) {
-                    contentHtml += `<div class="mb-2"><strong>建議休息天數:</strong> ${data.diagnosis_info.rest_days}</div>`;
-                }
-                if (data.diagnosis_info.work_restriction) {
-                    contentHtml += `<div class="mb-2"><strong>工作限制:</strong> ${data.diagnosis_info.work_restriction}</div>`;
+                if (data.certificate_info.certificate_date) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>開立日期:</strong> ${data.certificate_info.certificate_date}</div>`;
                 }
                 
                 contentHtml += `
+                            </div>
                         </div>
                     </div>
                 `;
@@ -493,26 +559,29 @@
 
             // 顯示其他資訊
             if (data.additional_info) {
-                contentHtml += `
-                    <div class="card mb-3">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0"><i class="fas fa-info-circle"></i> 其他資訊</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                `;
-                
-                Object.entries(data.additional_info).forEach(([key, value]) => {
-                    if (value) {
-                        contentHtml += `<div class="col-md-12 mb-2"><strong>${key}:</strong> ${value}</div>`;
-                    }
-                });
-                
-                contentHtml += `
+                const hasContent = Object.values(data.additional_info).some(value => value && value.trim());
+                if (hasContent) {
+                    contentHtml += `
+                        <div class="card mb-3">
+                            <div class="card-header bg-secondary text-white">
+                                <h6 class="mb-0"><i class="fas fa-info-circle"></i> 其他資訊</h6>
+                            </div>
+                            <div class="card-body">
+                    `;
+                    
+                    Object.entries(data.additional_info).forEach(([key, value]) => {
+                        if (value && value.trim()) {
+                            const displayKey = key === 'stamp_or_seal' ? '印章/印鑑' : 
+                                             key === 'other_notes' ? '其他備註' : key;
+                            contentHtml += `<div class="mb-2"><strong>${displayKey}:</strong> ${value}</div>`;
+                        }
+                    });
+                    
+                    contentHtml += `
                             </div>
                         </div>
-                    </div>
-                `;
+                    `;
+                }
             }
 
             contentDiv.innerHTML = contentHtml;
