@@ -416,10 +416,21 @@
         }
 
         function deleteImage(imageId) {
+            // 顯示載入狀態
+            const deleteBtn = document.getElementById('deleteBtn');
+            const originalText = deleteBtn.innerHTML;
+            deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刪除中...';
+            deleteBtn.disabled = true;
+            
             fetch(`/api/images/${imageId}/delete`, {
                 method: 'DELETE'
             })
-            .then(response => response.json())
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
             .then(data => {
                 if (data.success) {
                     bootstrap.Modal.getInstance(document.getElementById('imageModal')).hide();
@@ -430,7 +441,13 @@
                 }
             })
             .catch(error => {
+                console.error('Delete error:', error);
                 showError('刪除失敗: ' + error.message);
+            })
+            .finally(() => {
+                // 恢復按鈕狀態
+                deleteBtn.innerHTML = originalText;
+                deleteBtn.disabled = false;
             });
         }
     </script>

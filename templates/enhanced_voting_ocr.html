@@ -277,8 +277,19 @@
             
             updateProgress(1, '載入待審核圖片...');
             
+            // 設置超時處理
+            const timeoutId = setTimeout(() => {
+                showError('載入超時，請重試');
+            }, 30000); // 30秒超時
+            
             fetch(`/api/images/${imageId}/review`)
-                .then(response => response.json())
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
                 .then(data => {
                     if (data.success) {
                         currentResult = data;
@@ -295,6 +306,8 @@
                     }
                 })
                 .catch(error => {
+                    clearTimeout(timeoutId);
+                    console.error('Load review error:', error);
                     showError('載入審核資料失敗: ' + error.message);
                 });
         }

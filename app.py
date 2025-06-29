@@ -1113,45 +1113,75 @@ def api_reprocess_image(image_id):
 def api_get_image_for_review(image_id):
     """API: 獲取待審核圖片的詳細信息用於人工審核"""
     try:
+        print(f"🔍 Getting image for review: {image_id}")
+        
         # 獲取圖片信息
         response = dynamodb_table.get_item(Key={'id': image_id})
         if 'Item' not in response:
+            print(f"❌ Image not found: {image_id}")
             return jsonify({'error': '圖片不存在'}), 404
         
         image_item = response['Item']
+        print(f"📋 Image item: {image_item.get('filename')} - {image_item.get('processing_status')}")
+        
         if image_item.get('record_type') != 'image_metadata':
             return jsonify({'error': '無效的圖片記錄'}), 400
         
         if image_item.get('processing_status') != 'pending_review':
-            return jsonify({'error': '圖片不在待審核狀態'}), 400
+            return jsonify({'error': f'圖片狀態為 {image_item.get("processing_status")}，不在待審核狀態'}), 400
         
         # 從 S3 獲取待審核的結果
         session_id = image_item.get('session_id')
         if not session_id:
             return jsonify({'error': '缺少會話ID'}), 400
         
-        # 嘗試從 S3 獲取待審核結果
-        try:
-            pending_key = f"pending_review/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
-            s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=pending_key)
-            pending_data = json.loads(s3_response['Body'].read().decode('utf-8'))
-            claude_result = pending_data.get('claude_result', {})
-        except:
-            # 如果找不到今天的，嘗試重新處理
-            s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
-            file_data = s3_response['Body'].read()
-            claude_result = process_with_claude_latest(file_data, for_human_review=True)
+        claude_result = None
+        
+        # 嘗試從 S3 獲取待審核結果 (嘗試多個可能的日期)
+        for days_back in range(7):  # 嘗試過去7天
+            try:
+                from datetime import timedelta
+                check_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y/%m/%d')
+                pending_key = f"pending_review/{check_date}/{session_id}.json"
+                print(f"🔍 Trying pending key: {pending_key}")
+                
+                s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=pending_key)
+                pending_data = json.loads(s3_response['Body'].read().decode('utf-8'))
+                claude_result = pending_data.get('claude_result', {})
+                print(f"✅ Found pending data from {check_date}")
+                break
+            except Exception as e:
+                print(f"⚠️ No pending data for {check_date}: {str(e)}")
+                continue
+        
+        # 如果找不到待審核結果，重新處理
+        if not claude_result or not claude_result.get('success'):
+            print("🔄 No pending data found, reprocessing...")
+            try:
+                s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
+                file_data = s3_response['Body'].read()
+                claude_result = process_with_claude_latest(file_data, for_human_review=True)
+                print(f"✅ Reprocessed with result: {claude_result.get('success')}")
+            except Exception as e:
+                print(f"❌ Reprocessing failed: {str(e)}")
+                return jsonify({'error': f'無法重新處理圖片: {str(e)}'}), 500
         
         if not claude_result.get('success'):
             return jsonify({'error': '無法獲取處理結果'}), 500
         
         # 從 S3 獲取原始圖片
-        s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
-        file_data = s3_response['Body'].read()
+        try:
+            s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
+            file_data = s3_response['Body'].read()
+        except Exception as e:
+            print(f"❌ Failed to get image from S3: {str(e)}")
+            return jsonify({'error': f'無法獲取原始圖片: {str(e)}'}), 500
         
         # 準備圖片顯示
         file_base64 = base64.b64encode(file_data).decode('utf-8')
         file_type = image_item['content_type'].split('/')[-1]
+        
+        print(f"✅ Successfully prepared review data for {image_item['filename']}")
         
         return jsonify({
             'success': True,
@@ -1165,15 +1195,20 @@ def api_get_image_for_review(image_id):
         })
         
     except Exception as e:
+        print(f"❌ API error: {str(e)}")
         return jsonify({'error': f'獲取審核資料失敗: {str(e)}'}), 500
 
 @app.route('/review/<image_id>')
 def review_image(image_id):
     """人工審核頁面"""
     return render_template('enhanced_voting_ocr.html', review_mode=True, image_id=image_id)
+
+@app.route('/api/images/<image_id>/delete', methods=['DELETE'])
 def api_delete_image(image_id):
     """API: 刪除圖片"""
     try:
+        print(f"🗑️ Deleting image: {image_id}")
+        
         # 獲取圖片信息
         response = dynamodb_table.get_item(Key={'id': image_id})
         if 'Item' not in response:
@@ -1183,18 +1218,54 @@ def api_delete_image(image_id):
         if image_item.get('record_type') != 'image_metadata':
             return jsonify({'error': '無效的圖片記錄'}), 400
         
+        print(f"📋 Deleting: {image_item['filename']} from {image_item['s3_key']}")
+        
         # 從 S3 刪除圖片
         try:
             s3_client.delete_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
+            print(f"✅ Deleted from S3: {image_item['s3_key']}")
         except Exception as s3_error:
             print(f"⚠️ S3 刪除警告: {str(s3_error)}")
         
+        # 嘗試刪除相關的 S3 文件 (pending_review, results 等)
+        session_id = image_item.get('session_id')
+        if session_id:
+            # 刪除可能的待審核文件
+            for days_back in range(7):
+                try:
+                    from datetime import timedelta
+                    check_date = (datetime.now() - timedelta(days=days_back)).strftime('%Y/%m/%d')
+                    pending_key = f"pending_review/{check_date}/{session_id}.json"
+                    s3_client.delete_object(Bucket=S3_BUCKET, Key=pending_key)
+                    print(f"✅ Deleted pending file: {pending_key}")
+                except:
+                    pass
+            
+            # 刪除可能的結果文件
+            try:
+                results_key = f"automatic_results/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
+                s3_client.delete_object(Bucket=S3_BUCKET, Key=results_key)
+                print(f"✅ Deleted results file: {results_key}")
+            except:
+                pass
+        
         # 從 DynamoDB 刪除記錄
         dynamodb_table.delete_item(Key={'id': image_id})
+        print(f"✅ Deleted from DynamoDB: {image_id}")
+        
+        # 如果有關聯的 OCR 結果，也嘗試刪除
+        ocr_result_id = image_item.get('ocr_result_id')
+        if ocr_result_id:
+            try:
+                dynamodb_table.delete_item(Key={'id': ocr_result_id})
+                print(f"✅ Deleted OCR result: {ocr_result_id}")
+            except Exception as ocr_error:
+                print(f"⚠️ OCR result deletion warning: {str(ocr_error)}")
         
         return jsonify({'success': True, 'message': '圖片已刪除'})
         
     except Exception as e:
+        print(f"❌ Delete error: {str(e)}")
         return jsonify({'error': f'刪除失敗: {str(e)}'}), 500
     return jsonify({
         'status': 'healthy', 
