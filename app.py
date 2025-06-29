@@ -808,8 +808,9 @@ def debug_models():
     })
 
 if __name__ == '__main__':
-    print("🚀 啟動醫療 OCR 多模型投票系統")
-    print("📍 訪問地址: http://localhost:5005")
-    print("🤖 模型: Claude 3.5 Sonnet + Claude 3 Haiku (各跑兩次)")
+    print("🚀 啟動醫療 OCR 增強型投票系統")
+    print("📍 訪問地址: http://localhost:5006")
+    print("🤖 模型: Claude 3.7 Sonnet + Claude 3.5 Sonnet + Claude 3 Haiku")
     print("🗳️ 投票機制: 多模型結果比對和投票")
-    app.run(debug=True, host='0.0.0.0', port=5005)
+    print("💾 DynamoDB: 自動存儲處理結果")
+    app.run(debug=True, host='0.0.0.0', port=5006)
