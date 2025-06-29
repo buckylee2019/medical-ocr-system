@@ -365,9 +365,21 @@
         }
 
         function displayAutomaticResults(data) {
+            // 檢查數據結構
+            if (!data.voting_results || !data.voting_results.voting_result) {
+                showError('投票結果結構異常');
+                return;
+            }
+            
+            const votingResult = data.voting_results.voting_result;
+            if (!votingResult.final_result) {
+                showError('缺少最終結果數據');
+                return;
+            }
+            
             // 顯示 DynamoDB 狀態
             const dbStatus = document.getElementById('dynamodb-status');
-            if (data.dynamodb_result.success) {
+            if (data.dynamodb_result && data.dynamodb_result.success) {
                 dbStatus.className = 'dynamodb-status success';
                 dbStatus.innerHTML = `
                     <i class="fas fa-check-circle"></i>
@@ -380,18 +392,18 @@
                 dbStatus.innerHTML = `
                     <i class="fas fa-exclamation-circle"></i>
                     <strong>DynamoDB 存儲失敗</strong><br>
-                    錯誤: ${data.dynamodb_result.error}
+                    錯誤: ${data.dynamodb_result ? data.dynamodb_result.error : '未知錯誤'}
                 `;
             }
             
             // 顯示文件和結果
             document.getElementById('documentPreview').src = data.image_data;
             document.getElementById('processingMode').textContent = '全自動處理';
-            document.getElementById('confidenceScore').textContent = Math.round(data.confidence_score * 100) + '%';
-            document.getElementById('recordId').textContent = data.dynamodb_result.record_id || 'N/A';
+            document.getElementById('confidenceScore').textContent = Math.round((data.confidence_score || 0) * 100) + '%';
+            document.getElementById('recordId').textContent = (data.dynamodb_result && data.dynamodb_result.record_id) || 'N/A';
             
             // 顯示最終結果
-            const finalResult = data.voting_results.voting_result.final_result;
+            const finalResult = votingResult.final_result;
             displayFinalResultAsHtmlTable(finalResult);
             
             document.getElementById('results-section').style.display = 'block';
