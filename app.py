@@ -517,11 +517,11 @@ def generate_summary(individual_results, voting_result):
     return {
         "total_runs": total,
         "successful_runs": successful,
-        "success_rate": successful / total,
+        "success_rate": successful / total if total > 0 else 0,
         "model_performance": model_performance,
         "average_confidence": avg_confidence,
-        "high_confidence_fields": [field for field, detail in vote_details.items() if detail['confidence'] >= 0.75],
-        "low_confidence_fields": [field for field, detail in vote_details.items() if detail['confidence'] < 0.5]
+        "high_confidence_fields": [field for field, detail in vote_details.items() if detail.get('confidence', 0) >= 0.75],
+        "low_confidence_fields": [field for field, detail in vote_details.items() if detail.get('confidence', 0) < 0.5]
     }
 
 # Routes
@@ -760,7 +760,31 @@ def submit_human_review():
 
 @app.route('/health')
 def health_check():
-    return jsonify({'status': 'healthy', 'timestamp': datetime.now().isoformat()})
+    return jsonify({
+        'status': 'healthy', 
+        'timestamp': datetime.now().isoformat(),
+        'models': {
+            'claude_3_5_sonnet': CLAUDE_SONNET_MODEL_ID,
+            'claude_3_haiku': CLAUDE_HAIKU_MODEL_ID,
+            'claude_3_7_sonnet': CLAUDE_SONNET_LATEST_MODEL_ID
+        },
+        'dynamodb_table': DYNAMODB_TABLE_NAME
+    })
+
+@app.route('/debug_models')
+def debug_models():
+    """Debug endpoint to test model connectivity"""
+    return jsonify({
+        'models_configured': {
+            'claude_3_5_sonnet': CLAUDE_SONNET_MODEL_ID,
+            'claude_3_haiku': CLAUDE_HAIKU_MODEL_ID,
+            'claude_3_7_sonnet': CLAUDE_SONNET_LATEST_MODEL_ID
+        },
+        'aws_region': AWS_REGION,
+        'aws_profile': AWS_PROFILE,
+        's3_bucket': S3_BUCKET,
+        'dynamodb_table': DYNAMODB_TABLE_NAME
+    })
 
 if __name__ == '__main__':
     print("🚀 啟動醫療 OCR 多模型投票系統")
