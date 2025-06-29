@@ -259,6 +259,45 @@
         let currentResult = null;
         let currentSessionId = null;
         let currentImageId = null;
+        let reviewMode = {{ 'true' if review_mode else 'false' }};
+        let reviewImageId = '{{ image_id if image_id else "" }}';
+
+        // 頁面載入時的處理
+        document.addEventListener('DOMContentLoaded', function() {
+            if (reviewMode && reviewImageId) {
+                // 審核模式：自動載入待審核的圖片
+                loadImageForReview(reviewImageId);
+            }
+        });
+
+        function loadImageForReview(imageId) {
+            // 隱藏路徑選擇，直接進入人工審核模式
+            document.getElementById('path-selection').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+            
+            updateProgress(1, '載入待審核圖片...');
+            
+            fetch(`/api/images/${imageId}/review`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        currentResult = data;
+                        currentSessionId = data.session_id;
+                        currentImageId = data.image_id;
+                        selectedPath = 'human_review';
+                        
+                        updateProgress(5, '載入完成，準備審核...');
+                        setTimeout(() => {
+                            handleHumanReviewResult(data);
+                        }, 500);
+                    } else {
+                        showError('載入審核資料失敗: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    showError('載入審核資料失敗: ' + error.message);
+                });
+        }
 
         // 初始化
         document.addEventListener('DOMContentLoaded', function() {

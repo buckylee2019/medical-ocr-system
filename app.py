@@ -688,7 +688,7 @@ def generate_summary(individual_results, voting_result):
 # Routes
 @app.route('/')
 def index():
-    return render_template('enhanced_voting_ocr.html')
+    return render_template('enhanced_voting_ocr.html', review_mode=False, image_id=None)
 
 @app.route('/upload_and_vote', methods=['POST'])
 def upload_and_vote():
@@ -1109,7 +1109,68 @@ def api_reprocess_image(image_id):
             update_image_processing_status(image_id, 'failed')
         return jsonify({'error': f'重新處理失敗: {str(e)}'}), 500
 
-@app.route('/api/images/<image_id>/delete', methods=['DELETE'])
+@app.route('/api/images/<image_id>/review', methods=['GET'])
+def api_get_image_for_review(image_id):
+    """API: 獲取待審核圖片的詳細信息用於人工審核"""
+    try:
+        # 獲取圖片信息
+        response = dynamodb_table.get_item(Key={'id': image_id})
+        if 'Item' not in response:
+            return jsonify({'error': '圖片不存在'}), 404
+        
+        image_item = response['Item']
+        if image_item.get('record_type') != 'image_metadata':
+            return jsonify({'error': '無效的圖片記錄'}), 400
+        
+        if image_item.get('processing_status') != 'pending_review':
+            return jsonify({'error': '圖片不在待審核狀態'}), 400
+        
+        # 從 S3 獲取待審核的結果
+        session_id = image_item.get('session_id')
+        if not session_id:
+            return jsonify({'error': '缺少會話ID'}), 400
+        
+        # 嘗試從 S3 獲取待審核結果
+        try:
+            pending_key = f"pending_review/{datetime.now().strftime('%Y/%m/%d')}/{session_id}.json"
+            s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=pending_key)
+            pending_data = json.loads(s3_response['Body'].read().decode('utf-8'))
+            claude_result = pending_data.get('claude_result', {})
+        except:
+            # 如果找不到今天的，嘗試重新處理
+            s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
+            file_data = s3_response['Body'].read()
+            claude_result = process_with_claude_latest(file_data, for_human_review=True)
+        
+        if not claude_result.get('success'):
+            return jsonify({'error': '無法獲取處理結果'}), 500
+        
+        # 從 S3 獲取原始圖片
+        s3_response = s3_client.get_object(Bucket=S3_BUCKET, Key=image_item['s3_key'])
+        file_data = s3_response['Body'].read()
+        
+        # 準備圖片顯示
+        file_base64 = base64.b64encode(file_data).decode('utf-8')
+        file_type = image_item['content_type'].split('/')[-1]
+        
+        return jsonify({
+            'success': True,
+            'image_id': image_id,
+            'session_id': session_id,
+            'filename': image_item['filename'],
+            'image_data': f"data:image/{file_type};base64,{file_base64}",
+            'processing_mode': 'human_review',
+            'status': 'pending_review',
+            'claude_result': claude_result
+        })
+        
+    except Exception as e:
+        return jsonify({'error': f'獲取審核資料失敗: {str(e)}'}), 500
+
+@app.route('/review/<image_id>')
+def review_image(image_id):
+    """人工審核頁面"""
+    return render_template('enhanced_voting_ocr.html', review_mode=True, image_id=image_id)
 def api_delete_image(image_id):
     """API: 刪除圖片"""
     try:

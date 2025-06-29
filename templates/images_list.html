@@ -159,6 +159,9 @@
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                    <button type="button" class="btn btn-info" id="reviewBtn" style="display: none;">
+                        <i class="fas fa-edit"></i> 進入審核
+                    </button>
                     <button type="button" class="btn btn-warning" id="reprocessBtn">
                         <i class="fas fa-redo"></i> 重新處理
                     </button>
@@ -268,7 +271,10 @@
                             <div class="file-info">
                                 <div><i class="fas fa-calendar"></i> ${formatDate(image.created_at)}</div>
                                 <div><i class="fas fa-hdd"></i> ${formatFileSize(image.file_size)}</div>
-                                ${image.ocr_result_id ? `<div><i class="fas fa-check-circle text-success"></i> 已處理</div>` : ''}
+                                ${image.processing_status === 'pending_review' ? 
+                                    `<div><i class="fas fa-clock text-info"></i> <strong>待審核</strong></div>` : 
+                                    image.ocr_result_id ? `<div><i class="fas fa-check-circle text-success"></i> 已處理</div>` : ''
+                                }
                             </div>
                         </div>
                     </div>
@@ -299,6 +305,14 @@
             document.getElementById('imageModalTitle').textContent = image.filename;
             document.getElementById('modalImage').src = image.presigned_url || '';
             
+            // 根據狀態顯示或隱藏審核按鈕
+            const reviewBtn = document.getElementById('reviewBtn');
+            if (image.processing_status === 'pending_review') {
+                reviewBtn.style.display = 'inline-block';
+            } else {
+                reviewBtn.style.display = 'none';
+            }
+            
             document.getElementById('imageDetails').innerHTML = `
                 <h6>基本資訊</h6>
                 <table class="table table-sm">
@@ -311,6 +325,10 @@
                     ${image.session_id ? `<tr><td><strong>會話ID</strong></td><td><code>${image.session_id}</code></td></tr>` : ''}
                     ${image.ocr_result_id ? `<tr><td><strong>OCR結果ID</strong></td><td><code>${image.ocr_result_id}</code></td></tr>` : ''}
                 </table>
+                ${image.processing_status === 'pending_review' ? 
+                    '<div class="alert alert-info"><i class="fas fa-info-circle"></i> 此圖片正在等待人工審核，點擊"進入審核"按鈕開始審核流程。</div>' : 
+                    ''
+                }
             `;
 
             new bootstrap.Modal(document.getElementById('imageModal')).show();
@@ -346,6 +364,11 @@
         function showError(message) {
             alert('錯誤: ' + message);
         }
+
+        // 進入審核按鈕事件
+        document.getElementById('reviewBtn').addEventListener('click', function() {
+            window.open(`/review/${currentImageId}`, '_blank');
+        });
 
         // 重新處理按鈕事件
         document.getElementById('reprocessBtn').addEventListener('click', function() {
