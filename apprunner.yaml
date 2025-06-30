@@ -4,15 +4,15 @@ build:
   commands:
     build:
       - echo "Starting build process..."
-      - python3 --version
-      - pip3 --version
+      - python --version
+      - pip --version
       - echo "Installing dependencies from requirements.txt"
-      - pip3 install --upgrade pip
-      - pip3 install -r requirements.txt
+      - pip install --upgrade pip
+      - pip install -r requirements.txt
       - echo "Build completed successfully"
 run:
-  runtime-version: 3.11
-  command: python3 app.py
+  runtime-version: 3.11.12
+  command: python app.py
   network:
     port: 5006
   env:
