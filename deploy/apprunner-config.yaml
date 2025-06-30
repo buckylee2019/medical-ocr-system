@@ -14,8 +14,8 @@ run:
     - name: AWS_DEFAULT_REGION
       value: us-west-2
     - name: DYNAMODB_TABLE_NAME
-      value: medical-ocr-data
+      value: medical-ocr-results
     - name: S3_BUCKET
-      value: your-medical-ocr-bucket
+      value: medical-ocr-495599739878
     - name: FLASK_ENV
       value: production
