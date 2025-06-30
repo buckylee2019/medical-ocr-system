@@ -685,6 +685,47 @@ def generate_summary(individual_results, voting_result):
         "low_confidence_fields": [field for field, detail in vote_details.items() if detail.get('confidence', 0) < 0.5]
     }
 
+@app.route('/health')
+def health_check():
+    """Health check endpoint for load balancers and monitoring"""
+    try:
+        # Test DynamoDB connection
+        dynamodb_table.scan(Limit=1)
+        
+        # Test S3 connection
+        s3_client.list_objects_v2(Bucket=S3_BUCKET, MaxKeys=1)
+        
+        # Test Bedrock connection (simple model list)
+        bedrock_client.list_foundation_models()
+        
+        return jsonify({
+            'status': 'healthy',
+            'timestamp': datetime.now().isoformat(),
+            'version': '1.2.0',
+            'services': {
+                'dynamodb': 'ok',
+                's3': 'ok',
+                'bedrock': 'ok'
+            },
+            'environment': {
+                'region': AWS_REGION,
+                'table': DYNAMODB_TABLE_NAME,
+                'bucket': S3_BUCKET
+            }
+        }), 200
+        
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'timestamp': datetime.now().isoformat(),
+            'error': str(e),
+            'services': {
+                'dynamodb': 'unknown',
+                's3': 'unknown', 
+                'bedrock': 'unknown'
+            }
+        }), 503
+
 # Routes
 @app.route('/')
 def index():
