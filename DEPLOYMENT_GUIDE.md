@@ -1,120 +1,88 @@
-# 🚀 AWS Deployment Guide - Medical OCR System
+# 🚀 AWS App Runner Deployment Guide - Medical OCR System
 
 ## 📋 Overview
 
-This guide provides multiple options for deploying the Medical OCR System to AWS. The system is already designed to work with AWS services (DynamoDB, S3, Bedrock), making cloud deployment straightforward.
+This guide provides step-by-step instructions for deploying the Medical OCR System to **AWS App Runner** - the simplest and most cost-effective deployment option for this application.
 
-## 🎯 Deployment Options
+## 🎯 Why App Runner?
 
-### 1. AWS App Runner (Recommended - Easiest)
-**Best for**: Quick deployment, automatic scaling, minimal configuration
+**✅ Advantages:**
+- **Fully managed service** - No server management required
+- **Automatic scaling** - Scales up/down based on traffic
+- **Built-in load balancing** - High availability out of the box
+- **Easy CI/CD integration** - Automatic deployments from GitHub
+- **Cost-effective** - Pay only for what you use (~$25-40/month)
+- **Perfect for Flask apps** - Designed for web applications
 
-**Pros**:
-- ✅ Fully managed service
-- ✅ Automatic scaling
-- ✅ Built-in load balancing
-- ✅ Easy CI/CD integration
-- ✅ Pay-per-use pricing
+**📊 Cost Estimate:**
+- **App Runner**: ~$25/month (1 vCPU, 2GB RAM)
+- **DynamoDB**: ~$1-5/month (based on usage)
+- **S3**: ~$1-3/month (image storage)
+- **Bedrock**: Pay-per-API-call
+- **Total**: ~$30-40/month
 
-**Cons**:
-- ❌ Less control over infrastructure
-- ❌ Limited customization options
+## 🚀 Quick Deployment (5 Steps)
 
-### 2. AWS Elastic Beanstalk
-**Best for**: Traditional web applications, more control than App Runner
-
-**Pros**:
-- ✅ Easy deployment and management
-- ✅ Auto-scaling and load balancing
-- ✅ Health monitoring
-- ✅ Multiple environment support
-
-**Cons**:
-- ❌ More complex than App Runner
-- ❌ EC2 costs even when idle
-
-### 3. AWS ECS Fargate
-**Best for**: Containerized applications, production workloads
-
-**Pros**:
-- ✅ Full container control
-- ✅ Serverless containers
-- ✅ Integration with AWS services
-- ✅ High availability
-
-**Cons**:
-- ❌ More complex setup
-- ❌ Requires container knowledge
-
-### 4. AWS Lambda + API Gateway (Serverless)
-**Best for**: Cost optimization, sporadic usage
-
-**Pros**:
-- ✅ Pay-per-request pricing
-- ✅ Automatic scaling
-- ✅ No server management
-
-**Cons**:
-- ❌ Cold start latency
-- ❌ 15-minute timeout limit
-- ❌ Complex for file uploads
-
-## 🚀 Quick Start - App Runner Deployment
-
-### Prerequisites
+### Step 1: Prepare AWS Resources
 ```bash
-# 1. AWS CLI configured
-aws configure
-
-# 2. Required permissions
-# - DynamoDB full access
-# - S3 full access
-# - Bedrock full access
-# - App Runner full access
-# - IAM role creation
-
-# 3. Python environment
-python -m venv venv
-source venv/bin/activate  # or venv\Scripts\activate on Windows
-pip install boto3
-```
-
-### Step 1: Prepare Your Code
-```bash
-# 1. Clone/prepare your repository
-git clone <your-repo-url>
-cd medical-ocr
-
-# 2. Update environment variables
-cp .env.example .env
-# Edit .env with production values
-
-# 3. Test locally first
-python app.py
-```
-
-### Step 2: Run Deployment Script
-```bash
+# Run the quick setup script
 cd deploy
-python deploy.py
+./quick_deploy.sh
 ```
 
-### Step 3: Manual Configuration
-1. **GitHub Repository**: Connect your GitHub repo to App Runner
-2. **Environment Variables**: Set in App Runner console
-3. **Domain**: Configure custom domain (optional)
+This script will create:
+- ✅ S3 bucket for image storage
+- ✅ DynamoDB table for data
+- ✅ IAM role with proper permissions
+- ✅ App Runner configuration file
 
-## 🔧 Detailed Deployment Instructions
+### Step 2: Push Code to GitHub
+```bash
+# Initialize git repository (if not already done)
+git init
+git add .
+git commit -m "Initial commit"
 
-### Option 1: AWS App Runner
+# Push to GitHub
+git remote add origin https://github.com/YOUR_USERNAME/medical-ocr.git
+git push -u origin main
+```
 
-#### 1. Create apprunner.yaml
+### Step 3: Create App Runner Service
+1. Go to [AWS App Runner Console](https://console.aws.amazon.com/apprunner/)
+2. Click **"Create service"**
+3. Choose **"Source code repository"**
+4. Connect your GitHub account
+5. Select your repository and branch (main)
+
+### Step 4: Configure Service
+**Repository settings:**
+- **Configuration source**: Use configuration file
+- **Configuration file**: `apprunner.yaml` (auto-generated)
+
+**Service settings:**
+- **Service name**: `medical-ocr-app`
+- **Instance role**: Select the created IAM role
+- **Auto-scaling**: Default settings (25-100 instances)
+
+### Step 5: Deploy and Test
+1. Click **"Create & deploy"**
+2. Wait for deployment (5-10 minutes)
+3. Test your application:
+   - Health check: `https://your-app-url/health`
+   - Main app: `https://your-app-url/`
+
+## 📁 App Runner Configuration
+
+The `apprunner.yaml` file (auto-generated by quick_deploy.sh):
+
 ```yaml
 version: 1.0
 runtime: python3
 build:
   commands:
     build:
+      - echo "Installing dependencies"
       - pip install -r requirements.txt
 run:
   runtime-version: 3.11
@@ -128,55 +96,15 @@ run:
       value: medical-ocr-data
     - name: S3_BUCKET
       value: your-medical-ocr-bucket
-```
-
-#### 2. Deploy via AWS Console
-1. Go to AWS App Runner console
-2. Create service
-3. Connect GitHub repository
-4. Configure build settings
-5. Set environment variables
-6. Deploy
-
-### Option 2: Docker + ECS Fargate
-
-#### 1. Build Docker Image
-```bash
-# Build image
-docker build -t medical-ocr .
-
-# Test locally
-docker run -p 5006:5006 medical-ocr
-```
-
-#### 2. Push to ECR
-```bash
-# Create ECR repository
-aws ecr create-repository --repository-name medical-ocr
-
-# Get login token
-aws ecr get-login-password --region us-west-2 | docker login --username AWS --password-stdin <account-id>.dkr.ecr.us-west-2.amazonaws.com
-
-# Tag and push
-docker tag medical-ocr:latest <account-id>.dkr.ecr.us-west-2.amazonaws.com/medical-ocr:latest
-docker push <account-id>.dkr.ecr.us-west-2.amazonaws.com/medical-ocr:latest
-```
-
-#### 3. Create ECS Service
-```bash
-# Register task definition
-aws ecs register-task-definition --cli-input-json file://ecs-task-definition.json
-
-# Create ECS cluster
-aws ecs create-cluster --cluster-name medical-ocr-cluster
-
-# Create service
-aws ecs create-service --cluster medical-ocr-cluster --service-name medical-ocr-service --task-definition medical-ocr-app --desired-count 1
+    - name: FLASK_ENV
+      value: production
 ```
 
 ## 🔐 Security Configuration
 
-### IAM Roles and Policies
+### IAM Role Permissions
+The deployment script creates an IAM role with these permissions:
+
 ```json
 {
   "Version": "2012-10-17",
@@ -185,7 +113,7 @@ aws ecs create-service --cluster medical-ocr-cluster --service-name medical-ocr-
       "Effect": "Allow",
       "Action": [
         "dynamodb:GetItem",
-        "dynamodb:PutItem",
+        "dynamodb:PutItem", 
         "dynamodb:UpdateItem",
         "dynamodb:DeleteItem",
         "dynamodb:Scan",
@@ -198,15 +126,15 @@ aws ecs create-service --cluster medical-ocr-cluster --service-name medical-ocr-
       "Action": [
         "s3:GetObject",
         "s3:PutObject",
-        "s3:DeleteObject",
-        "s3:GeneratePresignedUrl"
+        "s3:DeleteObject"
       ],
-      "Resource": "arn:aws:s3:::your-medical-ocr-bucket/*"
+      "Resource": "arn:aws:s3:::your-bucket/*"
     },
     {
       "Effect": "Allow",
       "Action": [
-        "bedrock:InvokeModel"
+        "bedrock:InvokeModel",
+        "bedrock:ListFoundationModels"
       ],
       "Resource": "*"
     }
@@ -215,8 +143,8 @@ aws ecs create-service --cluster medical-ocr-cluster --service-name medical-ocr-
 ```
 
 ### Environment Variables
+Set these in the App Runner console:
 ```bash
-# Production environment variables
 AWS_DEFAULT_REGION=us-west-2
 DYNAMODB_TABLE_NAME=medical-ocr-data
 S3_BUCKET=your-medical-ocr-bucket
@@ -224,137 +152,191 @@ FLASK_ENV=production
 FLASK_DEBUG=False
 ```
 
-## 📊 Monitoring and Logging
+## 📊 Monitoring and Health Checks
 
-### CloudWatch Setup
+### Built-in Health Check
+Your app includes a health check endpoint at `/health`:
+
+```json
+{
+  "status": "healthy",
+  "version": "1.2.0",
+  "services": {
+    "dynamodb": "ok",
+    "s3": "ok",
+    "bedrock": "ok"
+  }
+}
+```
+
+### CloudWatch Integration
+App Runner automatically integrates with CloudWatch:
+- **Application logs**: `/aws/apprunner/medical-ocr/application`
+- **Service logs**: `/aws/apprunner/medical-ocr/service`
+
+### Set Up Alarms
 ```bash
-# Create log group
-aws logs create-log-group --log-group-name /aws/apprunner/medical-ocr
-
-# Set up alarms
+# High error rate alarm
 aws cloudwatch put-metric-alarm \
   --alarm-name "medical-ocr-high-error-rate" \
   --alarm-description "High error rate in medical OCR app" \
-  --metric-name ErrorRate \
-  --namespace AWS/AppRunner \
-  --statistic Average \
+  --metric-name "4XXError" \
+  --namespace "AWS/AppRunner" \
+  --statistic Sum \
   --period 300 \
-  --threshold 5.0 \
+  --threshold 10 \
   --comparison-operator GreaterThanThreshold
 ```
 
-### Health Check Endpoint
-Add to your `app.py`:
-```python
-@app.route('/health')
-def health_check():
-    """Health check endpoint for load balancers"""
-    try:
-        # Test DynamoDB connection
-        dynamodb_table.scan(Limit=1)
-        
-        # Test S3 connection
-        s3_client.list_objects_v2(Bucket=S3_BUCKET, MaxKeys=1)
-        
-        return jsonify({
-            'status': 'healthy',
-            'timestamp': datetime.now().isoformat(),
-            'services': {
-                'dynamodb': 'ok',
-                's3': 'ok',
-                'bedrock': 'ok'
-            }
-        }), 200
-    except Exception as e:
-        return jsonify({
-            'status': 'unhealthy',
-            'error': str(e)
-        }), 503
+## 🔧 Customization Options
+
+### Custom Domain
+1. Go to App Runner console
+2. Select your service
+3. Go to **"Custom domains"** tab
+4. Add your domain and configure DNS
+
+### Auto-scaling Settings
+```yaml
+# Add to apprunner.yaml
+auto-scaling-configuration:
+  max-concurrency: 100
+  max-size: 25
+  min-size: 1
 ```
 
-## 💰 Cost Optimization
+### Instance Configuration
+```yaml
+# Add to apprunner.yaml
+instance-configuration:
+  cpu: 1024      # 1 vCPU
+  memory: 2048   # 2 GB RAM
+```
 
-### App Runner Pricing (Estimated)
-- **Provisioned**: ~$25/month for 1 vCPU, 2GB RAM
-- **Request-based**: $0.064 per vCPU hour + $0.007 per GB hour
-- **Data transfer**: $0.09 per GB
+## 🔄 CI/CD Pipeline
 
-### Cost Optimization Tips
-1. **Use appropriate instance sizes**
-2. **Enable auto-scaling**
-3. **Monitor usage patterns**
-4. **Use S3 lifecycle policies**
-5. **Optimize DynamoDB read/write capacity**
+App Runner provides automatic deployments:
 
-## 🔧 Troubleshooting
+1. **Push to GitHub** → Automatic deployment
+2. **Manual deployment** → App Runner console
+3. **Rollback** → Previous version in console
+
+### Deployment Settings
+- **Automatic deployments**: Enabled by default
+- **Branch**: main (configurable)
+- **Build timeout**: 20 minutes
+- **Health check grace period**: 120 seconds
+
+## 🐛 Troubleshooting
 
 ### Common Issues
 
-#### 1. Bedrock Access Denied
+#### 1. Deployment Fails
 ```bash
-# Enable Bedrock model access
-aws bedrock put-model-invocation-logging-configuration \
-  --logging-config cloudWatchConfig='{logGroupName="/aws/bedrock/modelinvocations",roleArn="arn:aws:iam::ACCOUNT:role/service-role/AmazonBedrockExecutionRoleForCloudWatchLogs"}'
+# Check build logs in App Runner console
+# Common causes:
+# - Missing dependencies in requirements.txt
+# - Python version mismatch
+# - Environment variables not set
 ```
 
-#### 2. DynamoDB Connection Issues
-- Check IAM permissions
-- Verify table name and region
-- Test with AWS CLI: `aws dynamodb describe-table --table-name medical-ocr-data`
+#### 2. Health Check Fails
+```bash
+# Test health endpoint locally
+curl http://localhost:5006/health
 
-#### 3. S3 Upload Failures
-- Check bucket permissions
-- Verify CORS configuration
-- Test with AWS CLI: `aws s3 ls s3://your-bucket-name`
+# Check AWS service permissions
+# Verify environment variables
+```
+
+#### 3. Bedrock Access Denied
+```bash
+# Enable Bedrock model access in AWS console
+# Check IAM role permissions
+# Verify region settings
+```
 
 ### Debug Commands
 ```bash
-# Check App Runner service status
-aws apprunner describe-service --service-arn <service-arn>
+# View App Runner service details
+aws apprunner describe-service --service-arn <your-service-arn>
+
+# Check recent deployments
+aws apprunner list-operations --service-arn <your-service-arn>
 
 # View logs
-aws logs tail /aws/apprunner/medical-ocr --follow
-
-# Test endpoints
-curl https://your-app-url.us-west-2.awsapprunner.com/health
+aws logs tail /aws/apprunner/medical-ocr/application --follow
 ```
 
 ## 📋 Deployment Checklist
 
 ### Pre-deployment
-- [ ] AWS credentials configured
-- [ ] Required IAM permissions
-- [ ] Environment variables set
-- [ ] Code tested locally
-- [ ] Dependencies updated
+- [ ] AWS credentials configured (`aws configure`)
+- [ ] GitHub repository created and accessible
+- [ ] Code tested locally (`python app.py`)
+- [ ] Environment variables prepared
 
 ### Deployment
-- [ ] S3 bucket created
-- [ ] DynamoDB table created
-- [ ] IAM roles configured
-- [ ] Application deployed
-- [ ] Health check passing
+- [ ] Run `./quick_deploy.sh` successfully
+- [ ] GitHub repository connected to App Runner
+- [ ] Service created with correct configuration
+- [ ] IAM role assigned to service
+- [ ] Environment variables set
 
 ### Post-deployment
-- [ ] Custom domain configured (optional)
-- [ ] SSL certificate installed
-- [ ] Monitoring set up
+- [ ] Health check endpoint responding (`/health`)
+- [ ] Main application accessible
+- [ ] Image upload and processing working
+- [ ] Medical details display functioning
+- [ ] CloudWatch logs flowing
+
+### Optional
+- [ ] Custom domain configured
+- [ ] CloudWatch alarms set up
 - [ ] Backup strategy implemented
-- [ ] Security review completed
+- [ ] Performance testing completed
 
-## 🎯 Next Steps
+## 🎯 Next Steps After Deployment
 
-1. **Choose deployment method** based on your needs
-2. **Run the deployment script** or follow manual steps
-3. **Configure monitoring** and alerting
-4. **Set up CI/CD pipeline** for automated deployments
-5. **Implement backup strategy** for data protection
-6. **Performance testing** under expected load
+1. **Test All Features**:
+   - Upload medical documents
+   - Test OCR processing
+   - Verify human review workflow
+   - Check medical details display
+
+2. **Set Up Monitoring**:
+   - Configure CloudWatch alarms
+   - Set up notification channels
+   - Monitor performance metrics
+
+3. **Optimize Performance**:
+   - Monitor response times
+   - Adjust auto-scaling settings
+   - Optimize image processing
+
+4. **Security Review**:
+   - Review IAM permissions
+   - Enable AWS CloudTrail
+   - Set up VPC (if needed)
+
+5. **Backup Strategy**:
+   - Configure DynamoDB backups
+   - Set up S3 versioning
+   - Document recovery procedures
+
+## 💡 Tips for Success
+
+- **Start Small**: Deploy with minimal configuration first
+- **Monitor Costs**: Use AWS Cost Explorer to track expenses
+- **Test Thoroughly**: Verify all features work in production
+- **Keep It Simple**: App Runner handles most infrastructure concerns
+- **Use Health Checks**: Monitor service health continuously
 
 ---
 
-**Need Help?** 
-- Check AWS documentation for specific services
-- Use AWS Support for technical issues
-- Monitor CloudWatch logs for debugging
-- Test thoroughly before production use
+**🎉 Congratulations!** Your Medical OCR System is now running on AWS App Runner with full UI support, automatic scaling, and production-ready configuration.
+
+**Support Resources:**
+- [AWS App Runner Documentation](https://docs.aws.amazon.com/apprunner/)
+- [AWS Support](https://aws.amazon.com/support/)
+- [CloudWatch Logs](https://console.aws.amazon.com/cloudwatch/)
