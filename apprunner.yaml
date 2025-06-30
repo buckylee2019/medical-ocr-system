@@ -3,8 +3,13 @@ runtime: python311
 build:
   commands:
     build:
-      - echo "Installing dependencies"
+      - echo "Starting build process..."
+      - python --version
+      - pip --version
+      - echo "Installing dependencies from requirements.txt"
+      - pip install --upgrade pip
       - pip install -r requirements.txt
+      - echo "Build completed successfully"
 run:
   runtime-version: 3.11.12
   command: python app.py
