@@ -177,8 +177,8 @@ Resources:
               - Name: FLASK_ENV
                 Value: production
           ImageRepositoryType: ECR
+          AccessRoleArn: !GetAtt AppRunnerAccessRole.Arn
         AutoDeploymentsEnabled: false
-        AccessRoleArn: !GetAtt AppRunnerAccessRole.Arn
       InstanceConfiguration:
         Cpu: 1024
         Memory: 2048
