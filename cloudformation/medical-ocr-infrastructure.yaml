@@ -1,24 +1,21 @@
 AWSTemplateFormatVersion: '2010-09-09'
-Description: 'Medical OCR System - Complete Infrastructure with App Runner Container (Based on CDK Reference)'
+Description: 'Medical OCR System - Complete Infrastructure with App Runner Container'
 
 Parameters:
+  GitHubRepository:
+    Type: String
+    Default: 'https://github.com/buckylee2019/medical-ocr-system'
+    Description: 'GitHub repository URL'
+  
+  GitHubBranch:
+    Type: String
+    Default: 'main'
+    Description: 'GitHub branch to deploy'
+  
   AppName:
     Type: String
     Default: 'medical-ocr-app'
     Description: 'Application name'
-    MinLength: 1
-    AllowedPattern: '[a-zA-Z0-9-]+'
-    ConstraintDescription: 'App name must contain only alphanumeric characters and hyphens'
-
-  InstanceTypeParam:
-    Type: String
-    Default: "1 vCPU 2 GB"
-    AllowedValues:
-      - "0.25 vCPU 0.5 GB"
-      - "0.5 vCPU 1 GB"
-      - "1 vCPU 2 GB"
-      - "2 vCPU 4 GB"
-    Description: "Select CPU and Memory configuration for App Runner"
 
 Resources:
   # S3 Bucket for image storage
@@ -100,11 +97,11 @@ Resources:
             ]
           }
 
-  # App Runner Execution Role (Instance Role)
-  AppRunnerExecutionRole:
+  # IAM Role for App Runner
+  AppRunnerInstanceRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub '${AppName}-execution-role'
+      RoleName: !Sub '${AppName}-instance-role'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -112,8 +109,10 @@ Resources:
             Principal:
               Service: tasks.apprunner.amazonaws.com
             Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
       Policies:
-        - PolicyName: MedicalOCRExecutionPolicy
+        - PolicyName: MedicalOCRAppPolicy
           PolicyDocument:
             Version: '2012-10-17'
             Statement:
@@ -140,15 +139,14 @@ Resources:
               - Effect: Allow
                 Action:
                   - bedrock:InvokeModel
-                  - bedrock:InvokeModelWithResponseStream
                   - bedrock:ListFoundationModels
                 Resource: '*'
 
-  # App Runner ECR Access Role
-  AppRunnerECRAccessRole:
+  # IAM Role for App Runner Access (for ECR)
+  AppRunnerAccessRole:
     Type: AWS::IAM::Role
     Properties:
-      RoleName: !Sub '${AppName}-ecr-access-role'
+      RoleName: !Sub '${AppName}-access-role'
       AssumeRolePolicyDocument:
         Version: '2012-10-17'
         Statement:
@@ -156,42 +154,17 @@ Resources:
             Principal:
               Service: build.apprunner.amazonaws.com
             Action: sts:AssumeRole
-      Policies:
-        - PolicyName: ECRAccessPolicy
-          PolicyDocument:
-            Version: '2012-10-17'
-            Statement:
-              - Effect: Allow
-                Action: ecr:GetAuthorizationToken
-                Resource: '*'
-              - Effect: Allow
-                Action:
-                  - ecr:BatchCheckLayerAvailability
-                  - ecr:BatchGetImage
-                  - ecr:GetDownloadUrlForLayer
-                Resource: !GetAtt ECRRepository.Arn
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSAppRunnerServicePolicyForECRAccess
 
   # App Runner Service
   AppRunnerService:
     Type: AWS::AppRunner::Service
     Properties:
       ServiceName: !Ref AppName
-      InstanceConfiguration:
-        Cpu: !Join
-          - ' '
-          - - !Select [0, !Split [' ', !Ref InstanceTypeParam]]
-            - !Select [1, !Split [' ', !Ref InstanceTypeParam]]
-        Memory: !Join
-          - ' '
-          - - !Select [2, !Split [' ', !Ref InstanceTypeParam]]
-            - !Select [3, !Split [' ', !Ref InstanceTypeParam]]
-        InstanceRoleArn: !GetAtt AppRunnerExecutionRole.Arn
       SourceConfiguration:
-        AuthenticationConfiguration:
-          AccessRoleArn: !GetAtt AppRunnerECRAccessRole.Arn
-        AutoDeploymentsEnabled: false
         ImageRepository:
-          ImageIdentifier: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}/${ECRRepository}:latest'
+          ImageIdentifier: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ECRRepository}:latest'
           ImageConfiguration:
             Port: '5006'
             RuntimeEnvironmentVariables:
@@ -204,6 +177,12 @@ Resources:
               - Name: FLASK_ENV
                 Value: production
           ImageRepositoryType: ECR
+          AccessRoleArn: !GetAtt AppRunnerAccessRole.Arn
+        AutoDeploymentsEnabled: false
+      InstanceConfiguration:
+        Cpu: 1024
+        Memory: 2048
+        InstanceRoleArn: !GetAtt AppRunnerInstanceRole.Arn
       HealthCheckConfiguration:
         Protocol: HTTP
         Path: /health
@@ -224,25 +203,25 @@ Resources:
 
 Outputs:
   AppRunnerServiceUrl:
-    Description: 'Medical OCR Application URL'
+    Description: 'App Runner Service URL'
     Value: !Sub 'https://${AppRunnerService.ServiceUrl}'
     Export:
       Name: !Sub '${AWS::StackName}-ServiceUrl'
 
   ECRRepositoryUri:
-    Description: 'ECR Repository URI for Docker images'
-    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.${AWS::URLSuffix}/${ECRRepository}'
+    Description: 'ECR Repository URI'
+    Value: !Sub '${AWS::AccountId}.dkr.ecr.${AWS::Region}.amazonaws.com/${ECRRepository}'
     Export:
       Name: !Sub '${AWS::StackName}-ECRRepository'
 
   S3BucketName:
-    Description: 'S3 Bucket for medical image storage'
+    Description: 'S3 Bucket Name'
     Value: !Ref ImageStorageBucket
     Export:
       Name: !Sub '${AWS::StackName}-S3Bucket'
 
   DynamoDBTableName:
-    Description: 'DynamoDB Table for OCR data storage'
+    Description: 'DynamoDB Table Name'
     Value: !Ref OCRDataTable
     Export:
       Name: !Sub '${AWS::StackName}-DynamoDBTable'
@@ -252,15 +231,3 @@ Outputs:
     Value: !GetAtt AppRunnerService.ServiceArn
     Export:
       Name: !Sub '${AWS::StackName}-ServiceArn'
-
-  HealthCheckUrl:
-    Description: 'Health Check Endpoint'
-    Value: !Sub 'https://${AppRunnerService.ServiceUrl}/health'
-    Export:
-      Name: !Sub '${AWS::StackName}-HealthCheck'
-
-  ImageManagementUrl:
-    Description: 'Image Management Interface'
-    Value: !Sub 'https://${AppRunnerService.ServiceUrl}/images'
-    Export:
-      Name: !Sub '${AWS::StackName}-ImageManagement'
