@@ -1,0 +1,21 @@
+version: 1.0
+runtime: python3
+build:
+  commands:
+    build:
+      - echo "Installing dependencies"
+      - pip install -r requirements.txt
+run:
+  runtime-version: 3.11
+  command: python app.py
+  network:
+    port: 5006
+  env:
+    - name: AWS_DEFAULT_REGION
+      value: us-west-2
+    - name: DYNAMODB_TABLE_NAME
+      value: medical-ocr-results
+    - name: S3_BUCKET
+      value: medical-ocr-495599739878
+    - name: FLASK_ENV
+      value: production
