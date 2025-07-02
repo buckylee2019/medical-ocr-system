@@ -520,6 +520,12 @@
             if (imageUrl) {
                 // 設置載入狀態
                 imageInfo.textContent = '載入圖片中...';
+                imagePlaceholder.innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
+                        <p>載入圖片中...</p>
+                    </div>
+                `;
                 
                 // 創建新的圖片元素來測試載入
                 const testImage = new Image();
@@ -530,7 +536,7 @@
                     imagePlaceholder.style.display = 'none';
                     imageInfo.innerHTML = `
                         <i class="fas fa-check-circle text-success"></i> 
-                        圖片ID: ${currentImageId}
+                        圖片載入成功 (ID: ${currentImageId})
                     `;
                 };
                 testImage.onerror = function() {
