@@ -1349,7 +1349,7 @@ def api_update_ocr_result(image_id):
         ocr_result_id = image_item['ocr_result_id']
         
         # 獲取現有的OCR結果
-        ocr_response = ocr_results_table.get_item(Key={'id': ocr_result_id})
+        ocr_response = dynamodb_table.get_item(Key={'id': ocr_result_id})
         if 'Item' not in ocr_response:
             return jsonify({'error': '找不到OCR結果'}), 404
         
@@ -1369,7 +1369,7 @@ def api_update_ocr_result(image_id):
             ':human_reviewed': True
         }
         
-        ocr_results_table.update_item(
+        dynamodb_table.update_item(
             Key={'id': ocr_result_id},
             UpdateExpression=update_expression,
             ExpressionAttributeNames=expression_attribute_names,
