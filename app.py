@@ -1240,6 +1240,11 @@ def api_get_image_for_review(image_id):
         print(f"❌ API error: {str(e)}")
         return jsonify({'error': f'獲取審核資料失敗: {str(e)}'}), 500
 
+@app.route('/edit/<image_id>')
+def edit_ocr(image_id):
+    """OCR結果編輯頁面"""
+    return render_template('edit_ocr.html', image_id=image_id)
+
 @app.route('/enhanced_voting_ocr')
 def enhanced_voting_ocr():
     """Enhanced voting OCR page with optional edit functionality"""
@@ -1304,6 +1309,80 @@ def api_get_image_ocr_result(image_id):
     except Exception as e:
         print(f"❌ OCR result API error: {str(e)}")
         return jsonify({'error': f'獲取OCR結果失敗: {str(e)}'}), 500
+
+@app.route('/api/images/<image_id>/update-ocr', methods=['POST'])
+def api_update_ocr_result(image_id):
+    """API: 更新OCR結果"""
+    try:
+        print(f"🔄 Updating OCR result for image: {image_id}")
+        
+        # 獲取請求資料
+        data = request.get_json()
+        if not data:
+            return jsonify({'error': '無效的請求資料'}), 400
+        
+        # 獲取現有的OCR結果
+        response = dynamodb_table.get_item(Key={'id': image_id})
+        if 'Item' not in response:
+            return jsonify({'error': '找不到指定的圖片'}), 404
+        
+        image_item = response['Item']
+        
+        # 檢查是否有OCR結果
+        if 'ocr_result_id' not in image_item:
+            return jsonify({'error': '此圖片尚未有OCR結果'}), 400
+        
+        ocr_result_id = image_item['ocr_result_id']
+        
+        # 獲取現有的OCR結果
+        ocr_response = ocr_results_table.get_item(Key={'id': ocr_result_id})
+        if 'Item' not in ocr_response:
+            return jsonify({'error': '找不到OCR結果'}), 404
+        
+        ocr_item = ocr_response['Item']
+        
+        # 更新OCR結果資料
+        updated_data = data
+        
+        # 更新OCR結果記錄
+        update_expression = "SET #data = :data, updated_at = :updated_at, human_reviewed = :human_reviewed"
+        expression_attribute_names = {
+            '#data': 'data'
+        }
+        expression_attribute_values = {
+            ':data': updated_data,
+            ':updated_at': datetime.utcnow().isoformat(),
+            ':human_reviewed': True
+        }
+        
+        ocr_results_table.update_item(
+            Key={'id': ocr_result_id},
+            UpdateExpression=update_expression,
+            ExpressionAttributeNames=expression_attribute_names,
+            ExpressionAttributeValues=expression_attribute_values
+        )
+        
+        # 更新圖片狀態為已完成
+        dynamodb_table.update_item(
+            Key={'id': image_id},
+            UpdateExpression="SET processing_status = :status, updated_at = :updated_at",
+            ExpressionAttributeValues={
+                ':status': 'completed',
+                ':updated_at': datetime.utcnow().isoformat()
+            }
+        )
+        
+        print(f"✅ OCR result updated successfully for image: {image_id}")
+        
+        return jsonify({
+            'success': True,
+            'message': 'OCR結果更新成功',
+            'ocr_result_id': ocr_result_id
+        })
+        
+    except Exception as e:
+        print(f"❌ Update OCR result error: {str(e)}")
+        return jsonify({'error': f'更新OCR結果失敗: {str(e)}'}), 500
 
 @app.route('/api/images/<image_id>/delete', methods=['DELETE'])
 def api_delete_image(image_id):

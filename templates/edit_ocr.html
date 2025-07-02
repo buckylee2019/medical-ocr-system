@@ -1,0 +1,937 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>編輯 OCR 結果 - Amazon Bedrock</title>
+    <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #6366f1;
+            --primary-light: #a5b4fc;
+            --primary-dark: #4f46e5;
+            --secondary-color: #64748b;
+            --success-color: #10b981;
+            --success-light: #d1fae5;
+            --warning-color: #f59e0b;
+            --warning-light: #fef3c7;
+            --info-color: #06b6d4;
+            --info-light: #cffafe;
+            --danger-color: #ef4444;
+            --danger-light: #fee2e2;
+            --gray-50: #f8fafc;
+            --gray-100: #f1f5f9;
+            --gray-200: #e2e8f0;
+            --gray-300: #cbd5e1;
+            --gray-400: #94a3b8;
+            --gray-500: #64748b;
+            --gray-600: #475569;
+            --gray-700: #334155;
+            --gray-800: #1e293b;
+            --gray-900: #0f172a;
+        }
+
+        body {
+            background: linear-gradient(135deg, var(--gray-50) 0%, var(--gray-100) 100%);
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            color: var(--gray-700);
+        }
+
+        .main-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .header-section {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            color: white;
+            padding: 30px;
+            border-radius: 16px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 25px rgba(99, 102, 241, 0.2);
+        }
+
+        .edit-form {
+            background: white;
+            border-radius: 16px;
+            padding: 30px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin-bottom: 30px;
+        }
+
+        .section-header {
+            background: linear-gradient(135deg, var(--info-color) 0%, #0891b2 100%);
+            color: white;
+            padding: 15px 20px;
+            border-radius: 12px 12px 0 0;
+            margin: -30px -30px 20px -30px;
+            font-weight: 600;
+        }
+
+        .form-control, .form-select {
+            border: 2px solid var(--gray-200);
+            border-radius: 8px;
+            padding: 12px 16px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+        }
+
+        .form-control:focus, .form-select:focus {
+            border-color: var(--primary-color);
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1);
+        }
+
+        .btn {
+            border-radius: 8px;
+            padding: 12px 24px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+            border: none;
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(99, 102, 241, 0.3);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success-color) 0%, #059669 100%);
+            border: none;
+        }
+
+        .btn-secondary {
+            background: linear-gradient(135deg, var(--secondary-color) 0%, #475569 100%);
+            border: none;
+        }
+
+        .image-preview {
+            max-width: 100%;
+            max-height: 400px;
+            border-radius: 12px;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .loading-spinner {
+            display: none;
+            text-align: center;
+            padding: 40px;
+        }
+
+        .alert {
+            border-radius: 12px;
+            border: none;
+            padding: 16px 20px;
+        }
+
+        .form-label {
+            font-weight: 600;
+            color: var(--gray-700);
+            margin-bottom: 8px;
+        }
+
+        .required {
+            color: var(--danger-color);
+        }
+    </style>
+</head>
+<body>
+    <div class="main-container">
+        <!-- Header -->
+        <div class="header-section">
+            <div class="d-flex justify-content-between align-items-center">
+                <div>
+                    <h1 class="mb-2"><i class="fas fa-edit"></i> 編輯 OCR 結果</h1>
+                    <p class="mb-0 opacity-90">修改醫療文件的 OCR 識別結果</p>
+                </div>
+                <div>
+                    <button type="button" class="btn btn-light" onclick="goBack()">
+                        <i class="fas fa-arrow-left"></i> 返回
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Loading Spinner -->
+        <div class="loading-spinner" id="loadingSpinner">
+            <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;">
+                <span class="visually-hidden">載入中...</span>
+            </div>
+            <p class="mt-3">載入 OCR 結果中...</p>
+        </div>
+
+        <!-- Main Content -->
+        <div id="mainContent" style="display: none;">
+            <div class="row">
+                <!-- Image Preview -->
+                <div class="col-md-4">
+                    <div class="edit-form">
+                        <div class="section-header">
+                            <i class="fas fa-image"></i> 原始圖片
+                        </div>
+                        <div class="text-center">
+                            <img id="imagePreview" src="" alt="原始圖片" class="image-preview">
+                            <div class="mt-3">
+                                <small class="text-muted" id="imageInfo">載入中...</small>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Edit Form -->
+                <div class="col-md-8">
+                    <form id="editForm">
+                        <!-- Medical Content Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-stethoscope"></i> 診斷與治療
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="diagnosis" class="form-label">診斷</label>
+                                    <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" placeholder="請輸入診斷內容"></textarea>
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="doctors_comment" class="form-label">醫師建議</label>
+                                    <textarea class="form-control" id="doctors_comment" name="doctors_comment" rows="3" placeholder="請輸入醫師建議"></textarea>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="treatment_period" class="form-label">治療期間</label>
+                                    <input type="text" class="form-control" id="treatment_period" name="treatment_period" placeholder="例：2024/01/01 - 2024/01/07">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="rest_days" class="form-label">建議休息天數</label>
+                                    <input type="text" class="form-control" id="rest_days" name="rest_days" placeholder="例：7天">
+                                </div>
+                            </div>
+                        </div>
+                        <!-- Patient Info Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-user"></i> 病患資訊
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="patient_name" class="form-label">姓名</label>
+                                    <input type="text" class="form-control" id="patient_name" name="patient_name" placeholder="請輸入病患姓名">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="patient_gender" class="form-label">性別</label>
+                                    <select class="form-select" id="patient_gender" name="patient_gender">
+                                        <option value="">請選擇性別</option>
+                                        <option value="男">男</option>
+                                        <option value="女">女</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="date_of_birth" class="form-label">出生日期</label>
+                                    <input type="text" class="form-control" id="date_of_birth" name="date_of_birth" placeholder="例：1990/01/01">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="id_number" class="form-label">身分證字號</label>
+                                    <input type="text" class="form-control" id="id_number" name="id_number" placeholder="請輸入身分證字號">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone_number" class="form-label">電話號碼</label>
+                                    <input type="text" class="form-control" id="phone_number" name="phone_number" placeholder="請輸入電話號碼">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="address" class="form-label">地址</label>
+                                    <input type="text" class="form-control" id="address" name="address" placeholder="請輸入地址">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Examination Info Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-calendar-check"></i> 檢查資訊
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="date_of_examination" class="form-label">檢查日期</label>
+                                    <input type="text" class="form-control" id="date_of_examination" name="date_of_examination" placeholder="例：2024/01/01">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="department" class="form-label">科別</label>
+                                    <input type="text" class="form-control" id="department" name="department" placeholder="例：內科">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="examination_type" class="form-label">檢查類型</label>
+                                    <input type="text" class="form-control" id="examination_type" name="examination_type" placeholder="例：血液檢查">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="examination_location" class="form-label">檢查地點</label>
+                                    <input type="text" class="form-control" id="examination_location" name="examination_location" placeholder="例：檢驗科">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Hospital Info Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-hospital"></i> 醫院資訊
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="hospital_name_chinese" class="form-label">醫院名稱（中文）</label>
+                                    <input type="text" class="form-control" id="hospital_name_chinese" name="hospital_name_chinese" placeholder="請輸入醫院中文名稱">
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="hospital_name_english" class="form-label">醫院名稱（英文）</label>
+                                    <input type="text" class="form-control" id="hospital_name_english" name="hospital_name_english" placeholder="請輸入醫院英文名稱">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="attending_physician" class="form-label">主治醫師</label>
+                                    <input type="text" class="form-control" id="attending_physician" name="attending_physician" placeholder="請輸入主治醫師姓名">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="hospital_phone" class="form-label">醫院電話</label>
+                                    <input type="text" class="form-control" id="hospital_phone" name="hospital_phone" placeholder="請輸入醫院電話">
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="hospital_address" class="form-label">醫院地址</label>
+                                    <input type="text" class="form-control" id="hospital_address" name="hospital_address" placeholder="請輸入醫院地址">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Certificate Info Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-certificate"></i> 證明書資訊
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="certificate_no" class="form-label">證明書字號</label>
+                                    <input type="text" class="form-control" id="certificate_no" name="certificate_no" placeholder="請輸入證明書字號">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="certificate_date" class="form-label">開立日期</label>
+                                    <input type="text" class="form-control" id="certificate_date" name="certificate_date" placeholder="例：2024/01/01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Info Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-info-circle"></i> 其他資訊
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="stamp_or_seal" class="form-label">印章/印鑑</label>
+                                    <input type="text" class="form-control" id="stamp_or_seal" name="stamp_or_seal" placeholder="請輸入印章或印鑑資訊">
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="other_notes" class="form-label">其他備註</label>
+                                    <textarea class="form-control" id="other_notes" name="other_notes" rows="3" placeholder="請輸入其他備註"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="edit-form">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="goBack()">
+                                    <i class="fas fa-arrow-left"></i> 取消
+                                </button>
+                                <div>
+                                    <button type="button" class="btn btn-primary me-2" onclick="previewChanges()">
+                                        <i class="fas fa-eye"></i> 預覽
+                                    </button>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save"></i> 儲存變更
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal fade" id="successModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="fas fa-check-circle"></i> 儲存成功</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>OCR 結果已成功更新！</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                        <button type="button" class="btn btn-primary" onclick="goToImageManagement()">返回圖片管理</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentImageId = '{{ image_id }}';
+        let originalData = null;
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentImageId) {
+                loadOCRData();
+            } else {
+                showError('未指定圖片ID');
+            }
+            
+            setupFormSubmission();
+        });
+
+        // 載入OCR資料
+        function loadOCRData() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            
+            fetch(`/api/images/${currentImageId}/ocr-result`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        originalData = data.ocr_result.data;
+                        populateForm(originalData);
+                        loadImagePreview(data.image_url);
+                        
+                        document.getElementById('loadingSpinner').style.display = 'none';
+                        document.getElementById('mainContent').style.display = 'block';
+                    } else {
+                        showError('載入OCR結果失敗: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Load OCR data error:', error);
+                    showError('載入OCR結果失敗: ' + error.message);
+                });
+        }
+
+        // 填充表單資料
+        function populateForm(data) {
+            // Medical content
+            if (data.medical_content) {
+                setValue('diagnosis', data.medical_content.diagnosis);
+                setValue('doctors_comment', data.medical_content.doctors_comment);
+                setValue('treatment_period', data.medical_content.treatment_period);
+                setValue('rest_days', data.medical_content.rest_days);
+            }
+            
+            // Patient info
+            if (data.patient_info) {
+                setValue('patient_name', data.patient_info.name);
+                setValue('patient_gender', data.patient_info.sex || data.patient_info.gender);
+                setValue('date_of_birth', data.patient_info.date_of_birth);
+                setValue('id_number', data.patient_info.id_number);
+                setValue('phone_number', data.patient_info.phone_number);
+                setValue('address', data.patient_info.address);
+            }
+            
+            // Examination info
+            if (data.examination_info) {
+                setValue('date_of_examination', data.examination_info.date_of_examination);
+                setValue('department', data.examination_info.department);
+                setValue('examination_type', data.examination_info.examination_type);
+                setValue('examination_location', data.examination_info.examination_location);
+            }
+            
+            // Hospital info
+            if (data.hospital_info) {
+                setValue('hospital_name_chinese', data.hospital_info.hospital_name_chinese);
+                setValue('hospital_name_english', data.hospital_info.hospital_name_english);
+                setValue('attending_physician', data.hospital_info.attending_physician);
+                setValue('hospital_phone', data.hospital_info.phone_number);
+                setValue('hospital_address', data.hospital_info.address);
+            }
+            
+            // Certificate info
+            if (data.certificate_info) {
+                setValue('certificate_no', data.certificate_info.certificate_no);
+                setValue('certificate_date', data.certificate_info.certificate_date);
+            }
+            
+            // Additional info
+            if (data.additional_info) {
+                setValue('stamp_or_seal', data.additional_info.stamp_or_seal);
+                setValue('other_notes', data.additional_info.other_notes);
+            }
+        }
+
+        // 設置欄位值的輔助函數
+        function setValue(fieldId, value) {
+            const element = document.getElementById(fieldId);
+            if (element && value) {
+                element.value = value;
+            }
+        }
+
+        // 載入圖片預覽
+        function loadImagePreview(imageUrl) {
+            if (imageUrl) {
+                document.getElementById('imagePreview').src = imageUrl;
+                document.getElementById('imageInfo').textContent = `圖片ID: ${currentImageId}`;
+            }
+        }
+
+        // 設置表單提交
+        function setupFormSubmission() {
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveChanges();
+            });
+        }
+
+        // 儲存變更
+        function saveChanges() {
+            const formData = collectFormData();
+            
+            // 顯示載入狀態
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 儲存中...';
+            submitBtn.disabled = true;
+            
+            fetch(`/api/images/${currentImageId}/update-ocr`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    new bootstrap.Modal(document.getElementById('successModal')).show();
+                } else {
+                    showError('儲存失敗: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Save error:', error);
+                showError('儲存失敗: ' + error.message);
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+
+        // 收集表單資料
+        function collectFormData() {
+            return {
+                medical_content: {
+                    diagnosis: document.getElementById('diagnosis').value,
+                    doctors_comment: document.getElementById('doctors_comment').value,
+                    treatment_period: document.getElementById('treatment_period').value,
+                    rest_days: document.getElementById('rest_days').value
+                },
+                patient_info: {
+                    name: document.getElementById('patient_name').value,
+                    sex: document.getElementById('patient_gender').value,
+                    date_of_birth: document.getElementById('date_of_birth').value,
+                    id_number: document.getElementById('id_number').value,
+                    phone_number: document.getElementById('phone_number').value,
+                    address: document.getElementById('address').value
+                },
+                examination_info: {
+                    date_of_examination: document.getElementById('date_of_examination').value,
+                    department: document.getElementById('department').value,
+                    examination_type: document.getElementById('examination_type').value,
+                    examination_location: document.getElementById('examination_location').value
+                },
+                hospital_info: {
+                    hospital_name_chinese: document.getElementById('hospital_name_chinese').value,
+                    hospital_name_english: document.getElementById('hospital_name_english').value,
+                    attending_physician: document.getElementById('attending_physician').value,
+                    phone_number: document.getElementById('hospital_phone').value,
+                    address: document.getElementById('hospital_address').value
+                },
+                certificate_info: {
+                    certificate_no: document.getElementById('certificate_no').value,
+                    certificate_date: document.getElementById('certificate_date').value
+                },
+                additional_info: {
+                    stamp_or_seal: document.getElementById('stamp_or_seal').value,
+                    other_notes: document.getElementById('other_notes').value
+                }
+            };
+        }
+
+        // 預覽變更
+        function previewChanges() {
+            const formData = collectFormData();
+            console.log('預覽資料:', formData);
+            alert('預覽功能開發中...');
+        }
+
+        // 返回上一頁
+        function goBack() {
+            if (confirm('確定要離開嗎？未儲存的變更將會遺失。')) {
+                window.history.back();
+            }
+        }
+
+        // 前往圖片管理
+        function goToImageManagement() {
+            window.location.href = '/images';
+        }
+
+        // 顯示錯誤訊息
+        function showError(message) {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            alert('錯誤: ' + message);
+        }
+    </script>
+</body>
+</html>
+                        <!-- Certificate Info Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-certificate"></i> 證明書資訊
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="certificate_no" class="form-label">證明書字號</label>
+                                    <input type="text" class="form-control" id="certificate_no" name="certificate_no" placeholder="請輸入證明書字號">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="certificate_date" class="form-label">開立日期</label>
+                                    <input type="text" class="form-control" id="certificate_date" name="certificate_date" placeholder="例：2024/01/01">
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Additional Info Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-info-circle"></i> 其他資訊
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-md-6 mb-3">
+                                    <label for="stamp_or_seal" class="form-label">印章/印鑑</label>
+                                    <input type="text" class="form-control" id="stamp_or_seal" name="stamp_or_seal" placeholder="請輸入印章或印鑑資訊">
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="other_notes" class="form-label">其他備註</label>
+                                    <textarea class="form-control" id="other_notes" name="other_notes" rows="3" placeholder="請輸入其他備註"></textarea>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="edit-form">
+                            <div class="d-flex justify-content-between">
+                                <button type="button" class="btn btn-secondary" onclick="goBack()">
+                                    <i class="fas fa-arrow-left"></i> 取消
+                                </button>
+                                <div>
+                                    <button type="button" class="btn btn-primary me-2" onclick="previewChanges()">
+                                        <i class="fas fa-eye"></i> 預覽
+                                    </button>
+                                    <button type="submit" class="btn btn-success">
+                                        <i class="fas fa-save"></i> 儲存變更
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+
+        <!-- Success Modal -->
+        <div class="modal fade" id="successModal" tabindex="-1">
+            <div class="modal-dialog">
+                <div class="modal-content">
+                    <div class="modal-header bg-success text-white">
+                        <h5 class="modal-title"><i class="fas fa-check-circle"></i> 儲存成功</h5>
+                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                    </div>
+                    <div class="modal-body">
+                        <p>OCR 結果已成功更新！</p>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
+                        <button type="button" class="btn btn-primary" onclick="goToImageManagement()">返回圖片管理</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        let currentImageId = '{{ image_id }}';
+        let originalData = null;
+
+        // 頁面載入時初始化
+        document.addEventListener('DOMContentLoaded', function() {
+            if (currentImageId) {
+                loadOCRData();
+            } else {
+                showError('未指定圖片ID');
+            }
+            
+            setupFormSubmission();
+        });
+
+        // 載入OCR資料
+        function loadOCRData() {
+            document.getElementById('loadingSpinner').style.display = 'block';
+            document.getElementById('mainContent').style.display = 'none';
+            
+            fetch(`/api/images/${currentImageId}/ocr-result`)
+                .then(response => {
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        originalData = data.ocr_result.data;
+                        populateForm(originalData);
+                        loadImagePreview(data.image_url);
+                        
+                        document.getElementById('loadingSpinner').style.display = 'none';
+                        document.getElementById('mainContent').style.display = 'block';
+                    } else {
+                        showError('載入OCR結果失敗: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Load OCR data error:', error);
+                    showError('載入OCR結果失敗: ' + error.message);
+                });
+        }
+
+        // 填充表單資料
+        function populateForm(data) {
+            // Medical content
+            if (data.medical_content) {
+                setValue('diagnosis', data.medical_content.diagnosis);
+                setValue('doctors_comment', data.medical_content.doctors_comment);
+                setValue('treatment_period', data.medical_content.treatment_period);
+                setValue('rest_days', data.medical_content.rest_days);
+            }
+            
+            // Patient info
+            if (data.patient_info) {
+                setValue('patient_name', data.patient_info.name);
+                setValue('patient_gender', data.patient_info.sex || data.patient_info.gender);
+                setValue('date_of_birth', data.patient_info.date_of_birth);
+                setValue('id_number', data.patient_info.id_number);
+                setValue('phone_number', data.patient_info.phone_number);
+                setValue('address', data.patient_info.address);
+            }
+            
+            // Examination info
+            if (data.examination_info) {
+                setValue('date_of_examination', data.examination_info.date_of_examination);
+                setValue('department', data.examination_info.department);
+                setValue('examination_type', data.examination_info.examination_type);
+                setValue('examination_location', data.examination_info.examination_location);
+            }
+            
+            // Hospital info
+            if (data.hospital_info) {
+                setValue('hospital_name_chinese', data.hospital_info.hospital_name_chinese);
+                setValue('hospital_name_english', data.hospital_info.hospital_name_english);
+                setValue('attending_physician', data.hospital_info.attending_physician);
+                setValue('hospital_phone', data.hospital_info.phone_number);
+                setValue('hospital_address', data.hospital_info.address);
+            }
+            
+            // Certificate info
+            if (data.certificate_info) {
+                setValue('certificate_no', data.certificate_info.certificate_no);
+                setValue('certificate_date', data.certificate_info.certificate_date);
+            }
+            
+            // Additional info
+            if (data.additional_info) {
+                setValue('stamp_or_seal', data.additional_info.stamp_or_seal);
+                setValue('other_notes', data.additional_info.other_notes);
+            }
+        }
+
+        // 設置欄位值的輔助函數
+        function setValue(fieldId, value) {
+            const element = document.getElementById(fieldId);
+            if (element && value) {
+                element.value = value;
+            }
+        }
+
+        // 載入圖片預覽
+        function loadImagePreview(imageUrl) {
+            if (imageUrl) {
+                document.getElementById('imagePreview').src = imageUrl;
+                document.getElementById('imageInfo').textContent = `圖片ID: ${currentImageId}`;
+            }
+        }
+
+        // 設置表單提交
+        function setupFormSubmission() {
+            document.getElementById('editForm').addEventListener('submit', function(e) {
+                e.preventDefault();
+                saveChanges();
+            });
+        }
+
+        // 儲存變更
+        function saveChanges() {
+            const formData = collectFormData();
+            
+            // 顯示載入狀態
+            const submitBtn = document.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 儲存中...';
+            submitBtn.disabled = true;
+            
+            fetch(`/api/images/${currentImageId}/update-ocr`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                }
+                return response.json();
+            })
+            .then(data => {
+                if (data.success) {
+                    new bootstrap.Modal(document.getElementById('successModal')).show();
+                } else {
+                    showError('儲存失敗: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Save error:', error);
+                showError('儲存失敗: ' + error.message);
+            })
+            .finally(() => {
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+            });
+        }
+
+        // 收集表單資料
+        function collectFormData() {
+            return {
+                medical_content: {
+                    diagnosis: document.getElementById('diagnosis').value,
+                    doctors_comment: document.getElementById('doctors_comment').value,
+                    treatment_period: document.getElementById('treatment_period').value,
+                    rest_days: document.getElementById('rest_days').value
+                },
+                patient_info: {
+                    name: document.getElementById('patient_name').value,
+                    sex: document.getElementById('patient_gender').value,
+                    date_of_birth: document.getElementById('date_of_birth').value,
+                    id_number: document.getElementById('id_number').value,
+                    phone_number: document.getElementById('phone_number').value,
+                    address: document.getElementById('address').value
+                },
+                examination_info: {
+                    date_of_examination: document.getElementById('date_of_examination').value,
+                    department: document.getElementById('department').value,
+                    examination_type: document.getElementById('examination_type').value,
+                    examination_location: document.getElementById('examination_location').value
+                },
+                hospital_info: {
+                    hospital_name_chinese: document.getElementById('hospital_name_chinese').value,
+                    hospital_name_english: document.getElementById('hospital_name_english').value,
+                    attending_physician: document.getElementById('attending_physician').value,
+                    phone_number: document.getElementById('hospital_phone').value,
+                    address: document.getElementById('hospital_address').value
+                },
+                certificate_info: {
+                    certificate_no: document.getElementById('certificate_no').value,
+                    certificate_date: document.getElementById('certificate_date').value
+                },
+                additional_info: {
+                    stamp_or_seal: document.getElementById('stamp_or_seal').value,
+                    other_notes: document.getElementById('other_notes').value
+                }
+            };
+        }
+
+        // 預覽變更
+        function previewChanges() {
+            const formData = collectFormData();
+            console.log('預覽資料:', formData);
+            alert('預覽功能開發中...');
+        }
+
+        // 返回上一頁
+        function goBack() {
+            if (confirm('確定要離開嗎？未儲存的變更將會遺失。')) {
+                window.history.back();
+            }
+        }
+
+        // 前往圖片管理
+        function goToImageManagement() {
+            window.location.href = '/images';
+        }
+
+        // 顯示錯誤訊息
+        function showError(message) {
+            document.getElementById('loadingSpinner').style.display = 'none';
+            alert('錯誤: ' + message);
+        }
+    </script>
+</body>
+</html>
