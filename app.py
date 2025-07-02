@@ -1079,6 +1079,65 @@ def api_get_images():
     result = get_uploaded_images(limit)
     return jsonify(result)
 
+@app.route('/api/images/<image_id>')
+def api_get_image_details(image_id):
+    """API: 獲取圖片詳細信息包括OCR結果"""
+    try:
+        # 獲取圖片信息
+        response = dynamodb_table.get_item(Key={'id': image_id})
+        if 'Item' not in response:
+            return jsonify({'error': '圖片不存在'}), 404
+        
+        image_item = response['Item']
+        
+        if image_item.get('record_type') != 'image_metadata':
+            return jsonify({'error': '無效的圖片記錄'}), 400
+        
+        # 生成S3預簽名URL用於圖片預覽
+        try:
+            image_url = s3_client.generate_presigned_url(
+                'get_object',
+                Params={'Bucket': S3_BUCKET, 'Key': image_item['s3_key']},
+                ExpiresIn=3600  # 1小時過期
+            )
+        except Exception as e:
+            print(f"❌ Failed to generate presigned URL: {str(e)}")
+            image_url = None
+        
+        result = {
+            'success': True,
+            'image_id': image_id,
+            'filename': image_item['filename'],
+            'processing_status': image_item.get('processing_status', 'unknown'),
+            'upload_time': image_item.get('upload_time'),
+            'file_size': image_item.get('file_size'),
+            'content_type': image_item.get('content_type'),
+            'image_url': image_url
+        }
+        
+        # 如果有OCR結果，獲取OCR結果
+        if 'ocr_result_id' in image_item:
+            ocr_result_id = image_item['ocr_result_id']
+            ocr_response = dynamodb_table.get_item(Key={'id': ocr_result_id})
+            
+            if 'Item' in ocr_response:
+                ocr_item = ocr_response['Item']
+                result['ocr_result'] = {
+                    'id': ocr_result_id,
+                    'data': ocr_item.get('data', {}),
+                    'processing_mode': ocr_item.get('processing_mode'),
+                    'confidence_score': float(ocr_item.get('confidence_score', 0)) if ocr_item.get('confidence_score') else None,
+                    'human_reviewed': ocr_item.get('human_reviewed', False),
+                    'created_at': ocr_item.get('created_at'),
+                    'updated_at': ocr_item.get('updated_at')
+                }
+        
+        return jsonify(result)
+        
+    except Exception as e:
+        print(f"❌ API error: {str(e)}")
+        return jsonify({'error': f'獲取圖片詳情失敗: {str(e)}'}), 500
+
 @app.route('/api/images/<image_id>/reprocess', methods=['POST'])
 def api_reprocess_image(image_id):
     """API: 重新處理指定圖片"""
