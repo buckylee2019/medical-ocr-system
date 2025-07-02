@@ -429,13 +429,18 @@
         let currentSessionId = null;
         let currentImageId = null;
         let reviewMode = {{ 'true' if review_mode else 'false' }};
+        let editMode = {{ 'true' if edit_mode else 'false' }};
         let reviewImageId = '{{ image_id if image_id else "" }}';
 
         // 頁面載入時的處理
         document.addEventListener('DOMContentLoaded', function() {
-            if (reviewMode && reviewImageId) {
-                // 審核模式：自動載入待審核的圖片
-                loadImageForReview(reviewImageId);
+            if ((reviewMode || editMode) && reviewImageId) {
+                // 審核模式或編輯模式：自動載入圖片
+                if (editMode) {
+                    loadImageForEdit(reviewImageId);
+                } else {
+                    loadImageForReview(reviewImageId);
+                }
             }
         });
 
@@ -478,6 +483,58 @@
                     clearTimeout(timeoutId);
                     console.error('Load review error:', error);
                     showError('載入審核資料失敗: ' + error.message);
+                });
+        }
+
+        function loadImageForEdit(imageId) {
+            // 隱藏路徑選擇，直接進入編輯模式
+            document.getElementById('path-selection').style.display = 'none';
+            document.getElementById('processing').style.display = 'block';
+            
+            updateProgress(1, '載入圖片進行編輯...');
+            
+            // 設置超時處理
+            const timeoutId = setTimeout(() => {
+                showError('載入超時，請重試');
+            }, 30000); // 30秒超時
+            
+            // 載入已完成的OCR結果進行編輯
+            fetch(`/api/images/${imageId}/ocr-result`)
+                .then(response => {
+                    clearTimeout(timeoutId);
+                    if (!response.ok) {
+                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+                    }
+                    return response.json();
+                })
+                .then(data => {
+                    if (data.success) {
+                        // 構造與審核模式相同的數據結構
+                        const editData = {
+                            success: true,
+                            session_id: data.ocr_result.session_id || `edit_${imageId}`,
+                            image_id: imageId,
+                            image_url: data.image_url,
+                            claude_result: data.ocr_result.data
+                        };
+                        
+                        currentResult = editData;
+                        currentSessionId = editData.session_id;
+                        currentImageId = editData.image_id;
+                        selectedPath = 'human_review';
+                        
+                        updateProgress(5, '載入完成，準備編輯...');
+                        setTimeout(() => {
+                            handleHumanReviewResult(editData);
+                        }, 500);
+                    } else {
+                        showError('載入編輯資料失敗: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    clearTimeout(timeoutId);
+                    console.error('Load edit error:', error);
+                    showError('載入編輯資料失敗: ' + error.message);
                 });
         }
 

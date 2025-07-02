@@ -318,6 +318,9 @@
                     <button type="button" class="btn btn-info" id="reviewBtn" style="display: none;">
                         <i class="fas fa-edit"></i> 進入審核
                     </button>
+                    <button type="button" class="btn btn-success" id="reEditBtn" style="display: none;">
+                        <i class="fas fa-edit"></i> 重新編輯
+                    </button>
                     <button type="button" class="btn btn-warning" id="reprocessBtn">
                         <i class="fas fa-redo"></i> 重新處理
                     </button>
@@ -463,10 +466,17 @@
             
             // 根據狀態顯示或隱藏審核按鈕
             const reviewBtn = document.getElementById('reviewBtn');
+            const reEditBtn = document.getElementById('reEditBtn');
+            
             if (image.processing_status === 'pending_review') {
                 reviewBtn.style.display = 'inline-block';
+                reEditBtn.style.display = 'none';
+            } else if (image.processing_status === 'completed' && image.ocr_result_id) {
+                reviewBtn.style.display = 'none';
+                reEditBtn.style.display = 'inline-block';
             } else {
                 reviewBtn.style.display = 'none';
+                reEditBtn.style.display = 'none';
             }
             
             // 顯示基本圖片信息
@@ -778,6 +788,11 @@
         // 進入審核按鈕事件
         document.getElementById('reviewBtn').addEventListener('click', function() {
             window.open(`/review/${currentImageId}`, '_blank');
+        });
+
+        // 重新編輯按鈕事件
+        document.getElementById('reEditBtn').addEventListener('click', function() {
+            window.open(`/enhanced_voting_ocr?edit_image_id=${currentImageId}`, '_blank');
         });
 
         // 重新處理按鈕事件

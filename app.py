@@ -1,7 +1,7 @@
 # Medical OCR Application - Multi-Model Voting System
 # Claude 3.5 Sonnet 和 Claude 3 Haiku 各跑兩次，然後投票比對
 
-from flask import Flask, render_template, request, jsonify
+from flask import Flask, render_template, request, jsonify, redirect
 import boto3
 import json
 import os
@@ -730,7 +730,7 @@ def health_check():
 # Routes
 @app.route('/')
 def index():
-    return render_template('enhanced_voting_ocr.html', review_mode=False, image_id=None)
+    return redirect('/enhanced_voting_ocr')
 
 @app.route('/upload_and_vote', methods=['POST'])
 def upload_and_vote():
@@ -1240,10 +1240,21 @@ def api_get_image_for_review(image_id):
         print(f"❌ API error: {str(e)}")
         return jsonify({'error': f'獲取審核資料失敗: {str(e)}'}), 500
 
+@app.route('/enhanced_voting_ocr')
+def enhanced_voting_ocr():
+    """Enhanced voting OCR page with optional edit functionality"""
+    edit_image_id = request.args.get('edit_image_id')
+    if edit_image_id:
+        # Edit mode - load existing OCR result for editing
+        return render_template('enhanced_voting_ocr.html', review_mode=True, image_id=edit_image_id, edit_mode=True)
+    else:
+        # Normal mode - new upload
+        return render_template('enhanced_voting_ocr.html', review_mode=False, image_id=None, edit_mode=False)
+
 @app.route('/review/<image_id>')
 def review_image(image_id):
     """人工審核頁面"""
-    return render_template('enhanced_voting_ocr.html', review_mode=True, image_id=image_id)
+    return render_template('enhanced_voting_ocr.html', review_mode=True, image_id=image_id, edit_mode=False)
 
 @app.route('/api/images/<image_id>/ocr-result', methods=['GET'])
 def api_get_image_ocr_result(image_id):
