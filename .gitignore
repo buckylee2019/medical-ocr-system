@@ -29,6 +29,14 @@ venv/
 env/
 ENV/
 
+# CDK
+cdk.out/
+cdk/cdk.out/
+cdk/venv/
+*.js
+*.d.ts
+node_modules/
+
 # IDE
 .vscode/
 .idea/
@@ -49,3 +57,10 @@ Thumbs.db
 # AWS credentials (just in case)
 credentials
 config
+
+# Docker
+.dockerignore
+
+# Build artifacts
+*.zip
+*.tar.gz

@@ -695,8 +695,9 @@ def health_check():
         # Test S3 connection
         s3_client.list_objects_v2(Bucket=S3_BUCKET, MaxKeys=1)
         
-        # Test Bedrock connection (simple model list)
-        bedrock_client.list_foundation_models()
+        # Test Bedrock connection (use bedrock client instead of bedrock-runtime)
+        bedrock_list_client = aws_session.client('bedrock')
+        bedrock_list_client.list_foundation_models()
         
         return jsonify({
             'status': 'healthy',
@@ -1389,4 +1390,10 @@ if __name__ == '__main__':
     print("🤖 模型: Claude 3.7 Sonnet + Claude 3.5 Sonnet + Claude 3 Haiku")
     print("🗳️ 投票機制: 多模型結果比對和投票")
     print("💾 DynamoDB: 自動存儲處理結果")
-    app.run(debug=True, host='0.0.0.0', port=5006)
+    
+    # Check if running in production (App Runner sets PORT env var)
+    import os
+    debug_mode = os.getenv('FLASK_ENV', 'development') == 'development'
+    port = int(os.getenv('PORT', 5006))
+    
+    app.run(debug=debug_mode, host='0.0.0.0', port=port)

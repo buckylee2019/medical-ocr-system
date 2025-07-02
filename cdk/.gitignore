@@ -1,0 +1,28 @@
+# CDK asset staging directory
+.cdk.staging
+cdk.out
+*.js
+*.d.ts
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+
+# Node
+node_modules/
+
+# CDK Context & Outputs
+cdk.context.json
+
+# OS
+.DS_Store
+
+# IDE
+.vscode/
+.idea/
+
+# Logs
+*.log
