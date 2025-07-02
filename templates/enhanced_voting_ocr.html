@@ -362,7 +362,10 @@
                             
                             <div class="mt-3">
                                 <button class="btn btn-success" id="submitReviewBtn">
-                                    <i class="fas fa-check"></i> 確認並存入 DynamoDB
+                                    <i class="fas fa-save"></i> 儲存
+                                </button>
+                                <button class="btn btn-primary" id="saveAndNewBtn">
+                                    <i class="fas fa-plus"></i> 儲存並建立新病例
                                 </button>
                                 <button class="btn btn-secondary" id="cancelReviewBtn">
                                     <i class="fas fa-times"></i> 取消
@@ -556,6 +559,7 @@
             
             // 人工審核按鈕
             document.getElementById('submitReviewBtn').addEventListener('click', submitHumanReview);
+            document.getElementById('saveAndNewBtn').addEventListener('click', saveAndCreateNew);
             document.getElementById('cancelReviewBtn').addEventListener('click', cancelReview);
             document.getElementById('backToUploadBtn').addEventListener('click', backToUpload);
         }
@@ -762,6 +766,49 @@
             displayFinalResultAsHtmlTable(reviewedData);
             
             document.getElementById('results-section').style.display = 'block';
+        }
+
+        function saveAndCreateNew() {
+            // 收集所有編輯過的資料
+            const reviewedData = {};
+            
+            document.querySelectorAll('.editable-field').forEach(input => {
+                const section = input.dataset.section;
+                const field = input.dataset.field;
+                const value = input.value;
+                
+                if (!reviewedData[section]) {
+                    reviewedData[section] = {};
+                }
+                reviewedData[section][field] = value;
+            });
+            
+            // 提交到後端
+            fetch('/submit_human_review', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    session_id: currentSessionId,
+                    image_id: currentImageId,
+                    reviewed_data: reviewedData
+                })
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    // 顯示成功訊息
+                    alert('資料已成功儲存！');
+                    // 重新載入頁面以建立新病例
+                    window.location.href = '/enhanced_voting_ocr';
+                } else {
+                    showError('儲存失敗: ' + data.error);
+                }
+            })
+            .catch(error => {
+                showError('儲存失敗: ' + error.message);
+            });
         }
 
         function cancelReview() {
