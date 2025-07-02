@@ -991,6 +991,21 @@
             openEditModal(currentImageId);
         });
 
+        // 編輯模態框關閉事件
+        document.getElementById('editModal').addEventListener('hidden.bs.modal', function () {
+            // 重新載入圖片列表以確保狀態同步
+            loadImages();
+            
+            // 清理當前選中的圖片ID
+            currentImageId = null;
+            
+            // 如果圖片詳情模態框還開著，也關閉它
+            const imageModal = bootstrap.Modal.getInstance(document.getElementById('imageModal'));
+            if (imageModal) {
+                imageModal.hide();
+            }
+        });
+
         // 重新處理按鈕事件
         document.getElementById('reprocessBtn').addEventListener('click', function() {
             bootstrap.Modal.getInstance(document.getElementById('imageModal')).hide();
