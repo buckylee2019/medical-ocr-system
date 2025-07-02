@@ -177,15 +177,6 @@
                         </div>
                         <div class="text-center">
                             <img id="imagePreview" src="" alt="原始圖片" class="image-preview" style="display: none;">
-                            <div id="imagePlaceholder" class="image-preview d-flex align-items-center justify-content-center bg-light" style="min-height: 200px;">
-                                <div class="text-center text-muted">
-                                    <i class="fas fa-image fa-3x mb-3"></i>
-                                    <p>載入圖片中...</p>
-                                </div>
-                            </div>
-                            <div class="mt-3">
-                                <small class="text-muted" id="imageInfo">載入中...</small>
-                            </div>
                         </div>
                     </div>
                 </div>
@@ -193,31 +184,21 @@
                 <!-- Edit Form -->
                 <div class="col-md-8">
                     <form id="editForm">
-                        <!-- Medical Content Section -->
+                        <!-- Certificate Info Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-stethoscope"></i> 診斷與治療
+                                <i class="fas fa-certificate"></i> 證明書資訊
                             </div>
                             
                             <div class="row">
-                                <div class="col-12 mb-3">
-                                    <label for="diagnosis" class="form-label">診斷</label>
-                                    <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" placeholder="請輸入診斷內容"></textarea>
-                                </div>
-                                
-                                <div class="col-12 mb-3">
-                                    <label for="doctors_comment" class="form-label">醫師建議</label>
-                                    <textarea class="form-control" id="doctors_comment" name="doctors_comment" rows="3" placeholder="請輸入醫師建議"></textarea>
+                                <div class="col-md-6 mb-3">
+                                    <label for="certificate_no" class="form-label">證明書編號</label>
+                                    <input type="text" class="form-control" id="certificate_no" name="certificate_no" placeholder="請輸入證明書編號">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="treatment_period" class="form-label">治療期間</label>
-                                    <input type="text" class="form-control" id="treatment_period" name="treatment_period" placeholder="例：2024/01/01 - 2024/01/07">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="rest_days" class="form-label">建議休息天數</label>
-                                    <input type="text" class="form-control" id="rest_days" name="rest_days" placeholder="例：7天">
+                                    <label for="certificate_date" class="form-label">證明書日期</label>
+                                    <input type="text" class="form-control" id="certificate_date" name="certificate_date" placeholder="例：2024/01/01">
                                 </div>
                             </div>
                         </div>
@@ -235,8 +216,8 @@
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="patient_gender" class="form-label">性別</label>
-                                    <select class="form-select" id="patient_gender" name="patient_gender">
+                                    <label for="patient_sex" class="form-label">性別</label>
+                                    <select class="form-select" id="patient_sex" name="patient_sex">
                                         <option value="">請選擇性別</option>
                                         <option value="男">男</option>
                                         <option value="女">女</option>
@@ -249,18 +230,23 @@
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="id_number" class="form-label">身分證字號</label>
-                                    <input type="text" class="form-control" id="id_number" name="id_number" placeholder="請輸入身分證字號">
+                                    <label for="nationality" class="form-label">國籍</label>
+                                    <input type="text" class="form-control" id="nationality" name="nationality" placeholder="請輸入國籍">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="patient_phone" class="form-label">聯絡電話</label>
-                                    <input type="text" class="form-control" id="patient_phone" name="patient_phone" placeholder="請輸入聯絡電話">
+                                    <label for="passport_no_or_id" class="form-label">身分證/護照</label>
+                                    <input type="text" class="form-control" id="passport_no_or_id" name="passport_no_or_id" placeholder="請輸入身分證字號或護照號碼">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="patient_address" class="form-label">聯絡地址</label>
-                                    <input type="text" class="form-control" id="patient_address" name="patient_address" placeholder="請輸入聯絡地址">
+                                    <label for="medical_history_no" class="form-label">病歷號碼</label>
+                                    <input type="text" class="form-control" id="medical_history_no" name="medical_history_no" placeholder="請輸入病歷號碼">
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="patient_address" class="form-label">住址</label>
+                                    <input type="text" class="form-control" id="patient_address" name="patient_address" placeholder="請輸入住址">
                                 </div>
                             </div>
                         </div>
@@ -268,28 +254,37 @@
                         <!-- Examination Info Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-calendar-check"></i> 檢查資訊
+                                <i class="fas fa-stethoscope"></i> 診療資訊
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="date_of_examination" class="form-label">檢查日期</label>
+                                    <label for="date_of_examination" class="form-label">診療日期</label>
                                     <input type="text" class="form-control" id="date_of_examination" name="date_of_examination" placeholder="例：2024/01/01">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="department" class="form-label">科別</label>
+                                    <label for="department" class="form-label">診療科別</label>
                                     <input type="text" class="form-control" id="department" name="department" placeholder="例：內科">
                                 </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="examination_type" class="form-label">檢查類型</label>
-                                    <input type="text" class="form-control" id="examination_type" name="examination_type" placeholder="例：血液檢查">
+                            </div>
+                        </div>
+
+                        <!-- Medical Content Section -->
+                        <div class="edit-form">
+                            <div class="section-header">
+                                <i class="fas fa-notes-medical"></i> 醫療內容
+                            </div>
+                            
+                            <div class="row">
+                                <div class="col-12 mb-3">
+                                    <label for="diagnosis" class="form-label">診斷</label>
+                                    <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" placeholder="請輸入診斷內容"></textarea>
                                 </div>
                                 
-                                <div class="col-md-6 mb-3">
-                                    <label for="examination_location" class="form-label">檢查地點</label>
-                                    <input type="text" class="form-control" id="examination_location" name="examination_location" placeholder="例：檢驗科">
+                                <div class="col-12 mb-3">
+                                    <label for="doctors_comment" class="form-label">醫師意見</label>
+                                    <textarea class="form-control" id="doctors_comment" name="doctors_comment" rows="3" placeholder="請輸入醫師意見"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -297,7 +292,7 @@
                         <!-- Hospital Info Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-hospital"></i> 醫院資訊
+                                <i class="fas fa-hospital"></i> 醫療院所資訊
                             </div>
                             
                             <div class="row">
@@ -312,37 +307,13 @@
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
+                                    <label for="superintendent" class="form-label">院長</label>
+                                    <input type="text" class="form-control" id="superintendent" name="superintendent" placeholder="請輸入院長姓名">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
                                     <label for="attending_physician" class="form-label">主治醫師</label>
                                     <input type="text" class="form-control" id="attending_physician" name="attending_physician" placeholder="請輸入主治醫師姓名">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="hospital_phone" class="form-label">醫院電話</label>
-                                    <input type="text" class="form-control" id="hospital_phone" name="hospital_phone" placeholder="請輸入醫院電話">
-                                </div>
-                                
-                                <div class="col-12 mb-3">
-                                    <label for="hospital_address" class="form-label">醫院地址</label>
-                                    <input type="text" class="form-control" id="hospital_address" name="hospital_address" placeholder="請輸入醫院地址">
-                                </div>
-                            </div>
-                        </div>
-
-                        <!-- Certificate Info Section -->
-                        <div class="edit-form">
-                            <div class="section-header">
-                                <i class="fas fa-certificate"></i> 證明書資訊
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="certificate_no" class="form-label">證明書字號</label>
-                                    <input type="text" class="form-control" id="certificate_no" name="certificate_no" placeholder="請輸入證明書字號">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="certificate_date" class="form-label">開立日期</label>
-                                    <input type="text" class="form-control" id="certificate_date" name="certificate_date" placeholder="例：2024/01/01">
                                 </div>
                             </div>
                         </div>
@@ -355,8 +326,8 @@
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="stamp_or_seal" class="form-label">印章/印鑑</label>
-                                    <input type="text" class="form-control" id="stamp_or_seal" name="stamp_or_seal" placeholder="請輸入印章或印鑑資訊">
+                                    <label for="stamp_or_seal" class="form-label">印章/戳記</label>
+                                    <input type="text" class="form-control" id="stamp_or_seal" name="stamp_or_seal" placeholder="請輸入印章或戳記資訊">
                                 </div>
                                 
                                 <div class="col-12 mb-3">
@@ -455,21 +426,20 @@
 
         // 填充表單資料
         function populateForm(data) {
-            // Medical content
-            if (data.medical_content) {
-                setValue('diagnosis', data.medical_content.diagnosis);
-                setValue('doctors_comment', data.medical_content.doctors_comment);
-                setValue('treatment_period', data.medical_content.treatment_period);
-                setValue('rest_days', data.medical_content.rest_days);
+            // Certificate info
+            if (data.certificate_info) {
+                setValue('certificate_no', data.certificate_info.certificate_no);
+                setValue('certificate_date', data.certificate_info.certificate_date);
             }
             
             // Patient info
             if (data.patient_info) {
                 setValue('patient_name', data.patient_info.name);
-                setValue('patient_gender', data.patient_info.sex || data.patient_info.gender);
+                setValue('patient_sex', data.patient_info.sex);
                 setValue('date_of_birth', data.patient_info.date_of_birth);
-                setValue('id_number', data.patient_info.id_number);
-                setValue('patient_phone', data.patient_info.phone_number);
+                setValue('nationality', data.patient_info.nationality);
+                setValue('passport_no_or_id', data.patient_info.passport_no_or_id);
+                setValue('medical_history_no', data.patient_info.medical_history_no);
                 setValue('patient_address', data.patient_info.address);
             }
             
@@ -477,23 +447,20 @@
             if (data.examination_info) {
                 setValue('date_of_examination', data.examination_info.date_of_examination);
                 setValue('department', data.examination_info.department);
-                setValue('examination_type', data.examination_info.examination_type);
-                setValue('examination_location', data.examination_info.examination_location);
+            }
+            
+            // Medical content
+            if (data.medical_content) {
+                setValue('diagnosis', data.medical_content.diagnosis);
+                setValue('doctors_comment', data.medical_content.doctors_comment);
             }
             
             // Hospital info
             if (data.hospital_info) {
                 setValue('hospital_name_chinese', data.hospital_info.hospital_name_chinese);
                 setValue('hospital_name_english', data.hospital_info.hospital_name_english);
+                setValue('superintendent', data.hospital_info.superintendent);
                 setValue('attending_physician', data.hospital_info.attending_physician);
-                setValue('hospital_phone', data.hospital_info.phone_number);
-                setValue('hospital_address', data.hospital_info.address);
-            }
-            
-            // Certificate info
-            if (data.certificate_info) {
-                setValue('certificate_no', data.certificate_info.certificate_no);
-                setValue('certificate_date', data.certificate_info.certificate_date);
             }
             
             // Additional info
@@ -519,13 +486,7 @@
             
             if (imageUrl) {
                 // 設置載入狀態
-                imageInfo.textContent = '載入圖片中...';
-                imagePlaceholder.innerHTML = `
-                    <div class="text-center text-muted">
-                        <i class="fas fa-spinner fa-spin fa-3x mb-3"></i>
-                        <p>載入圖片中...</p>
-                    </div>
-                `;
+
                 
                 // 創建新的圖片元素來測試載入
                 const testImage = new Image();
@@ -629,36 +590,32 @@
         // 收集表單資料
         function collectFormData() {
             return {
-                medical_content: {
-                    diagnosis: document.getElementById('diagnosis').value,
-                    doctors_comment: document.getElementById('doctors_comment').value,
-                    treatment_period: document.getElementById('treatment_period').value,
-                    rest_days: document.getElementById('rest_days').value
+                certificate_info: {
+                    certificate_no: document.getElementById('certificate_no').value,
+                    certificate_date: document.getElementById('certificate_date').value
                 },
                 patient_info: {
                     name: document.getElementById('patient_name').value,
-                    sex: document.getElementById('patient_gender').value,
+                    sex: document.getElementById('patient_sex').value,
                     date_of_birth: document.getElementById('date_of_birth').value,
-                    id_number: document.getElementById('id_number').value,
-                    phone_number: document.getElementById('patient_phone').value,
+                    nationality: document.getElementById('nationality').value,
+                    passport_no_or_id: document.getElementById('passport_no_or_id').value,
+                    medical_history_no: document.getElementById('medical_history_no').value,
                     address: document.getElementById('patient_address').value
                 },
                 examination_info: {
                     date_of_examination: document.getElementById('date_of_examination').value,
-                    department: document.getElementById('department').value,
-                    examination_type: document.getElementById('examination_type').value,
-                    examination_location: document.getElementById('examination_location').value
+                    department: document.getElementById('department').value
+                },
+                medical_content: {
+                    diagnosis: document.getElementById('diagnosis').value,
+                    doctors_comment: document.getElementById('doctors_comment').value
                 },
                 hospital_info: {
                     hospital_name_chinese: document.getElementById('hospital_name_chinese').value,
                     hospital_name_english: document.getElementById('hospital_name_english').value,
-                    attending_physician: document.getElementById('attending_physician').value,
-                    phone_number: document.getElementById('hospital_phone').value,
-                    address: document.getElementById('hospital_address').value
-                },
-                certificate_info: {
-                    certificate_no: document.getElementById('certificate_no').value,
-                    certificate_date: document.getElementById('certificate_date').value
+                    superintendent: document.getElementById('superintendent').value,
+                    attending_physician: document.getElementById('attending_physician').value
                 },
                 additional_info: {
                     stamp_or_seal: document.getElementById('stamp_or_seal').value,
