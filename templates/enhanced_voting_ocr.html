@@ -348,8 +348,13 @@
 
                         <!-- 人工審核區域 -->
                         <div id="human-review-section" class="human-review-section">
-                            <h5><i class="fas fa-user-edit"></i> 人工審核 - 請檢查並修改以下資訊</h5>
-                            <p class="text-muted">Claude 3.7 Sonnet 已完成初步處理，請審核並修改需要調整的欄位：</p>
+                            <div class="d-flex justify-content-between align-items-center mb-3">
+                                <h5><i class="fas fa-user-edit"></i> 人工審核 - 請檢查並修改以下資訊</h5>
+                                <button class="btn btn-outline-secondary btn-sm" id="backToUploadBtn">
+                                    <i class="fas fa-arrow-left"></i> 回上一頁
+                                </button>
+                            </div>
+                            <p class="text-muted">Amazon Bedrock 已完成初步處理，請審核並修改需要調整的欄位：</p>
                             
                             <div id="review-content">
                                 <!-- 可編輯的表格將在這裡顯示 -->
@@ -395,11 +400,11 @@
                                         <button class="btn btn-success" onclick="downloadResults()">
                                             <i class="fas fa-download"></i> 下載結果
                                         </button>
-                                        <button class="btn btn-primary" onclick="copyToClipboard()">
-                                            <i class="fas fa-copy"></i> 複製 JSON
+                                        <button class="btn btn-info" onclick="editResults()">
+                                            <i class="fas fa-edit"></i> 重新編輯
                                         </button>
-                                        <button class="btn btn-secondary" onclick="processAnother()">
-                                            <i class="fas fa-redo"></i> 處理另一份文件
+                                        <button class="btn btn-secondary" onclick="goHome()">
+                                            <i class="fas fa-home"></i> 回到首頁
                                         </button>
                                     </div>
                                 </div>
@@ -495,6 +500,7 @@
             // 人工審核按鈕
             document.getElementById('submitReviewBtn').addEventListener('click', submitHumanReview);
             document.getElementById('cancelReviewBtn').addEventListener('click', cancelReview);
+            document.getElementById('backToUploadBtn').addEventListener('click', backToUpload);
         }
 
         function handleDrop(e) {
@@ -851,29 +857,35 @@
         }
 
         function downloadResults() {
-            if (!currentResult) return;
+            if (!currentResult || !currentResult.claude_result) return;
             
-            const dataStr = JSON.stringify(currentResult, null, 2);
+            // 只下載 claude result 部分
+            const claudeResult = currentResult.claude_result;
+            const dataStr = JSON.stringify(claudeResult, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
             const link = document.createElement('a');
             link.href = url;
-            link.download = `medical_ocr_enhanced_${currentResult.session_id}.json`;
+            link.download = `medical_ocr_claude_result_${currentResult.session_id || new Date().toISOString().slice(0,10)}.json`;
             link.click();
             URL.revokeObjectURL(url);
         }
 
-        function copyToClipboard() {
-            if (!currentResult) return;
-            
-            const dataStr = JSON.stringify(currentResult, null, 2);
-            navigator.clipboard.writeText(dataStr).then(() => {
-                alert('結果已複製到剪貼簿！');
-            });
+        function editResults() {
+            // 回到人工審核區域重新編輯
+            document.getElementById('results-section').style.display = 'none';
+            document.getElementById('human-review-section').style.display = 'block';
         }
 
-        function processAnother() {
-            location.reload();
+        function goHome() {
+            // 回到首頁
+            window.location.href = '/';
+        }
+
+        function backToUpload() {
+            // 回到上傳區域
+            document.getElementById('human-review-section').style.display = 'none';
+            document.getElementById('upload-section').style.display = 'block';
         }
 
         function showError(message) {
