@@ -314,10 +314,10 @@
                         <div class="d-flex justify-content-between align-items-center">
                             <div>
                                 <h3 class="mb-0">
-                                    <i class="fas fa-database"></i>
-                                    醫療 OCR - 增強型系統 + DynamoDB 整合
+                                    <i class="fas fa-user-check"></i>
+                                    醫療 OCR - 人工審核系統
                                 </h3>
-                                <p class="mb-0 mt-2">選擇處理路徑：全自動投票存儲 或 人工審核確認</p>
+                                <p class="mb-0 mt-2">Amazon Bedrock 智能處理，人工審核確認</p>
                             </div>
                             <div>
                                 <a href="/images" class="btn btn-light btn-sm">
@@ -328,49 +328,12 @@
                     </div>
                     <div class="card-body">
                         
-                        <!-- 處理路徑選擇 -->
-                        <div id="path-selection">
-                            <h5 class="mb-3">選擇處理路徑</h5>
-                            <div class="row">
-                                <div class="col-md-6">
-                                    <div class="processing-path path-automatic" id="pathAutomatic">
-                                        <div class="text-center">
-                                            <i class="fas fa-robot fa-3x text-info mb-3"></i>
-                                            <h5>路徑 1: 全自動處理</h5>
-                                            <p class="text-muted">
-                                                • Claude 3.7 Sonnet<br>
-                                                • Claude 3.5 Sonnet<br>
-                                                • Claude 3 Haiku<br>
-                                                <strong>投票後直接存入 DynamoDB</strong>
-                                            </p>
-                                            <span class="badge bg-info">快速 • 自動化</span>
-                                        </div>
-                                    </div>
-                                </div>
-                                <div class="col-md-6">
-                                    <div class="processing-path path-human" id="pathHuman">
-                                        <div class="text-center">
-                                            <i class="fas fa-user-check fa-3x text-warning mb-3"></i>
-                                            <h5>路徑 2: 人工審核</h5>
-                                            <p class="text-muted">
-                                                • Claude 3.7 Sonnet 處理<br>
-                                                • 人工審核和修改<br>
-                                                • 確認後存入 DynamoDB<br>
-                                                <strong>高精度 • 人工把關</strong>
-                                            </p>
-                                            <span class="badge bg-warning">精確 • 可控制</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-
                         <!-- 上傳區域 -->
-                        <div id="upload-section" style="display: none;">
+                        <div id="upload-section">
                             <div class="upload-area" id="uploadArea">
-                                <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
+                                <i class="fas fa-file-medical fa-3x text-primary mb-3"></i>
                                 <h5>上傳醫療診斷證明書</h5>
-                                <p class="text-muted" id="uploadDescription">選擇的處理路徑將在此顯示</p>
+                                <p class="text-muted">Amazon Bedrock 將處理文件後供您審核確認</p>
                                 <p class="text-muted">支援格式: PNG, JPG, JPEG, PDF, TIFF | 最大: 16MB</p>
                                 <input type="file" id="fileInput" class="d-none" accept=".png,.jpg,.jpeg,.pdf,.tiff">
                             </div>
@@ -519,10 +482,6 @@
         });
 
         function setupEventListeners() {
-            // 路徑選擇
-            document.getElementById('pathAutomatic').addEventListener('click', () => selectPath('automatic'));
-            document.getElementById('pathHuman').addEventListener('click', () => selectPath('human'));
-            
             // 檔案上傳
             const uploadArea = document.getElementById('uploadArea');
             const fileInput = document.getElementById('fileInput');
@@ -538,24 +497,6 @@
             document.getElementById('cancelReviewBtn').addEventListener('click', cancelReview);
         }
 
-        function selectPath(path) {
-            selectedPath = path;
-            
-            // 更新視覺狀態
-            document.querySelectorAll('.processing-path').forEach(el => el.classList.remove('selected'));
-            
-            if (path === 'automatic') {
-                document.getElementById('pathAutomatic').classList.add('selected');
-                document.getElementById('uploadDescription').textContent = '全自動處理：3個AI模型投票後直接存入DynamoDB';
-            } else {
-                document.getElementById('pathHuman').classList.add('selected');
-                document.getElementById('uploadDescription').textContent = '人工審核：Claude 3.7 Sonnet處理後等待您的確認';
-            }
-            
-            // 顯示上傳區域
-            document.getElementById('upload-section').style.display = 'block';
-        }
-
         function handleDrop(e) {
             e.preventDefault();
             e.currentTarget.classList.remove('dragover');
@@ -564,55 +505,26 @@
         }
 
         function processFile(file) {
-            if (!file || !selectedPath) {
-                alert('請先選擇處理路徑');
-                return;
-            }
+            if (!file) return;
             
             const formData = new FormData();
             formData.append('file', file);
 
             // 顯示處理進度
-            document.getElementById('path-selection').style.display = 'none';
             document.getElementById('upload-section').style.display = 'none';
             document.getElementById('processing').style.display = 'block';
             
-            // 根據選擇的路徑設置處理描述
-            if (selectedPath === 'automatic') {
-                document.getElementById('processingTitle').textContent = '全自動處理中...';
-                document.getElementById('processingDescription').textContent = '3個AI模型正在投票處理，完成後將自動存入DynamoDB';
-                
-                fetch('/process_automatic', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => handleAutomaticResult(data))
-                .catch(error => handleError('自動處理失敗: ' + error.message));
-                
-            } else {
-                document.getElementById('processingTitle').textContent = '準備人工審核...';
-                document.getElementById('processingDescription').textContent = 'Claude 3.7 Sonnet 正在處理文件，準備供您審核';
-                
-                fetch('/process_human_review', {
-                    method: 'POST',
-                    body: formData
-                })
-                .then(response => response.json())
-                .then(data => handleHumanReviewResult(data))
-                .catch(error => handleError('人工審核準備失敗: ' + error.message));
-            }
-        }
-
-        function handleAutomaticResult(data) {
-            document.getElementById('processing').style.display = 'none';
+            // 直接進行人工審核處理
+            document.getElementById('processingTitle').textContent = '準備人工審核...';
+            document.getElementById('processingDescription').textContent = 'Amazon Bedrock 正在處理文件，準備供您審核';
             
-            if (data.success) {
-                currentResult = data;
-                displayAutomaticResults(data);
-            } else {
-                showError(data.error);
-            }
+            fetch('/process_human_review', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => handleHumanReviewResult(data))
+            .catch(error => handleError('處理失敗: ' + error.message));
         }
 
         function handleHumanReviewResult(data) {
@@ -628,51 +540,6 @@
             }
         }
 
-        function displayAutomaticResults(data) {
-            // 檢查數據結構
-            if (!data.voting_results || !data.voting_results.voting_result) {
-                showError('投票結果結構異常');
-                return;
-            }
-            
-            const votingResult = data.voting_results.voting_result;
-            if (!votingResult.final_result) {
-                showError('缺少最終結果數據');
-                return;
-            }
-            
-            // 顯示 DynamoDB 狀態
-            const dbStatus = document.getElementById('dynamodb-status');
-            if (data.dynamodb_result && data.dynamodb_result.success) {
-                dbStatus.className = 'dynamodb-status success';
-                dbStatus.innerHTML = `
-                    <i class="fas fa-check-circle"></i>
-                    <strong>成功存入 DynamoDB</strong><br>
-                    記錄 ID: ${data.dynamodb_result.record_id}<br>
-                    時間: ${data.dynamodb_result.timestamp}
-                `;
-            } else {
-                dbStatus.className = 'dynamodb-status error';
-                dbStatus.innerHTML = `
-                    <i class="fas fa-exclamation-circle"></i>
-                    <strong>DynamoDB 存儲失敗</strong><br>
-                    錯誤: ${data.dynamodb_result ? data.dynamodb_result.error : '未知錯誤'}
-                `;
-            }
-            
-            // 顯示文件和結果
-            document.getElementById('documentPreview').src = data.image_data;
-            document.getElementById('processingMode').textContent = '全自動處理';
-            document.getElementById('confidenceScore').textContent = Math.round((data.confidence_score || 0) * 100) + '%';
-            document.getElementById('recordId').textContent = (data.dynamodb_result && data.dynamodb_result.record_id) || 'N/A';
-            
-            // 顯示最終結果
-            const finalResult = votingResult.final_result;
-            displayFinalResultAsHtmlTable(finalResult);
-            
-            document.getElementById('results-section').style.display = 'block';
-        }
-
         function displayHumanReview(data) {
             if (data.claude_result.success) {
                 const extractedData = data.claude_result.extracted_data;
@@ -683,7 +550,7 @@
                 
                 document.getElementById('human-review-section').style.display = 'block';
             } else {
-                showError('Claude 3.7 Sonnet 處理失敗: ' + data.claude_result.error);
+                showError('Amazon Bedrock 處理失敗: ' + data.claude_result.error);
             }
         }
 
