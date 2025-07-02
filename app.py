@@ -1287,8 +1287,22 @@ def api_get_image_ocr_result(image_id):
         
         ocr_item = ocr_response['Item']
         
+        # 生成預簽名URL用於圖片預覽
+        image_url = None
+        if 's3_key' in image_item:
+            try:
+                image_url = s3_client.generate_presigned_url(
+                    'get_object',
+                    Params={'Bucket': S3_BUCKET, 'Key': image_item['s3_key']},
+                    ExpiresIn=3600  # 1小時有效期
+                )
+            except Exception as e:
+                print(f"⚠️ Failed to generate presigned URL: {str(e)}")
+                image_url = None
+        
         return jsonify({
             'success': True,
+            'image_url': image_url,
             'image_info': {
                 'id': image_item['id'],
                 'filename': image_item['filename'],

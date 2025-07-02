@@ -176,7 +176,13 @@
                             <i class="fas fa-image"></i> 原始圖片
                         </div>
                         <div class="text-center">
-                            <img id="imagePreview" src="" alt="原始圖片" class="image-preview">
+                            <img id="imagePreview" src="" alt="原始圖片" class="image-preview" style="display: none;">
+                            <div id="imagePlaceholder" class="image-preview d-flex align-items-center justify-content-center bg-light" style="min-height: 200px;">
+                                <div class="text-center text-muted">
+                                    <i class="fas fa-image fa-3x mb-3"></i>
+                                    <p>載入圖片中...</p>
+                                </div>
+                            </div>
                             <div class="mt-3">
                                 <small class="text-muted" id="imageInfo">載入中...</small>
                             </div>
@@ -215,6 +221,7 @@
                                 </div>
                             </div>
                         </div>
+
                         <!-- Patient Info Section -->
                         <div class="edit-form">
                             <div class="section-header">
@@ -247,13 +254,13 @@
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="phone_number" class="form-label">電話號碼</label>
-                                    <input type="text" class="form-control" id="phone_number" name="phone_number" placeholder="請輸入電話號碼">
+                                    <label for="patient_phone" class="form-label">聯絡電話</label>
+                                    <input type="text" class="form-control" id="patient_phone" name="patient_phone" placeholder="請輸入聯絡電話">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="address" class="form-label">地址</label>
-                                    <input type="text" class="form-control" id="address" name="address" placeholder="請輸入地址">
+                                    <label for="patient_address" class="form-label">聯絡地址</label>
+                                    <input type="text" class="form-control" id="patient_address" name="patient_address" placeholder="請輸入聯絡地址">
                                 </div>
                             </div>
                         </div>
@@ -462,8 +469,8 @@
                 setValue('patient_gender', data.patient_info.sex || data.patient_info.gender);
                 setValue('date_of_birth', data.patient_info.date_of_birth);
                 setValue('id_number', data.patient_info.id_number);
-                setValue('phone_number', data.patient_info.phone_number);
-                setValue('address', data.patient_info.address);
+                setValue('patient_phone', data.patient_info.phone_number);
+                setValue('patient_address', data.patient_info.address);
             }
             
             // Examination info
@@ -506,316 +513,62 @@
 
         // 載入圖片預覽
         function loadImagePreview(imageUrl) {
+            const imageElement = document.getElementById('imagePreview');
+            const imagePlaceholder = document.getElementById('imagePlaceholder');
+            const imageInfo = document.getElementById('imageInfo');
+            
             if (imageUrl) {
-                document.getElementById('imagePreview').src = imageUrl;
-                document.getElementById('imageInfo').textContent = `圖片ID: ${currentImageId}`;
-            }
-        }
-
-        // 設置表單提交
-        function setupFormSubmission() {
-            document.getElementById('editForm').addEventListener('submit', function(e) {
-                e.preventDefault();
-                saveChanges();
-            });
-        }
-
-        // 儲存變更
-        function saveChanges() {
-            const formData = collectFormData();
-            
-            // 顯示載入狀態
-            const submitBtn = document.querySelector('button[type="submit"]');
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 儲存中...';
-            submitBtn.disabled = true;
-            
-            fetch(`/api/images/${currentImageId}/update-ocr`, {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(formData)
-            })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                }
-                return response.json();
-            })
-            .then(data => {
-                if (data.success) {
-                    new bootstrap.Modal(document.getElementById('successModal')).show();
-                } else {
-                    showError('儲存失敗: ' + data.error);
-                }
-            })
-            .catch(error => {
-                console.error('Save error:', error);
-                showError('儲存失敗: ' + error.message);
-            })
-            .finally(() => {
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-            });
-        }
-
-        // 收集表單資料
-        function collectFormData() {
-            return {
-                medical_content: {
-                    diagnosis: document.getElementById('diagnosis').value,
-                    doctors_comment: document.getElementById('doctors_comment').value,
-                    treatment_period: document.getElementById('treatment_period').value,
-                    rest_days: document.getElementById('rest_days').value
-                },
-                patient_info: {
-                    name: document.getElementById('patient_name').value,
-                    sex: document.getElementById('patient_gender').value,
-                    date_of_birth: document.getElementById('date_of_birth').value,
-                    id_number: document.getElementById('id_number').value,
-                    phone_number: document.getElementById('phone_number').value,
-                    address: document.getElementById('address').value
-                },
-                examination_info: {
-                    date_of_examination: document.getElementById('date_of_examination').value,
-                    department: document.getElementById('department').value,
-                    examination_type: document.getElementById('examination_type').value,
-                    examination_location: document.getElementById('examination_location').value
-                },
-                hospital_info: {
-                    hospital_name_chinese: document.getElementById('hospital_name_chinese').value,
-                    hospital_name_english: document.getElementById('hospital_name_english').value,
-                    attending_physician: document.getElementById('attending_physician').value,
-                    phone_number: document.getElementById('hospital_phone').value,
-                    address: document.getElementById('hospital_address').value
-                },
-                certificate_info: {
-                    certificate_no: document.getElementById('certificate_no').value,
-                    certificate_date: document.getElementById('certificate_date').value
-                },
-                additional_info: {
-                    stamp_or_seal: document.getElementById('stamp_or_seal').value,
-                    other_notes: document.getElementById('other_notes').value
-                }
-            };
-        }
-
-        // 預覽變更
-        function previewChanges() {
-            const formData = collectFormData();
-            console.log('預覽資料:', formData);
-            alert('預覽功能開發中...');
-        }
-
-        // 返回上一頁
-        function goBack() {
-            if (confirm('確定要離開嗎？未儲存的變更將會遺失。')) {
-                window.history.back();
-            }
-        }
-
-        // 前往圖片管理
-        function goToImageManagement() {
-            window.location.href = '/images';
-        }
-
-        // 顯示錯誤訊息
-        function showError(message) {
-            document.getElementById('loadingSpinner').style.display = 'none';
-            alert('錯誤: ' + message);
-        }
-    </script>
-</body>
-</html>
-                        <!-- Certificate Info Section -->
-                        <div class="edit-form">
-                            <div class="section-header">
-                                <i class="fas fa-certificate"></i> 證明書資訊
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="certificate_no" class="form-label">證明書字號</label>
-                                    <input type="text" class="form-control" id="certificate_no" name="certificate_no" placeholder="請輸入證明書字號">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="certificate_date" class="form-label">開立日期</label>
-                                    <input type="text" class="form-control" id="certificate_date" name="certificate_date" placeholder="例：2024/01/01">
-                                </div>
-                            </div>
+                // 設置載入狀態
+                imageInfo.textContent = '載入圖片中...';
+                
+                // 創建新的圖片元素來測試載入
+                const testImage = new Image();
+                testImage.onload = function() {
+                    // 圖片載入成功
+                    imageElement.src = imageUrl;
+                    imageElement.style.display = 'block';
+                    imagePlaceholder.style.display = 'none';
+                    imageInfo.innerHTML = `
+                        <i class="fas fa-check-circle text-success"></i> 
+                        圖片ID: ${currentImageId}
+                    `;
+                };
+                testImage.onerror = function() {
+                    // 圖片載入失敗
+                    imageElement.style.display = 'none';
+                    imagePlaceholder.style.display = 'flex';
+                    imagePlaceholder.innerHTML = `
+                        <div class="text-center text-muted">
+                            <i class="fas fa-exclamation-triangle fa-3x mb-3 text-warning"></i>
+                            <p>圖片載入失敗</p>
                         </div>
-
-                        <!-- Additional Info Section -->
-                        <div class="edit-form">
-                            <div class="section-header">
-                                <i class="fas fa-info-circle"></i> 其他資訊
-                            </div>
-                            
-                            <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="stamp_or_seal" class="form-label">印章/印鑑</label>
-                                    <input type="text" class="form-control" id="stamp_or_seal" name="stamp_or_seal" placeholder="請輸入印章或印鑑資訊">
-                                </div>
-                                
-                                <div class="col-12 mb-3">
-                                    <label for="other_notes" class="form-label">其他備註</label>
-                                    <textarea class="form-control" id="other_notes" name="other_notes" rows="3" placeholder="請輸入其他備註"></textarea>
-                                </div>
-                            </div>
+                    `;
+                    imageInfo.innerHTML = `
+                        <div class="alert alert-warning">
+                            <i class="fas fa-exclamation-triangle"></i> 
+                            圖片載入失敗<br>
+                            <small>圖片ID: ${currentImageId}</small>
                         </div>
-
-                        <!-- Action Buttons -->
-                        <div class="edit-form">
-                            <div class="d-flex justify-content-between">
-                                <button type="button" class="btn btn-secondary" onclick="goBack()">
-                                    <i class="fas fa-arrow-left"></i> 取消
-                                </button>
-                                <div>
-                                    <button type="button" class="btn btn-primary me-2" onclick="previewChanges()">
-                                        <i class="fas fa-eye"></i> 預覽
-                                    </button>
-                                    <button type="submit" class="btn btn-success">
-                                        <i class="fas fa-save"></i> 儲存變更
-                                    </button>
-                                </div>
-                            </div>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-
-        <!-- Success Modal -->
-        <div class="modal fade" id="successModal" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">
-                    <div class="modal-header bg-success text-white">
-                        <h5 class="modal-title"><i class="fas fa-check-circle"></i> 儲存成功</h5>
-                        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-                    </div>
-                    <div class="modal-body">
-                        <p>OCR 結果已成功更新！</p>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">關閉</button>
-                        <button type="button" class="btn btn-primary" onclick="goToImageManagement()">返回圖片管理</button>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
-    <script>
-        let currentImageId = '{{ image_id }}';
-        let originalData = null;
-
-        // 頁面載入時初始化
-        document.addEventListener('DOMContentLoaded', function() {
-            if (currentImageId) {
-                loadOCRData();
+                    `;
+                };
+                testImage.src = imageUrl;
             } else {
-                showError('未指定圖片ID');
-            }
-            
-            setupFormSubmission();
-        });
-
-        // 載入OCR資料
-        function loadOCRData() {
-            document.getElementById('loadingSpinner').style.display = 'block';
-            document.getElementById('mainContent').style.display = 'none';
-            
-            fetch(`/api/images/${currentImageId}/ocr-result`)
-                .then(response => {
-                    if (!response.ok) {
-                        throw new Error(`HTTP ${response.status}: ${response.statusText}`);
-                    }
-                    return response.json();
-                })
-                .then(data => {
-                    if (data.success) {
-                        originalData = data.ocr_result.data;
-                        populateForm(originalData);
-                        loadImagePreview(data.image_url);
-                        
-                        document.getElementById('loadingSpinner').style.display = 'none';
-                        document.getElementById('mainContent').style.display = 'block';
-                    } else {
-                        showError('載入OCR結果失敗: ' + data.error);
-                    }
-                })
-                .catch(error => {
-                    console.error('Load OCR data error:', error);
-                    showError('載入OCR結果失敗: ' + error.message);
-                });
-        }
-
-        // 填充表單資料
-        function populateForm(data) {
-            // Medical content
-            if (data.medical_content) {
-                setValue('diagnosis', data.medical_content.diagnosis);
-                setValue('doctors_comment', data.medical_content.doctors_comment);
-                setValue('treatment_period', data.medical_content.treatment_period);
-                setValue('rest_days', data.medical_content.rest_days);
-            }
-            
-            // Patient info
-            if (data.patient_info) {
-                setValue('patient_name', data.patient_info.name);
-                setValue('patient_gender', data.patient_info.sex || data.patient_info.gender);
-                setValue('date_of_birth', data.patient_info.date_of_birth);
-                setValue('id_number', data.patient_info.id_number);
-                setValue('phone_number', data.patient_info.phone_number);
-                setValue('address', data.patient_info.address);
-            }
-            
-            // Examination info
-            if (data.examination_info) {
-                setValue('date_of_examination', data.examination_info.date_of_examination);
-                setValue('department', data.examination_info.department);
-                setValue('examination_type', data.examination_info.examination_type);
-                setValue('examination_location', data.examination_info.examination_location);
-            }
-            
-            // Hospital info
-            if (data.hospital_info) {
-                setValue('hospital_name_chinese', data.hospital_info.hospital_name_chinese);
-                setValue('hospital_name_english', data.hospital_info.hospital_name_english);
-                setValue('attending_physician', data.hospital_info.attending_physician);
-                setValue('hospital_phone', data.hospital_info.phone_number);
-                setValue('hospital_address', data.hospital_info.address);
-            }
-            
-            // Certificate info
-            if (data.certificate_info) {
-                setValue('certificate_no', data.certificate_info.certificate_no);
-                setValue('certificate_date', data.certificate_info.certificate_date);
-            }
-            
-            // Additional info
-            if (data.additional_info) {
-                setValue('stamp_or_seal', data.additional_info.stamp_or_seal);
-                setValue('other_notes', data.additional_info.other_notes);
-            }
-        }
-
-        // 設置欄位值的輔助函數
-        function setValue(fieldId, value) {
-            const element = document.getElementById(fieldId);
-            if (element && value) {
-                element.value = value;
-            }
-        }
-
-        // 載入圖片預覽
-        function loadImagePreview(imageUrl) {
-            if (imageUrl) {
-                document.getElementById('imagePreview').src = imageUrl;
-                document.getElementById('imageInfo').textContent = `圖片ID: ${currentImageId}`;
+                // 沒有圖片URL
+                imageElement.style.display = 'none';
+                imagePlaceholder.style.display = 'flex';
+                imagePlaceholder.innerHTML = `
+                    <div class="text-center text-muted">
+                        <i class="fas fa-image fa-3x mb-3"></i>
+                        <p>圖片暫時無法預覽</p>
+                    </div>
+                `;
+                imageInfo.innerHTML = `
+                    <div class="alert alert-info">
+                        <i class="fas fa-info-circle"></i> 
+                        圖片暫時無法預覽<br>
+                        <small>圖片ID: ${currentImageId}</small>
+                    </div>
+                `;
             }
         }
 
@@ -881,8 +634,8 @@
                     sex: document.getElementById('patient_gender').value,
                     date_of_birth: document.getElementById('date_of_birth').value,
                     id_number: document.getElementById('id_number').value,
-                    phone_number: document.getElementById('phone_number').value,
-                    address: document.getElementById('address').value
+                    phone_number: document.getElementById('patient_phone').value,
+                    address: document.getElementById('patient_address').value
                 },
                 examination_info: {
                     date_of_examination: document.getElementById('date_of_examination').value,
