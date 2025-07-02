@@ -367,6 +367,202 @@
         </div>
     </div>
 
+    <!-- OCR編輯模態框 -->
+    <div class="modal fade" id="editModal" tabindex="-1">
+        <div class="modal-dialog modal-xl">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">編輯OCR結果</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="row">
+                        <!-- 左側：圖片預覽 -->
+                        <div class="col-md-4">
+                            <div class="card">
+                                <div class="card-header">
+                                    <h6 class="mb-0">原始圖片</h6>
+                                </div>
+                                <div class="card-body text-center">
+                                    <img id="editImagePreview" src="" alt="圖片預覽" class="img-fluid" style="max-height: 400px;">
+                                    <div id="editImageLoading" class="text-center" style="display: none;">
+                                        <div class="spinner-border" role="status">
+                                            <span class="visually-hidden">載入中...</span>
+                                        </div>
+                                        <p class="mt-2">載入圖片中...</p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 右側：編輯表單 -->
+                        <div class="col-md-8">
+                            <form id="editForm">
+                                <!-- Certificate Info -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">證書資訊</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="edit_certificate_no" class="form-label">證書編號</label>
+                                                <input type="text" class="form-control" id="edit_certificate_no">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_certificate_date" class="form-label">證書日期</label>
+                                                <input type="text" class="form-control" id="edit_certificate_date">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Patient Info -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">病患資訊</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="edit_patient_name" class="form-label">姓名</label>
+                                                <input type="text" class="form-control" id="edit_patient_name">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_patient_sex" class="form-label">性別</label>
+                                                <input type="text" class="form-control" id="edit_patient_sex">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_date_of_birth" class="form-label">出生日期</label>
+                                                <input type="text" class="form-control" id="edit_date_of_birth">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_nationality" class="form-label">國籍</label>
+                                                <input type="text" class="form-control" id="edit_nationality">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_passport_no_or_id" class="form-label">護照號碼/身分證號</label>
+                                                <input type="text" class="form-control" id="edit_passport_no_or_id">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_medical_history_no" class="form-label">病歷號</label>
+                                                <input type="text" class="form-control" id="edit_medical_history_no">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <label for="edit_patient_address" class="form-label">地址</label>
+                                                <textarea class="form-control" id="edit_patient_address" rows="2"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Examination Info -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">檢查資訊</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="edit_date_of_examination" class="form-label">檢查日期</label>
+                                                <input type="text" class="form-control" id="edit_date_of_examination">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_department" class="form-label">科別</label>
+                                                <input type="text" class="form-control" id="edit_department">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Medical Content -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">醫療內容</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <label for="edit_diagnosis" class="form-label">診斷</label>
+                                                <textarea class="form-control" id="edit_diagnosis" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <label for="edit_doctors_comment" class="form-label">醫師意見</label>
+                                                <textarea class="form-control" id="edit_doctors_comment" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Hospital Info -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">醫院資訊</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="edit_hospital_name_chinese" class="form-label">醫院名稱（中文）</label>
+                                                <input type="text" class="form-control" id="edit_hospital_name_chinese">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_hospital_name_english" class="form-label">醫院名稱（英文）</label>
+                                                <input type="text" class="form-control" id="edit_hospital_name_english">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_superintendent" class="form-label">院長</label>
+                                                <input type="text" class="form-control" id="edit_superintendent">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_attending_physician" class="form-label">主治醫師</label>
+                                                <input type="text" class="form-control" id="edit_attending_physician">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Additional Info -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">其他資訊</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="edit_stamp_or_seal" class="form-label">印章/印鑑</label>
+                                                <input type="text" class="form-control" id="edit_stamp_or_seal">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_other_notes" class="form-label">其他備註</label>
+                                                <textarea class="form-control" id="edit_other_notes" rows="2"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary" id="saveEditBtn">
+                        <i class="fas fa-save"></i> 儲存變更
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/js/bootstrap.bundle.min.js"></script>
     <script>
         let currentImageId = null;
@@ -792,7 +988,7 @@
 
         // 重新編輯按鈕事件
         document.getElementById('reEditBtn').addEventListener('click', function() {
-            window.open(`/edit/${currentImageId}`, '_blank');
+            openEditModal(currentImageId);
         });
 
         // 重新處理按鈕事件
@@ -875,6 +1071,186 @@
                 deleteBtn.disabled = false;
             });
         }
+
+        // 編輯模態框相關函數
+        function openEditModal(imageId) {
+            currentImageId = imageId;
+            
+            // 顯示載入狀態
+            document.getElementById('editImageLoading').style.display = 'block';
+            document.getElementById('editImagePreview').style.display = 'none';
+            
+            // 獲取圖片和OCR資料
+            fetch(`/api/images/${imageId}`)
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        // 載入圖片預覽
+                        loadEditImagePreview(data.image_url);
+                        
+                        // 填充表單資料
+                        if (data.ocr_result && data.ocr_result.data) {
+                            populateEditForm(data.ocr_result.data);
+                        }
+                        
+                        // 顯示模態框
+                        new bootstrap.Modal(document.getElementById('editModal')).show();
+                    } else {
+                        alert('載入資料失敗: ' + data.error);
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('載入資料時發生錯誤');
+                });
+        }
+
+        function loadEditImagePreview(imageUrl) {
+            const img = new Image();
+            img.onload = function() {
+                document.getElementById('editImagePreview').src = imageUrl;
+                document.getElementById('editImagePreview').style.display = 'block';
+                document.getElementById('editImageLoading').style.display = 'none';
+            };
+            img.onerror = function() {
+                document.getElementById('editImageLoading').innerHTML = '<p class="text-danger">圖片載入失敗</p>';
+            };
+            img.src = imageUrl;
+        }
+
+        function populateEditForm(data) {
+            // Certificate info
+            if (data.certificate_info) {
+                setEditValue('edit_certificate_no', data.certificate_info.certificate_no);
+                setEditValue('edit_certificate_date', data.certificate_info.certificate_date);
+            }
+            
+            // Patient info
+            if (data.patient_info) {
+                setEditValue('edit_patient_name', data.patient_info.name);
+                setEditValue('edit_patient_sex', data.patient_info.sex);
+                setEditValue('edit_date_of_birth', data.patient_info.date_of_birth);
+                setEditValue('edit_nationality', data.patient_info.nationality);
+                setEditValue('edit_passport_no_or_id', data.patient_info.passport_no_or_id);
+                setEditValue('edit_medical_history_no', data.patient_info.medical_history_no);
+                setEditValue('edit_patient_address', data.patient_info.address);
+            }
+            
+            // Examination info
+            if (data.examination_info) {
+                setEditValue('edit_date_of_examination', data.examination_info.date_of_examination);
+                setEditValue('edit_department', data.examination_info.department);
+            }
+            
+            // Medical content
+            if (data.medical_content) {
+                setEditValue('edit_diagnosis', data.medical_content.diagnosis);
+                setEditValue('edit_doctors_comment', data.medical_content.doctors_comment);
+            }
+            
+            // Hospital info
+            if (data.hospital_info) {
+                setEditValue('edit_hospital_name_chinese', data.hospital_info.hospital_name_chinese);
+                setEditValue('edit_hospital_name_english', data.hospital_info.hospital_name_english);
+                setEditValue('edit_superintendent', data.hospital_info.superintendent);
+                setEditValue('edit_attending_physician', data.hospital_info.attending_physician);
+            }
+            
+            // Additional info
+            if (data.additional_info) {
+                setEditValue('edit_stamp_or_seal', data.additional_info.stamp_or_seal);
+                setEditValue('edit_other_notes', data.additional_info.other_notes);
+            }
+        }
+
+        function setEditValue(fieldId, value) {
+            const element = document.getElementById(fieldId);
+            if (element && value) {
+                element.value = value;
+            }
+        }
+
+        function collectEditFormData() {
+            return {
+                certificate_info: {
+                    certificate_no: document.getElementById('edit_certificate_no').value,
+                    certificate_date: document.getElementById('edit_certificate_date').value
+                },
+                patient_info: {
+                    name: document.getElementById('edit_patient_name').value,
+                    sex: document.getElementById('edit_patient_sex').value,
+                    date_of_birth: document.getElementById('edit_date_of_birth').value,
+                    nationality: document.getElementById('edit_nationality').value,
+                    passport_no_or_id: document.getElementById('edit_passport_no_or_id').value,
+                    medical_history_no: document.getElementById('edit_medical_history_no').value,
+                    address: document.getElementById('edit_patient_address').value
+                },
+                examination_info: {
+                    date_of_examination: document.getElementById('edit_date_of_examination').value,
+                    department: document.getElementById('edit_department').value
+                },
+                medical_content: {
+                    diagnosis: document.getElementById('edit_diagnosis').value,
+                    doctors_comment: document.getElementById('edit_doctors_comment').value
+                },
+                hospital_info: {
+                    hospital_name_chinese: document.getElementById('edit_hospital_name_chinese').value,
+                    hospital_name_english: document.getElementById('edit_hospital_name_english').value,
+                    superintendent: document.getElementById('edit_superintendent').value,
+                    attending_physician: document.getElementById('edit_attending_physician').value
+                },
+                additional_info: {
+                    stamp_or_seal: document.getElementById('edit_stamp_or_seal').value,
+                    other_notes: document.getElementById('edit_other_notes').value
+                }
+            };
+        }
+
+        // 儲存編輯按鈕事件
+        document.getElementById('saveEditBtn').addEventListener('click', function() {
+            const formData = collectEditFormData();
+            
+            // 顯示載入狀態
+            const saveBtn = document.getElementById('saveEditBtn');
+            const originalText = saveBtn.innerHTML;
+            saveBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 儲存中...';
+            saveBtn.disabled = true;
+            
+            fetch(`/api/images/${currentImageId}/update-ocr`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(formData)
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    alert('OCR結果已成功更新！');
+                    
+                    // 關閉編輯模態框
+                    bootstrap.Modal.getInstance(document.getElementById('editModal')).hide();
+                    
+                    // 重新載入圖片列表
+                    loadImages();
+                    
+                    // 如果圖片詳情模態框還開著，也更新它
+                    if (document.getElementById('imageModal').classList.contains('show')) {
+                        showImageDetails(currentImageId);
+                    }
+                } else {
+                    alert('更新失敗: ' + data.error);
+                }
+            })
+            .catch(error => {
+                console.error('Error:', error);
+                alert('更新時發生錯誤');
+            })
+            .finally(() => {
+                saveBtn.innerHTML = originalText;
+                saveBtn.disabled = false;
+            });
+        });
     </script>
 </body>
 </html>
