@@ -315,7 +315,7 @@
                             <div>
                                 <h3 class="mb-0">
                                     <i class="fas fa-user-check"></i>
-                                    醫療 OCR - 人工審核系統
+                                    醫療 OCR
                                 </h3>
                                 <p class="mb-0 mt-2">Amazon Bedrock 智能處理，人工審核確認</p>
                             </div>
@@ -582,7 +582,7 @@
             document.getElementById('processing').style.display = 'block';
             
             // 直接進行人工審核處理
-            document.getElementById('processingTitle').textContent = '準備人工審核...';
+            
             document.getElementById('processingDescription').textContent = 'Amazon Bedrock 正在處理文件，準備供您審核';
             
             fetch('/process_human_review', {
@@ -812,8 +812,40 @@
         }
 
         function cancelReview() {
-            if (confirm('確定要取消審核嗎？')) {
-                location.reload();
+            if (confirm('確定要取消審核嗎？此操作將刪除該筆記錄且無法復原。')) {
+                // 顯示載入狀態
+                const cancelBtn = document.getElementById('cancelReviewBtn');
+                const originalText = cancelBtn.innerHTML;
+                cancelBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> 刪除中...';
+                cancelBtn.disabled = true;
+                
+                // 調用刪除API
+                fetch(`/api/images/${currentImageId}/delete`, {
+                    method: 'DELETE',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.success) {
+                        alert('記錄已成功刪除');
+                        // 重新導向到主頁面
+                        window.location.href = '/enhanced_voting_ocr';
+                    } else {
+                        alert('刪除失敗: ' + data.error);
+                        // 恢復按鈕狀態
+                        cancelBtn.innerHTML = originalText;
+                        cancelBtn.disabled = false;
+                    }
+                })
+                .catch(error => {
+                    console.error('Error:', error);
+                    alert('刪除時發生錯誤: ' + error.message);
+                    // 恢復按鈕狀態
+                    cancelBtn.innerHTML = originalText;
+                    cancelBtn.disabled = false;
+                });
             }
         }
 
