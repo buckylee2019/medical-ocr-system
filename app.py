@@ -134,6 +134,82 @@ def normalize_dates_in_data(data):
         return [normalize_dates_in_data(item) for item in data]
     else:
         return data
+
+# 動物醫院初診表字段映射
+VET_FORM_FIELDS = {
+    # 基本資料 Basic Information
+    'chart_number': '病歷號碼',
+    'first_visit_date': '初診日期',
+    
+    # 寵物資料 Pet Information
+    'pet_name': '寵物名',
+    'species': '物種',
+    'breed': '品種',
+    'pet_gender': '性別',
+    'desexed': '絕育',
+    'color': '毛色',
+    'age_years': '年齡-年',
+    'age_months': '年齡-月',
+    
+    # 病史資料 Medical History
+    'past_medical_history': '過去病史',
+    'drug_allergy': '藥物過敏',
+    'allergen_name': '過敏藥物名稱',
+    'skin_disease': '皮膚疾病',
+    'heartworm_infection': '心絲蟲感染',
+    'parasitic_infection': '寄生蟲感染',
+    'heart_condition': '心臟疾病',
+    'other_diseases': '其他疾病',
+    
+    # 飼主資料 Owner Information
+    'owner_id': '身份證/護照號碼',
+    'owner_name': '飼主姓名',
+    'owner_birth_date': '出生日期',
+    'owner_gender': '性別',
+    'phone': '電話',
+    'line_id': 'Line ID',
+    'email': 'E-mail',
+    'registered_address': '戶籍地址',
+    'mailing_address': '通訊地址',
+    
+    # 預防醫療資料 Preventive Care
+    'monthly_preventive': '每月定期施打預防針',
+    'vaccine_rabies': '狂犬疫苗',
+    'vaccine_combo': '綜合疫苗',
+    'major_illness_surgery': '重大病史及手術',
+    
+    # 就診資訊 Visit Information
+    'visit_purpose': '初診目的',
+    'remarks': '備註'
+}
+
+def normalize_vet_form_data(data):
+    """
+    正規化動物醫院初診表數據，包含日期格式化和字段驗證
+    """
+    if not isinstance(data, dict):
+        return data
+    
+    normalized_data = {}
+    
+    for key, value in data.items():
+        # 跳過空值
+        if not value or (isinstance(value, str) and not value.strip()):
+            normalized_data[key] = value
+            continue
+            
+        # 日期字段特殊處理
+        date_fields = ['first_visit_date', 'owner_birth_date']
+        if key in date_fields and isinstance(value, str):
+            normalized_data[key] = normalize_date_format(value.strip())
+        else:
+            # 其他字段去除前後空白
+            if isinstance(value, str):
+                normalized_data[key] = value.strip()
+            else:
+                normalized_data[key] = value
+    
+    return normalized_data
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Load environment variables
@@ -324,9 +400,9 @@ def save_to_dynamodb(data, processing_mode, confidence_score=None, human_reviewe
         if confidence_score is not None:
             confidence_score = Decimal(str(confidence_score))
         
-        # 正規化日期格式
-        normalized_data = normalize_dates_in_data(data)
-        print(f"📅 日期正規化完成: {json.dumps(normalized_data, indent=2, ensure_ascii=False)}")
+        # 正規化動物醫院初診表數據
+        normalized_data = normalize_vet_form_data(data)
+        print(f"🐾 動物醫院初診表數據正規化完成: {json.dumps(normalized_data, indent=2, ensure_ascii=False)}")
         
         # Convert all float values in data to Decimal
         converted_data = convert_floats_to_decimal(normalized_data)
@@ -368,41 +444,55 @@ def process_with_claude_latest(image_data, for_human_review=False):
     try:
         if for_human_review:
             prompt = """
-            請分析這份醫療診斷證明書並提取所有資訊，以結構化的 JSON 格式返回。
+            請分析這份動物醫院初診表並提取所有資訊，以結構化的 JSON 格式返回。
             這個結果將提供給人工審核，請確保提取的資訊準確且完整。
             
             請返回以下格式的 JSON（只返回 JSON，不要其他格式）：
             {
-                "certificate_info": {
-                    "certificate_no": "",
-                    "certificate_date": ""
+                "basic_info": {
+                    "chart_number": "",
+                    "first_visit_date": ""
                 },
-                "patient_info": {
-                    "name": "",
-                    "sex": "",
-                    "date_of_birth": "",
-                    "nationality": "",
-                    "passport_no_or_id": "",
-                    "medical_history_no": "",
-                    "address": ""
+                "pet_info": {
+                    "pet_name": "",
+                    "species": "",
+                    "breed": "",
+                    "pet_gender": "",
+                    "desexed": "",
+                    "color": "",
+                    "age_years": "",
+                    "age_months": ""
                 },
-                "examination_info": {
-                    "date_of_examination": "",
-                    "department": ""
+                "medical_history": {
+                    "past_medical_history": "",
+                    "drug_allergy": "",
+                    "allergen_name": "",
+                    "skin_disease": "",
+                    "heartworm_infection": "",
+                    "parasitic_infection": "",
+                    "heart_condition": "",
+                    "other_diseases": ""
                 },
-                "medical_content": {
-                    "diagnosis": "",
-                    "doctors_comment": ""
+                "owner_info": {
+                    "owner_id": "",
+                    "owner_name": "",
+                    "owner_birth_date": "",
+                    "owner_gender": "",
+                    "phone": "",
+                    "line_id": "",
+                    "email": "",
+                    "registered_address": "",
+                    "mailing_address": ""
                 },
-                "hospital_info": {
-                    "hospital_name_chinese": "",
-                    "hospital_name_english": "",
-                    "superintendent": "",
-                    "attending_physician": ""
+                "preventive_care": {
+                    "monthly_preventive": "",
+                    "vaccine_rabies": "",
+                    "vaccine_combo": "",
+                    "major_illness_surgery": ""
                 },
-                "additional_info": {
-                    "stamp_or_seal": "",
-                    "other_notes": ""
+                "visit_info": {
+                    "visit_purpose": "",
+                    "remarks": ""
                 }
             }
             
@@ -492,67 +582,108 @@ def run_enhanced_voting_system(image_data):
     }
 
 def get_medical_extraction_prompt():
-    """根據診斷證明書表格結構的醫療文件提取提示詞"""
+    """根據動物醫院初診表格結構的醫療文件提取提示詞"""
     return """
-    請分析這份醫療診斷證明書並提取所有資訊，以結構化的 JSON 格式返回。
+    請分析這份動物醫院初診表並提取所有資訊，以結構化的 JSON 格式返回。
 
     請返回以下格式的 JSON（只返回 JSON，不要其他格式）：
     {
-        "certificate_info": {
-            "certificate_no": "",
-            "certificate_date": ""
+        "basic_info": {
+            "chart_number": "",
+            "first_visit_date": ""
         },
-        "patient_info": {
-            "name": "",
-            "sex": "",
-            "date_of_birth": "",
-            "nationality": "",
-            "passport_no_or_id": "",
-            "medical_history_no": "",
-            "address": ""
+        "pet_info": {
+            "pet_name": "",
+            "species": "",
+            "breed": "",
+            "pet_gender": "",
+            "desexed": "",
+            "color": "",
+            "age_years": "",
+            "age_months": ""
         },
-        "examination_info": {
-            "date_of_examination": "",
-            "department": ""
+        "medical_history": {
+            "past_medical_history": "",
+            "drug_allergy": "",
+            "allergen_name": "",
+            "skin_disease": "",
+            "heartworm_infection": "",
+            "parasitic_infection": "",
+            "heart_condition": "",
+            "other_diseases": ""
         },
-        "medical_content": {
-            "diagnosis": "",
-            "doctors_comment": ""
+        "owner_info": {
+            "owner_id": "",
+            "owner_name": "",
+            "owner_birth_date": "",
+            "owner_gender": "",
+            "phone": "",
+            "line_id": "",
+            "email": "",
+            "registered_address": "",
+            "mailing_address": ""
         },
-        "hospital_info": {
-            "hospital_name_chinese": "",
-            "hospital_name_english": "",
-            "superintendent": "",
-            "attending_physician": ""
+        "preventive_care": {
+            "monthly_preventive": "",
+            "vaccine_rabies": "",
+            "vaccine_combo": "",
+            "major_illness_surgery": ""
         },
-        "additional_info": {
-            "stamp_or_seal": "",
-            "other_notes": ""
+        "visit_info": {
+            "visit_purpose": "",
+            "remarks": ""
         }
     }
 
     請仔細提取所有可見的文字並適當地組織到相應的欄位中：
-    - certificate_no: 證明書編號
-    - name: 姓名
-    - sex: 性別
-    - date_of_birth: 出生日期
-    - nationality: 國籍
-    - passport_no_or_id: 身分證號碼或護照號碼
-    - medical_history_no: 病歷號碼
-    - address: 住址
-    - date_of_examination: 診療日期
-    - department: 診療科別
-    - diagnosis: 診斷內容
-    - doctors_comment: 醫師意見
-    - hospital_name_chinese: 醫療院所名稱（中文）
-    - hospital_name_english: 醫療院所名稱（英文）
-    - superintendent: 院長
-    - attending_physician: 主治醫師
-    - certificate_date: 證明書日期
+
+    基本資料 Basic Information:
+    - chart_number: 病歷號碼
+    - first_visit_date: 初診日期
+
+    寵物資料 Pet Information:
+    - pet_name: 寵物名
+    - species: 物種（犬/貓/兔/其他）
+    - breed: 品種
+    - pet_gender: 性別（公/母）
+    - desexed: 絕育（是/否）
+    - color: 毛色
+    - age_years: 年齡-年
+    - age_months: 年齡-月
+
+    病史資料 Medical History:
+    - past_medical_history: 過去病史（無/有）
+    - drug_allergy: 藥物過敏（無/有）
+    - allergen_name: 過敏藥物名稱
+    - skin_disease: 皮膚疾病詳情
+    - heartworm_infection: 心絲蟲感染詳情
+    - parasitic_infection: 寄生蟲感染詳情
+    - heart_condition: 心臟疾病詳情
+    - other_diseases: 其他疾病詳情
+
+    飼主資料 Owner Information:
+    - owner_id: 身份證/護照號碼
+    - owner_name: 飼主姓名
+    - owner_birth_date: 出生日期
+    - owner_gender: 性別（男/女）
+    - phone: 電話
+    - line_id: Line ID
+    - email: E-mail
+    - registered_address: 戶籍地址
+    - mailing_address: 通訊地址
+
+    預防醫療資料 Preventive Care:
+    - monthly_preventive: 每月定期施打預防針（是/否）
+    - vaccine_rabies: 狂犬疫苗（已施打/未施打）
+    - vaccine_combo: 綜合疫苗（三合一/四合一/五合一/其他）
+    - major_illness_surgery: 重大病史及手術
+
+    就診資訊 Visit Information:
+    - visit_purpose: 初診目的
+    - remarks: 備註
 
     如果某個欄位沒有資訊，請留空字串。
-    只返回 JSON，不要 markdown 格式。
-    """
+    只返回 JSON，不要 markdown 格式。"""
 
 def process_with_claude_model(image_data, model_id, run_number):
     """使用指定的 Claude 模型處理醫療文件"""

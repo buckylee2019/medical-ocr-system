@@ -184,155 +184,255 @@
                 <!-- Edit Form -->
                 <div class="col-md-8">
                     <form id="editForm">
-                        <!-- Certificate Info Section -->
+                        <!-- Basic Information Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-certificate"></i> 證明書資訊
+                                <i class="fas fa-info-circle"></i> 基本資料 Basic Information
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="certificate_no" class="form-label">證明書編號</label>
-                                    <input type="text" class="form-control" id="certificate_no" name="certificate_no" placeholder="請輸入證明書編號">
+                                    <label for="chart_number" class="form-label">病歷號碼 Chart Number</label>
+                                    <input type="text" class="form-control" id="chart_number" name="chart_number" placeholder="請輸入病歷號碼">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="certificate_date" class="form-label">證明書日期</label>
-                                    <input type="text" class="form-control" id="certificate_date" name="certificate_date" placeholder="例：2024/01/01">
+                                    <label for="first_visit_date" class="form-label">初診日期 Date of First Visit</label>
+                                    <input type="text" class="form-control" id="first_visit_date" name="first_visit_date" placeholder="例：2024/01/01">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Patient Info Section -->
+                        <!-- Pet Information Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-user"></i> 病患資訊
+                                <i class="fas fa-paw"></i> 寵物資料 Pet Information
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="patient_name" class="form-label">姓名</label>
-                                    <input type="text" class="form-control" id="patient_name" name="patient_name" placeholder="請輸入病患姓名">
+                                    <label for="pet_name" class="form-label">寵物名 Name of Pet</label>
+                                    <input type="text" class="form-control" id="pet_name" name="pet_name" placeholder="請輸入寵物名稱">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="patient_sex" class="form-label">性別</label>
-                                    <select class="form-select" id="patient_sex" name="patient_sex">
-                                        <option value="">請選擇性別</option>
-                                        <option value="男">男</option>
-                                        <option value="女">女</option>
+                                    <label for="species" class="form-label">物種 Species</label>
+                                    <select class="form-select" id="species" name="species">
+                                        <option value="">請選擇物種</option>
+                                        <option value="犬">犬 Dog</option>
+                                        <option value="貓">貓 Cat</option>
+                                        <option value="兔">兔 Rabbit</option>
+                                        <option value="其他">其他 Others</option>
                                     </select>
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="date_of_birth" class="form-label">出生日期</label>
-                                    <input type="text" class="form-control" id="date_of_birth" name="date_of_birth" placeholder="例：1990/01/01">
+                                    <label for="breed" class="form-label">品種 Breed</label>
+                                    <input type="text" class="form-control" id="breed" name="breed" placeholder="請輸入品種">
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="nationality" class="form-label">國籍</label>
-                                    <input type="text" class="form-control" id="nationality" name="nationality" placeholder="請輸入國籍">
+                                    <label for="pet_gender" class="form-label">性別 Gender</label>
+                                    <select class="form-select" id="pet_gender" name="pet_gender">
+                                        <option value="">請選擇性別</option>
+                                        <option value="公">公 Male</option>
+                                        <option value="母">母 Female</option>
+                                    </select>
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="passport_no_or_id" class="form-label">身分證/護照</label>
-                                    <input type="text" class="form-control" id="passport_no_or_id" name="passport_no_or_id" placeholder="請輸入身分證字號或護照號碼">
+                                    <label for="desexed" class="form-label">絕育 Desexed</label>
+                                    <select class="form-select" id="desexed" name="desexed">
+                                        <option value="">請選擇</option>
+                                        <option value="是">是 Yes</option>
+                                        <option value="否">否 No</option>
+                                    </select>
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="medical_history_no" class="form-label">病歷號碼</label>
-                                    <input type="text" class="form-control" id="medical_history_no" name="medical_history_no" placeholder="請輸入病歷號碼">
+                                    <label for="color" class="form-label">毛色 Color</label>
+                                    <input type="text" class="form-control" id="color" name="color" placeholder="請輸入毛色">
                                 </div>
                                 
-                                <div class="col-12 mb-3">
-                                    <label for="patient_address" class="form-label">住址</label>
-                                    <input type="text" class="form-control" id="patient_address" name="patient_address" placeholder="請輸入住址">
+                                <div class="col-md-6 mb-3">
+                                    <label for="age_years" class="form-label">年齡-年 Age (Years)</label>
+                                    <input type="text" class="form-control" id="age_years" name="age_years" placeholder="請輸入年齡（年）">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="age_months" class="form-label">年齡-月 Age (Months)</label>
+                                    <input type="text" class="form-control" id="age_months" name="age_months" placeholder="請輸入年齡（月）">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Examination Info Section -->
+                        <!-- Medical History Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-stethoscope"></i> 診療資訊
+                                <i class="fas fa-notes-medical"></i> 病史資料 Medical History
                             </div>
                             
                             <div class="row">
                                 <div class="col-md-6 mb-3">
-                                    <label for="date_of_examination" class="form-label">診療日期</label>
-                                    <input type="text" class="form-control" id="date_of_examination" name="date_of_examination" placeholder="例：2024/01/01">
+                                    <label for="past_medical_history" class="form-label">過去病史 Past Medical History</label>
+                                    <select class="form-select" id="past_medical_history" name="past_medical_history">
+                                        <option value="">請選擇</option>
+                                        <option value="無">無 None</option>
+                                        <option value="有">有 Yes</option>
+                                    </select>
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="department" class="form-label">診療科別</label>
-                                    <input type="text" class="form-control" id="department" name="department" placeholder="例：內科">
+                                    <label for="drug_allergy" class="form-label">藥物過敏 Drug Allergy</label>
+                                    <select class="form-select" id="drug_allergy" name="drug_allergy">
+                                        <option value="">請選擇</option>
+                                        <option value="無">無 None</option>
+                                        <option value="有">有 Yes</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="allergen_name" class="form-label">過敏藥物名稱 Name of Allergen</label>
+                                    <input type="text" class="form-control" id="allergen_name" name="allergen_name" placeholder="請輸入過敏藥物名稱">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="skin_disease" class="form-label">皮膚疾病 Skin Disease</label>
+                                    <input type="text" class="form-control" id="skin_disease" name="skin_disease" placeholder="請輸入皮膚疾病詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="heartworm_infection" class="form-label">心絲蟲感染 Heartworm Infection</label>
+                                    <input type="text" class="form-control" id="heartworm_infection" name="heartworm_infection" placeholder="請輸入心絲蟲感染詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="parasitic_infection" class="form-label">寄生蟲感染 Parasitic Infection</label>
+                                    <input type="text" class="form-control" id="parasitic_infection" name="parasitic_infection" placeholder="請輸入寄生蟲感染詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="heart_condition" class="form-label">心臟疾病 Heart Condition</label>
+                                    <input type="text" class="form-control" id="heart_condition" name="heart_condition" placeholder="請輸入心臟疾病詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="other_diseases" class="form-label">其他疾病 Other Diseases</label>
+                                    <input type="text" class="form-control" id="other_diseases" name="other_diseases" placeholder="請輸入其他疾病詳情">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Medical Content Section -->
+                        <!-- Owner Information Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-notes-medical"></i> 醫療內容
+                                <i class="fas fa-user"></i> 飼主資料 Owner Information
                             </div>
                             
                             <div class="row">
-                                <div class="col-12 mb-3">
-                                    <label for="diagnosis" class="form-label">診斷</label>
-                                    <textarea class="form-control" id="diagnosis" name="diagnosis" rows="3" placeholder="請輸入診斷內容"></textarea>
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_id" class="form-label">身份證/護照號碼 ID/Passport No</label>
+                                    <input type="text" class="form-control" id="owner_id" name="owner_id" placeholder="請輸入身份證或護照號碼">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_name" class="form-label">飼主姓名 Owner's Name</label>
+                                    <input type="text" class="form-control" id="owner_name" name="owner_name" placeholder="請輸入飼主姓名">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_birth_date" class="form-label">出生日期 Date of Birth</label>
+                                    <input type="text" class="form-control" id="owner_birth_date" name="owner_birth_date" placeholder="例：1990/01/01">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="owner_gender" class="form-label">性別 Gender</label>
+                                    <select class="form-select" id="owner_gender" name="owner_gender">
+                                        <option value="">請選擇性別</option>
+                                        <option value="男">男 Male</option>
+                                        <option value="女">女 Female</option>
+                                    </select>
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="phone" class="form-label">電話 Phone</label>
+                                    <input type="text" class="form-control" id="phone" name="phone" placeholder="請輸入電話號碼">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="line_id" class="form-label">Line ID</label>
+                                    <input type="text" class="form-control" id="line_id" name="line_id" placeholder="請輸入Line ID">
                                 </div>
                                 
                                 <div class="col-12 mb-3">
-                                    <label for="doctors_comment" class="form-label">醫師意見</label>
-                                    <textarea class="form-control" id="doctors_comment" name="doctors_comment" rows="3" placeholder="請輸入醫師意見"></textarea>
+                                    <label for="email" class="form-label">E-mail</label>
+                                    <input type="email" class="form-control" id="email" name="email" placeholder="請輸入電子郵件">
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="registered_address" class="form-label">戶籍地址 Registered Address</label>
+                                    <input type="text" class="form-control" id="registered_address" name="registered_address" placeholder="請輸入戶籍地址">
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="mailing_address" class="form-label">通訊地址 Mailing Address</label>
+                                    <input type="text" class="form-control" id="mailing_address" name="mailing_address" placeholder="請輸入通訊地址">
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Hospital Info Section -->
+                        <!-- Preventive Care Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-hospital"></i> 醫療院所資訊
+                                <i class="fas fa-shield-alt"></i> 預防醫療資料 Preventive Care
                             </div>
                             
                             <div class="row">
-                                <div class="col-12 mb-3">
-                                    <label for="hospital_name_chinese" class="form-label">醫院名稱（中文）</label>
-                                    <input type="text" class="form-control" id="hospital_name_chinese" name="hospital_name_chinese" placeholder="請輸入醫院中文名稱">
-                                </div>
-                                
-                                <div class="col-12 mb-3">
-                                    <label for="hospital_name_english" class="form-label">醫院名稱（英文）</label>
-                                    <input type="text" class="form-control" id="hospital_name_english" name="hospital_name_english" placeholder="請輸入醫院英文名稱">
+                                <div class="col-md-6 mb-3">
+                                    <label for="monthly_preventive" class="form-label">每月定期施打預防針 Monthly Preventive Treatment</label>
+                                    <select class="form-select" id="monthly_preventive" name="monthly_preventive">
+                                        <option value="">請選擇</option>
+                                        <option value="是">是 Yes</option>
+                                        <option value="否">否 No</option>
+                                    </select>
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="superintendent" class="form-label">院長</label>
-                                    <input type="text" class="form-control" id="superintendent" name="superintendent" placeholder="請輸入院長姓名">
+                                    <label for="vaccine_rabies" class="form-label">狂犬疫苗 Rabies Vaccine</label>
+                                    <select class="form-select" id="vaccine_rabies" name="vaccine_rabies">
+                                        <option value="">請選擇</option>
+                                        <option value="已施打">已施打 Vaccinated</option>
+                                        <option value="未施打">未施打 Not Vaccinated</option>
+                                    </select>
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="attending_physician" class="form-label">主治醫師</label>
-                                    <input type="text" class="form-control" id="attending_physician" name="attending_physician" placeholder="請輸入主治醫師姓名">
+                                    <label for="vaccine_combo" class="form-label">綜合疫苗 Combination Vaccine</label>
+                                    <input type="text" class="form-control" id="vaccine_combo" name="vaccine_combo" placeholder="三合一/四合一/五合一/其他">
+                                </div>
+                                
+                                <div class="col-12 mb-3">
+                                    <label for="major_illness_surgery" class="form-label">重大病史及手術 Major Illness or Surgery</label>
+                                    <textarea class="form-control" id="major_illness_surgery" name="major_illness_surgery" rows="3" placeholder="請輸入重大病史及手術詳情"></textarea>
                                 </div>
                             </div>
                         </div>
 
-                        <!-- Additional Info Section -->
+                        <!-- Visit Information Section -->
                         <div class="edit-form">
                             <div class="section-header">
-                                <i class="fas fa-info-circle"></i> 其他資訊
+                                <i class="fas fa-stethoscope"></i> 就診資訊 Visit Information
                             </div>
                             
                             <div class="row">
-                                <div class="col-md-6 mb-3">
-                                    <label for="stamp_or_seal" class="form-label">印章/戳記</label>
-                                    <input type="text" class="form-control" id="stamp_or_seal" name="stamp_or_seal" placeholder="請輸入印章或戳記資訊">
+                                <div class="col-12 mb-3">
+                                    <label for="visit_purpose" class="form-label">初診目的 Purpose of Visit</label>
+                                    <textarea class="form-control" id="visit_purpose" name="visit_purpose" rows="3" placeholder="請輸入初診目的"></textarea>
                                 </div>
                                 
                                 <div class="col-12 mb-3">
-                                    <label for="other_notes" class="form-label">其他備註</label>
-                                    <textarea class="form-control" id="other_notes" name="other_notes" rows="3" placeholder="請輸入其他備註"></textarea>
+                                    <label for="remarks" class="form-label">備註 Remarks</label>
+                                    <textarea class="form-control" id="remarks" name="remarks" rows="3" placeholder="請輸入備註"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -426,47 +526,61 @@
 
         // 填充表單資料
         function populateForm(data) {
-            // Certificate info
-            if (data.certificate_info) {
-                setValue('certificate_no', data.certificate_info.certificate_no);
-                setValue('certificate_date', data.certificate_info.certificate_date);
+            // Basic info
+            if (data.basic_info) {
+                setValue('chart_number', data.basic_info.chart_number);
+                setValue('first_visit_date', data.basic_info.first_visit_date);
             }
             
-            // Patient info
-            if (data.patient_info) {
-                setValue('patient_name', data.patient_info.name);
-                setValue('patient_sex', data.patient_info.sex);
-                setValue('date_of_birth', data.patient_info.date_of_birth);
-                setValue('nationality', data.patient_info.nationality);
-                setValue('passport_no_or_id', data.patient_info.passport_no_or_id);
-                setValue('medical_history_no', data.patient_info.medical_history_no);
-                setValue('patient_address', data.patient_info.address);
+            // Pet info
+            if (data.pet_info) {
+                setValue('pet_name', data.pet_info.pet_name);
+                setValue('species', data.pet_info.species);
+                setValue('breed', data.pet_info.breed);
+                setValue('pet_gender', data.pet_info.pet_gender);
+                setValue('desexed', data.pet_info.desexed);
+                setValue('color', data.pet_info.color);
+                setValue('age_years', data.pet_info.age_years);
+                setValue('age_months', data.pet_info.age_months);
             }
             
-            // Examination info
-            if (data.examination_info) {
-                setValue('date_of_examination', data.examination_info.date_of_examination);
-                setValue('department', data.examination_info.department);
+            // Medical history
+            if (data.medical_history) {
+                setValue('past_medical_history', data.medical_history.past_medical_history);
+                setValue('drug_allergy', data.medical_history.drug_allergy);
+                setValue('allergen_name', data.medical_history.allergen_name);
+                setValue('skin_disease', data.medical_history.skin_disease);
+                setValue('heartworm_infection', data.medical_history.heartworm_infection);
+                setValue('parasitic_infection', data.medical_history.parasitic_infection);
+                setValue('heart_condition', data.medical_history.heart_condition);
+                setValue('other_diseases', data.medical_history.other_diseases);
             }
             
-            // Medical content
-            if (data.medical_content) {
-                setValue('diagnosis', data.medical_content.diagnosis);
-                setValue('doctors_comment', data.medical_content.doctors_comment);
+            // Owner info
+            if (data.owner_info) {
+                setValue('owner_id', data.owner_info.owner_id);
+                setValue('owner_name', data.owner_info.owner_name);
+                setValue('owner_birth_date', data.owner_info.owner_birth_date);
+                setValue('owner_gender', data.owner_info.owner_gender);
+                setValue('phone', data.owner_info.phone);
+                setValue('line_id', data.owner_info.line_id);
+                setValue('email', data.owner_info.email);
+                setValue('registered_address', data.owner_info.registered_address);
+                setValue('mailing_address', data.owner_info.mailing_address);
             }
             
-            // Hospital info
-            if (data.hospital_info) {
-                setValue('hospital_name_chinese', data.hospital_info.hospital_name_chinese);
-                setValue('hospital_name_english', data.hospital_info.hospital_name_english);
-                setValue('superintendent', data.hospital_info.superintendent);
-                setValue('attending_physician', data.hospital_info.attending_physician);
+            // Preventive care
+            if (data.preventive_care) {
+                setValue('monthly_preventive', data.preventive_care.monthly_preventive);
+                setValue('vaccine_rabies', data.preventive_care.vaccine_rabies);
+                setValue('vaccine_combo', data.preventive_care.vaccine_combo);
+                setValue('major_illness_surgery', data.preventive_care.major_illness_surgery);
             }
             
-            // Additional info
-            if (data.additional_info) {
-                setValue('stamp_or_seal', data.additional_info.stamp_or_seal);
-                setValue('other_notes', data.additional_info.other_notes);
+            // Visit info
+            if (data.visit_info) {
+                setValue('visit_purpose', data.visit_info.visit_purpose);
+                setValue('remarks', data.visit_info.remarks);
             }
         }
 
@@ -590,36 +704,50 @@
         // 收集表單資料
         function collectFormData() {
             return {
-                certificate_info: {
-                    certificate_no: document.getElementById('certificate_no').value,
-                    certificate_date: document.getElementById('certificate_date').value
+                basic_info: {
+                    chart_number: document.getElementById('chart_number').value,
+                    first_visit_date: document.getElementById('first_visit_date').value
                 },
-                patient_info: {
-                    name: document.getElementById('patient_name').value,
-                    sex: document.getElementById('patient_sex').value,
-                    date_of_birth: document.getElementById('date_of_birth').value,
-                    nationality: document.getElementById('nationality').value,
-                    passport_no_or_id: document.getElementById('passport_no_or_id').value,
-                    medical_history_no: document.getElementById('medical_history_no').value,
-                    address: document.getElementById('patient_address').value
+                pet_info: {
+                    pet_name: document.getElementById('pet_name').value,
+                    species: document.getElementById('species').value,
+                    breed: document.getElementById('breed').value,
+                    pet_gender: document.getElementById('pet_gender').value,
+                    desexed: document.getElementById('desexed').value,
+                    color: document.getElementById('color').value,
+                    age_years: document.getElementById('age_years').value,
+                    age_months: document.getElementById('age_months').value
                 },
-                examination_info: {
-                    date_of_examination: document.getElementById('date_of_examination').value,
-                    department: document.getElementById('department').value
+                medical_history: {
+                    past_medical_history: document.getElementById('past_medical_history').value,
+                    drug_allergy: document.getElementById('drug_allergy').value,
+                    allergen_name: document.getElementById('allergen_name').value,
+                    skin_disease: document.getElementById('skin_disease').value,
+                    heartworm_infection: document.getElementById('heartworm_infection').value,
+                    parasitic_infection: document.getElementById('parasitic_infection').value,
+                    heart_condition: document.getElementById('heart_condition').value,
+                    other_diseases: document.getElementById('other_diseases').value
                 },
-                medical_content: {
-                    diagnosis: document.getElementById('diagnosis').value,
-                    doctors_comment: document.getElementById('doctors_comment').value
+                owner_info: {
+                    owner_id: document.getElementById('owner_id').value,
+                    owner_name: document.getElementById('owner_name').value,
+                    owner_birth_date: document.getElementById('owner_birth_date').value,
+                    owner_gender: document.getElementById('owner_gender').value,
+                    phone: document.getElementById('phone').value,
+                    line_id: document.getElementById('line_id').value,
+                    email: document.getElementById('email').value,
+                    registered_address: document.getElementById('registered_address').value,
+                    mailing_address: document.getElementById('mailing_address').value
                 },
-                hospital_info: {
-                    hospital_name_chinese: document.getElementById('hospital_name_chinese').value,
-                    hospital_name_english: document.getElementById('hospital_name_english').value,
-                    superintendent: document.getElementById('superintendent').value,
-                    attending_physician: document.getElementById('attending_physician').value
+                preventive_care: {
+                    monthly_preventive: document.getElementById('monthly_preventive').value,
+                    vaccine_rabies: document.getElementById('vaccine_rabies').value,
+                    vaccine_combo: document.getElementById('vaccine_combo').value,
+                    major_illness_surgery: document.getElementById('major_illness_surgery').value
                 },
-                additional_info: {
-                    stamp_or_seal: document.getElementById('stamp_or_seal').value,
-                    other_notes: document.getElementById('other_notes').value
+                visit_info: {
+                    visit_purpose: document.getElementById('visit_purpose').value,
+                    remarks: document.getElementById('remarks').value
                 }
             };
         }
