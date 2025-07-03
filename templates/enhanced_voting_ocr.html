@@ -631,12 +631,12 @@
             
             // 創建可編輯的表格 - 動物醫院初診表格式
             const sections = [
-                { key: 'basic_info', title: '基本資料 Basic Information', icon: 'fas fa-info-circle' },
-                { key: 'pet_info', title: '寵物資料 Pet Information', icon: 'fas fa-paw' },
-                { key: 'medical_history', title: '病史資料 Medical History', icon: 'fas fa-notes-medical' },
-                { key: 'owner_info', title: '飼主資料 Owner Information', icon: 'fas fa-user' },
-                { key: 'preventive_care', title: '預防醫療資料 Preventive Care', icon: 'fas fa-shield-alt' },
-                { key: 'visit_info', title: '就診資訊 Visit Information', icon: 'fas fa-stethoscope' }
+                { key: 'basic_info', title: '基本資料', icon: 'fas fa-info-circle' },
+                { key: 'pet_info', title: '寵物資料', icon: 'fas fa-paw' },
+                { key: 'medical_history', title: '病史資料', icon: 'fas fa-notes-medical' },
+                { key: 'owner_info', title: '飼主資料', icon: 'fas fa-user' },
+                { key: 'preventive_care', title: '預防醫療資料', icon: 'fas fa-shield-alt' },
+                { key: 'visit_info', title: '就診資訊', icon: 'fas fa-stethoscope' }
             ];
             
             sections.forEach(section => {
@@ -695,6 +695,8 @@
                 'color': '毛色',
                 'age_years': '年齡-年',
                 'age_months': '年齡-月',
+                'age_days': '年齡-日',
+                'age_full': '完整年齡',
                 
                 // 病史資料 Medical History
                 'past_medical_history': '過去病史',
@@ -718,10 +720,17 @@
                 'mailing_address': '通訊地址',
                 
                 // 預防醫療資料 Preventive Care
-                'monthly_preventive': '每月定期施打預防針',
-                'vaccine_rabies': '狂犬疫苗',
-                'vaccine_combo': '綜合疫苗',
+                'monthly_preventive_treatment': '每月定期施打預防針',
+                'monthly_preventive_yes': '每月定期施打預防針-是',
+                'monthly_preventive_no': '每月定期施打預防針-否',
                 'major_illness_surgery': '重大病史及手術',
+                'vaccine_types': '曾施打疫苗類型',
+                'vaccine_rabies': '狂犬疫苗',
+                'vaccine_3in1': '三合一疫苗',
+                'vaccine_4in1': '四合一疫苗',
+                'vaccine_5in1': '五合一疫苗',
+                'vaccine_others': '其他疫苗',
+                'vaccine_others_detail': '其他疫苗詳細內容',
                 
                 // 就診資訊 Visit Information
                 'visit_purpose': '初診目的',
@@ -887,11 +896,11 @@
         function displayFinalResultAsHtmlTable(data) {
             let htmlContent = '';
             
-            // 基本資料 Basic Information
+            // 基本資料
             if (data.basic_info) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-primary mb-3"><i class="fas fa-info-circle"></i> 基本資料 Basic Information</h5>
+                        <h5 class="text-primary mb-3"><i class="fas fa-info-circle"></i> 基本資料</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-dark">
@@ -909,9 +918,21 @@
             
             // 寵物資料 Pet Information
             if (data.pet_info) {
+                // 處理年齡顯示
+                let ageDisplay = '';
+                if (data.pet_info.age_full) {
+                    ageDisplay = data.pet_info.age_full;
+                } else {
+                    let ageParts = [];
+                    if (data.pet_info.age_years) ageParts.push(`${data.pet_info.age_years}年`);
+                    if (data.pet_info.age_months) ageParts.push(`${data.pet_info.age_months}月`);
+                    if (data.pet_info.age_days) ageParts.push(`${data.pet_info.age_days}日`);
+                    ageDisplay = ageParts.join('') || '<span class="text-muted fst-italic">N/A</span>';
+                }
+                
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-info mb-3"><i class="fas fa-paw"></i> 寵物資料 Pet Information</h5>
+                        <h5 class="text-info mb-3"><i class="fas fa-paw"></i> 寵物資料</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-info">
@@ -924,8 +945,10 @@
                                     <tr><td><strong>性別</strong></td><td>${data.pet_info.pet_gender || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                     <tr><td><strong>絕育</strong></td><td>${data.pet_info.desexed || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                     <tr><td><strong>毛色</strong></td><td>${data.pet_info.color || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>年齡-年</strong></td><td>${data.pet_info.age_years || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>年齡-月</strong></td><td>${data.pet_info.age_months || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>年齡</strong></td><td>${ageDisplay}</td></tr>
+                                    ${data.pet_info.age_years ? `<tr><td><strong>年齡-年</strong></td><td>${data.pet_info.age_years}</td></tr>` : ''}
+                                    ${data.pet_info.age_months ? `<tr><td><strong>年齡-月</strong></td><td>${data.pet_info.age_months}</td></tr>` : ''}
+                                    ${data.pet_info.age_days ? `<tr><td><strong>年齡-日</strong></td><td>${data.pet_info.age_days}</td></tr>` : ''}
                                 </tbody>
                             </table>
                         </div>
@@ -933,11 +956,11 @@
                 `;
             }
             
-            // 病史資料 Medical History
+            // 病史資料
             if (data.medical_history) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-success mb-3"><i class="fas fa-notes-medical"></i> 病史資料 Medical History</h5>
+                        <h5 class="text-success mb-3"><i class="fas fa-notes-medical"></i> 病史資料</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-success">
@@ -959,11 +982,11 @@
                 `;
             }
             
-            // 飼主資料 Owner Information
+            // 飼主資料
             if (data.owner_info) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-warning mb-3"><i class="fas fa-user"></i> 飼主資料 Owner Information</h5>
+                        <h5 class="text-warning mb-3"><i class="fas fa-user"></i> 飼主資料</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-warning">
@@ -988,19 +1011,45 @@
             
             // 預防醫療資料 Preventive Care
             if (data.preventive_care) {
+                // 處理每月定期施打預防針
+                let monthlyPreventive = '';
+                if (data.preventive_care.monthly_preventive_yes) {
+                    monthlyPreventive = '☑ 是';
+                } else if (data.preventive_care.monthly_preventive_no) {
+                    monthlyPreventive = '☑ 否';
+                } else if (data.preventive_care.monthly_preventive_treatment) {
+                    monthlyPreventive = data.preventive_care.monthly_preventive_treatment;
+                } else {
+                    monthlyPreventive = '<span class="text-muted fst-italic">N/A</span>';
+                }
+                
+                // 處理疫苗類型
+                let vaccines = [];
+                if (data.preventive_care.vaccine_rabies) vaccines.push('□ 狂犬疫苗');
+                if (data.preventive_care.vaccine_3in1) vaccines.push('□ 三合一疫苗');
+                if (data.preventive_care.vaccine_4in1) vaccines.push('□ 四合一疫苗');
+                if (data.preventive_care.vaccine_5in1) vaccines.push('□ 五合一疫苗');
+                if (data.preventive_care.vaccine_others) {
+                    let othersText = '☑ 其他疫苗';
+                    if (data.preventive_care.vaccine_others_detail) {
+                        othersText += `：${data.preventive_care.vaccine_others_detail}`;
+                    }
+                    vaccines.push(othersText);
+                }
+                let vaccineDisplay = vaccines.length > 0 ? vaccines.join('<br>') : '<span class="text-muted fst-italic">N/A</span>';
+                
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-secondary mb-3"><i class="fas fa-shield-alt"></i> 預防醫療資料 Preventive Care</h5>
+                        <h5 class="text-secondary mb-3"><i class="fas fa-shield-alt"></i> 預防醫療資料</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-secondary">
                                     <tr><th>欄位</th><th>內容</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td><strong>每月定期施打預防針</strong></td><td>${data.preventive_care.monthly_preventive || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>狂犬疫苗</strong></td><td>${data.preventive_care.vaccine_rabies || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>綜合疫苗</strong></td><td>${data.preventive_care.vaccine_combo || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>每月定期施打預防針</strong></td><td>${monthlyPreventive}</td></tr>
                                     <tr><td><strong>重大病史及手術</strong></td><td>${data.preventive_care.major_illness_surgery || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>曾施打疫苗類型</strong></td><td>${vaccineDisplay}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -1008,11 +1057,11 @@
                 `;
             }
             
-            // 就診資訊 Visit Information
+            // 就診資訊
             if (data.visit_info && (data.visit_info.visit_purpose || data.visit_info.remarks)) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-dark mb-3"><i class="fas fa-stethoscope"></i> 就診資訊 Visit Information</h5>
+                        <h5 class="text-dark mb-3"><i class="fas fa-stethoscope"></i> 就診資訊</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-dark">
