@@ -608,8 +608,10 @@
         }
 
         function displayHumanReview(data) {
+            console.log('displayHumanReview called with data:', data);
             if (data.claude_result.success) {
                 const extractedData = data.claude_result.extracted_data;
+                console.log('Extracted data:', extractedData);
                 createEditableReviewForm(extractedData);
                 
                 // 顯示文件預覽
@@ -617,25 +619,28 @@
                 
                 document.getElementById('human-review-section').style.display = 'block';
             } else {
+                console.error('Claude result failed:', data.claude_result);
                 showError('Amazon Bedrock 處理失敗: ' + data.claude_result.error);
             }
         }
 
         function createEditableReviewForm(data) {
+            console.log('createEditableReviewForm called with data:', data);
             const reviewContent = document.getElementById('review-content');
             let html = '';
             
-            // 創建可編輯的表格
+            // 創建可編輯的表格 - 動物醫院初診表格式
             const sections = [
-                { key: 'certificate_info', title: '證明書資訊', icon: 'fas fa-certificate' },
-                { key: 'patient_info', title: '病患資訊', icon: 'fas fa-user' },
-                { key: 'examination_info', title: '診療資訊', icon: 'fas fa-stethoscope' },
-                { key: 'medical_content', title: '醫療內容', icon: 'fas fa-notes-medical' },
-                { key: 'hospital_info', title: '醫院資訊', icon: 'fas fa-hospital' },
-                { key: 'additional_info', title: '其他資訊', icon: 'fas fa-info-circle' }
+                { key: 'basic_info', title: '基本資料 Basic Information', icon: 'fas fa-info-circle' },
+                { key: 'pet_info', title: '寵物資料 Pet Information', icon: 'fas fa-paw' },
+                { key: 'medical_history', title: '病史資料 Medical History', icon: 'fas fa-notes-medical' },
+                { key: 'owner_info', title: '飼主資料 Owner Information', icon: 'fas fa-user' },
+                { key: 'preventive_care', title: '預防醫療資料 Preventive Care', icon: 'fas fa-shield-alt' },
+                { key: 'visit_info', title: '就診資訊 Visit Information', icon: 'fas fa-stethoscope' }
             ];
             
             sections.forEach(section => {
+                console.log(`Checking section: ${section.key}`, data[section.key]);
                 if (data[section.key]) {
                     html += `
                         <div class="mb-4">
@@ -646,6 +651,7 @@
                     
                     Object.entries(data[section.key]).forEach(([field, value]) => {
                         const fieldId = `${section.key}_${field}`;
+                        console.log(`Creating field: ${fieldId} with value: ${value}`);
                         html += `
                             <tr>
                                 <td style="width: 30%;"><strong>${getFieldDisplayName(field)}</strong></td>
@@ -666,7 +672,12 @@
                 }
             });
             
+            console.log('Generated HTML:', html);
             reviewContent.innerHTML = html;
+            
+            // 檢查是否有可編輯字段
+            const editableFields = document.querySelectorAll('.editable-field');
+            console.log(`Found ${editableFields.length} editable fields`);
         }
 
         function getFieldDisplayName(field) {
