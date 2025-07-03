@@ -175,16 +175,16 @@ VET_FORM_FIELDS = {
     'mailing_address': '通訊地址',
     
     # 預防醫療資料 Preventive Care
-    'monthly_preventive_treatment': '每月定期施打預防針 Monthly Preventive Treatment',
+    'monthly_preventive_treatment': '每月定期施打預防針',
     'monthly_preventive_yes': '每月定期施打預防針-是',
     'monthly_preventive_no': '每月定期施打預防針-否',
-    'major_illness_surgery': '重大病史及手術 Major Illness or Surgery',
-    'vaccine_types': '曾施打疫苗類型 Types of Vaccines Given',
-    'vaccine_rabies': '狂犬疫苗 Rabies',
-    'vaccine_3in1': '三合一疫苗 3-in-1',
-    'vaccine_4in1': '四合一疫苗 4-in-1',
-    'vaccine_5in1': '五合一疫苗 5-in-1',
-    'vaccine_others': '其他疫苗 Others',
+    'major_illness_surgery': '重大病史及手術',
+    'vaccine_types': '曾施打疫苗類型',
+    'vaccine_rabies': '狂犬疫苗',
+    'vaccine_3in1': '三合一疫苗',
+    'vaccine_4in1': '四合一疫苗',
+    'vaccine_5in1': '五合一疫苗',
+    'vaccine_others': '其他疫苗',
     'vaccine_others_detail': '其他疫苗詳細內容',
     
     # 就診資訊 Visit Information

@@ -589,31 +589,78 @@
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
-                                            <div class="col-md-6">
-                                                <label for="edit_monthly_preventive" class="form-label">每月定期施打預防針</label>
-                                                <select class="form-control" id="edit_monthly_preventive">
-                                                    <option value="">請選擇</option>
-                                                    <option value="是">是 Yes</option>
-                                                    <option value="否">否 No</option>
-                                                </select>
+                                            <div class="col-md-12 mb-3">
+                                                <label class="form-label">每月定期施打預防針 Monthly Preventive Treatment</label>
+                                                <div class="d-flex gap-3">
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="edit_monthly_preventive" id="edit_monthly_preventive_yes" value="是">
+                                                        <label class="form-check-label" for="edit_monthly_preventive_yes">
+                                                            ☑ 是 Yes
+                                                        </label>
+                                                    </div>
+                                                    <div class="form-check">
+                                                        <input class="form-check-input" type="radio" name="edit_monthly_preventive" id="edit_monthly_preventive_no" value="否">
+                                                        <label class="form-check-label" for="edit_monthly_preventive_no">
+                                                            ☑ 否 No
+                                                        </label>
+                                                    </div>
+                                                </div>
                                             </div>
-                                            <div class="col-md-6">
-                                                <label for="edit_vaccine_rabies" class="form-label">狂犬疫苗</label>
-                                                <select class="form-control" id="edit_vaccine_rabies">
-                                                    <option value="">請選擇</option>
-                                                    <option value="已施打">已施打 Vaccinated</option>
-                                                    <option value="未施打">未施打 Not Vaccinated</option>
-                                                </select>
+                                            
+                                            <div class="col-12 mb-3">
+                                                <label for="edit_major_illness_surgery" class="form-label">重大病史及手術 Major Illness or Surgery</label>
+                                                <textarea class="form-control" id="edit_major_illness_surgery" rows="2" placeholder="無 或 詳細描述"></textarea>
                                             </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-md-6">
-                                                <label for="edit_vaccine_combo" class="form-label">綜合疫苗</label>
-                                                <input type="text" class="form-control" id="edit_vaccine_combo" placeholder="三合一/四合一/五合一/其他">
-                                            </div>
-                                            <div class="col-12 mt-2">
-                                                <label for="edit_major_illness_surgery" class="form-label">重大病史及手術</label>
-                                                <textarea class="form-control" id="edit_major_illness_surgery" rows="3"></textarea>
+                                            
+                                            <div class="col-md-12 mb-3">
+                                                <label class="form-label">曾施打疫苗類型 Types of Vaccines Given</label>
+                                                <div class="row">
+                                                    <div class="col-md-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="edit_vaccine_rabies" name="edit_vaccine_rabies" value="已施打">
+                                                            <label class="form-check-label" for="edit_vaccine_rabies">
+                                                                □ 狂犬 Rabies
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="edit_vaccine_3in1" name="edit_vaccine_3in1" value="已施打">
+                                                            <label class="form-check-label" for="edit_vaccine_3in1">
+                                                                □ 三合一 3-in-1
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="edit_vaccine_4in1" name="edit_vaccine_4in1" value="已施打">
+                                                            <label class="form-check-label" for="edit_vaccine_4in1">
+                                                                □ 四合一 4-in-1
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="edit_vaccine_5in1" name="edit_vaccine_5in1" value="已施打">
+                                                            <label class="form-check-label" for="edit_vaccine_5in1">
+                                                                □ 五合一 5-in-1
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="row mt-2">
+                                                    <div class="col-md-3">
+                                                        <div class="form-check">
+                                                            <input class="form-check-input" type="checkbox" id="edit_vaccine_others" name="edit_vaccine_others" value="已施打">
+                                                            <label class="form-check-label" for="edit_vaccine_others">
+                                                                ☑ 其他 Others:
+                                                            </label>
+                                                        </div>
+                                                    </div>
+                                                    <div class="col-md-9">
+                                                        <input type="text" class="form-control" id="edit_vaccine_others_detail" name="edit_vaccine_others_detail" placeholder="兔用疫苗 或其他疫苗詳細內容">
+                                                    </div>
+                                                </div>
                                             </div>
                                         </div>
                                     </div>
