@@ -731,19 +731,7 @@ def get_medical_extraction_prompt():
     2. 預防醫療資料中的勾選框請仔細識別，勾選的項目請標註為相應的值
     3. 疫苗類型如果有勾選"其他"，請特別注意提取其詳細內容
     4. 所有日期格式請保持一致（YYYY-MM-DD或原始格式）
-    """
-    - registered_address: 戶籍地址
-    - mailing_address: 通訊地址
-
-    預防醫療資料 Preventive Care:
-    - monthly_preventive: 每月定期施打預防針（是/否）
-    - vaccine_rabies: 狂犬疫苗（已施打/未施打）
-    - vaccine_combo: 綜合疫苗（三合一/四合一/五合一/其他）
-    - major_illness_surgery: 重大病史及手術
-
-    就診資訊 Visit Information:
-    - visit_purpose: 初診目的
-    - remarks: 備註
+    
 
     如果某個欄位沒有資訊，請留空字串。
     只返回 JSON，不要 markdown 格式。"""

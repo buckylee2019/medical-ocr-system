@@ -840,143 +840,11 @@
                 </div>
             `;
 
-            // 顯示醫療內容 (診斷和醫師建議)
-            if (data.medical_content) {
-                contentHtml += `
-                    <div class="card mb-3">
-                        <div class="card-header bg-danger text-white">
-                            <h6 class="mb-0"><i class="fas fa-stethoscope"></i> 診斷與治療</h6>
-                        </div>
-                        <div class="card-body">
-                `;
-                
-                if (data.medical_content.diagnosis) {
-                    contentHtml += `<div class="mb-3"><strong>診斷:</strong> <span class="text-danger">${data.medical_content.diagnosis}</span></div>`;
-                }
-                if (data.medical_content.doctors_comment) {
-                    contentHtml += `<div class="mb-2"><strong>醫師建議:</strong> ${data.medical_content.doctors_comment}</div>`;
-                }
-                if (data.medical_content.treatment_period) {
-                    contentHtml += `<div class="mb-2"><strong>治療期間:</strong> ${data.medical_content.treatment_period}</div>`;
-                }
-                if (data.medical_content.rest_days) {
-                    contentHtml += `<div class="mb-2"><strong>建議休息天數:</strong> ${data.medical_content.rest_days}</div>`;
-                }
-                
-                contentHtml += `
-                        </div>
-                    </div>
-                `;
-            }
-
-            // 顯示病患資訊
-            if (data.patient_info) {
-                contentHtml += `
-                    <div class="card mb-3">
-                        <div class="card-header bg-success text-white">
-                            <h6 class="mb-0"><i class="fas fa-user"></i> 病患資訊</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                `;
-                
-                if (data.patient_info.name) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>姓名:</strong> ${data.patient_info.name}</div>`;
-                }
-                if (data.patient_info.sex || data.patient_info.gender) {
-                    const gender = data.patient_info.sex || data.patient_info.gender;
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>性別:</strong> ${gender}</div>`;
-                }
-                if (data.patient_info.date_of_birth) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>出生日期:</strong> ${data.patient_info.date_of_birth}</div>`;
-                }
-                if (data.patient_info.id_number) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>身分證字號:</strong> ${data.patient_info.id_number}</div>`;
-                }
-                if (data.patient_info.address) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>地址:</strong> ${data.patient_info.address}</div>`;
-                }
-                if (data.patient_info.nationality) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>國籍:</strong> ${data.patient_info.nationality}</div>`;
-                }
-                if (data.patient_info.medical_history_no) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>病歷號:</strong> ${data.patient_info.medical_history_no}</div>`;
-                }
-                
-                contentHtml += `
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // 顯示檢查資訊
-            if (data.examination_info) {
-                contentHtml += `
-                    <div class="card mb-3">
-                        <div class="card-header bg-info text-white">
-                            <h6 class="mb-0"><i class="fas fa-calendar-check"></i> 檢查資訊</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                `;
-                
-                if (data.examination_info.date_of_examination) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>檢查日期:</strong> ${data.examination_info.date_of_examination}</div>`;
-                }
-                if (data.examination_info.department) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>科別:</strong> ${data.examination_info.department}</div>`;
-                }
-                if (data.examination_info.examination_type) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>檢查類型:</strong> ${data.examination_info.examination_type}</div>`;
-                }
-                
-                contentHtml += `
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // 顯示醫院資訊
-            if (data.hospital_info) {
+            // 基本資料 Basic Information
+            if (data.basic_info) {
                 contentHtml += `
                     <div class="card mb-3">
                         <div class="card-header bg-primary text-white">
-                            <h6 class="mb-0"><i class="fas fa-hospital"></i> 醫院資訊</h6>
-                        </div>
-                        <div class="card-body">
-                            <div class="row">
-                `;
-                
-                if (data.hospital_info.hospital_name_chinese) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>醫院名稱:</strong> ${data.hospital_info.hospital_name_chinese}</div>`;
-                }
-                if (data.hospital_info.hospital_name_english) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>醫院英文名:</strong> ${data.hospital_info.hospital_name_english}</div>`;
-                }
-                if (data.hospital_info.attending_physician) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>主治醫師:</strong> ${data.hospital_info.attending_physician}</div>`;
-                }
-                if (data.hospital_info.superintendent) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>院長:</strong> ${data.hospital_info.superintendent}</div>`;
-                }
-                if (data.hospital_info.hospital_address) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>醫院地址:</strong> ${data.hospital_info.hospital_address}</div>`;
-                }
-                
-                contentHtml += `
-                            </div>
-                        </div>
-                    </div>
-                `;
-            }
-
-            // 顯示基本資料
-            if (data.basic_info && (data.basic_info.chart_number || data.basic_info.first_visit_date)) {
-                contentHtml += `
-                    <div class="card mb-3">
-                        <div class="card-header bg-warning text-dark">
                             <h6 class="mb-0"><i class="fas fa-info-circle"></i> 基本資料 Basic Information</h6>
                         </div>
                         <div class="card-body">
@@ -997,31 +865,232 @@
                 `;
             }
 
-            // 顯示其他資訊
-            if (data.additional_info) {
-                const hasContent = Object.values(data.additional_info).some(value => value && value.trim());
-                if (hasContent) {
-                    contentHtml += `
-                        <div class="card mb-3">
-                            <div class="card-header bg-secondary text-white">
-                                <h6 class="mb-0"><i class="fas fa-info-circle"></i> 其他資訊</h6>
-                            </div>
-                            <div class="card-body">
-                    `;
-                    
-                    Object.entries(data.additional_info).forEach(([key, value]) => {
-                        if (value && value.trim()) {
-                            const displayKey = key === 'stamp_or_seal' ? '印章/印鑑' : 
-                                             key === 'other_notes' ? '其他備註' : key;
-                            contentHtml += `<div class="mb-2"><strong>${displayKey}:</strong> ${value}</div>`;
-                        }
-                    });
-                    
-                    contentHtml += `
+            // 寵物資料 Pet Information
+            if (data.pet_info) {
+                contentHtml += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-success text-white">
+                            <h6 class="mb-0"><i class="fas fa-paw"></i> 寵物資料 Pet Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                if (data.pet_info.pet_name) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>寵物名:</strong> ${data.pet_info.pet_name}</div>`;
+                }
+                if (data.pet_info.species) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>物種:</strong> ${data.pet_info.species}</div>`;
+                }
+                if (data.pet_info.breed) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>品種:</strong> ${data.pet_info.breed}</div>`;
+                }
+                if (data.pet_info.pet_gender) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>性別:</strong> ${data.pet_info.pet_gender}</div>`;
+                }
+                if (data.pet_info.desexed) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>絕育:</strong> ${data.pet_info.desexed}</div>`;
+                }
+                if (data.pet_info.color) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>毛色:</strong> ${data.pet_info.color}</div>`;
+                }
+                
+                // 年齡資訊
+                let ageInfo = '';
+                if (data.pet_info.age_full) {
+                    ageInfo = data.pet_info.age_full;
+                } else {
+                    let ageParts = [];
+                    if (data.pet_info.age_years) ageParts.push(`${data.pet_info.age_years}年`);
+                    if (data.pet_info.age_months) ageParts.push(`${data.pet_info.age_months}月`);
+                    if (data.pet_info.age_days) ageParts.push(`${data.pet_info.age_days}日`);
+                    ageInfo = ageParts.join('');
+                }
+                if (ageInfo) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>年齡:</strong> ${ageInfo}</div>`;
+                }
+                
+                contentHtml += `
                             </div>
                         </div>
-                    `;
+                    </div>
+                `;
+            }
+
+            // 病史資料 Medical History
+            if (data.medical_history) {
+                contentHtml += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-warning text-dark">
+                            <h6 class="mb-0"><i class="fas fa-history"></i> 病史資料 Medical History</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                if (data.medical_history.past_medical_history) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>過去病史:</strong> ${data.medical_history.past_medical_history}</div>`;
                 }
+                if (data.medical_history.drug_allergy) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>藥物過敏:</strong> ${data.medical_history.drug_allergy}</div>`;
+                }
+                if (data.medical_history.allergen_name) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>過敏藥物名稱:</strong> ${data.medical_history.allergen_name}</div>`;
+                }
+                if (data.medical_history.skin_disease) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>皮膚疾病:</strong> ${data.medical_history.skin_disease}</div>`;
+                }
+                if (data.medical_history.heartworm_infection) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>心絲蟲感染:</strong> ${data.medical_history.heartworm_infection}</div>`;
+                }
+                if (data.medical_history.parasitic_infection) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>寄生蟲感染:</strong> ${data.medical_history.parasitic_infection}</div>`;
+                }
+                if (data.medical_history.heart_condition) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>心臟疾病:</strong> ${data.medical_history.heart_condition}</div>`;
+                }
+                if (data.medical_history.other_diseases) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>其他疾病:</strong> ${data.medical_history.other_diseases}</div>`;
+                }
+                
+                contentHtml += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 飼主資料 Owner Information
+            if (data.owner_info) {
+                contentHtml += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-info text-white">
+                            <h6 class="mb-0"><i class="fas fa-user"></i> 飼主資料 Owner Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                if (data.owner_info.owner_name) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>飼主姓名:</strong> ${data.owner_info.owner_name}</div>`;
+                }
+                if (data.owner_info.owner_id) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>身份證/護照號碼:</strong> ${data.owner_info.owner_id}</div>`;
+                }
+                if (data.owner_info.owner_birth_date) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>出生日期:</strong> ${data.owner_info.owner_birth_date}</div>`;
+                }
+                if (data.owner_info.owner_gender) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>性別:</strong> ${data.owner_info.owner_gender}</div>`;
+                }
+                if (data.owner_info.phone) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>電話:</strong> ${data.owner_info.phone}</div>`;
+                }
+                if (data.owner_info.line_id) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>Line ID:</strong> ${data.owner_info.line_id}</div>`;
+                }
+                if (data.owner_info.email) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>E-mail:</strong> ${data.owner_info.email}</div>`;
+                }
+                if (data.owner_info.registered_address) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>戶籍地址:</strong> ${data.owner_info.registered_address}</div>`;
+                }
+                if (data.owner_info.mailing_address) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>通訊地址:</strong> ${data.owner_info.mailing_address}</div>`;
+                }
+                
+                contentHtml += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 預防醫療資料 Preventive Care
+            if (data.preventive_care) {
+                contentHtml += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-secondary text-white">
+                            <h6 class="mb-0"><i class="fas fa-shield-alt"></i> 預防醫療資料 Preventive Care</h6>
+                        </div>
+                        <div class="card-body">
+                `;
+                
+                // 每月定期施打預防針
+                if (data.preventive_care.monthly_preventive_yes || data.preventive_care.monthly_preventive_no || data.preventive_care.monthly_preventive_treatment) {
+                    let monthlyPreventive = '';
+                    if (data.preventive_care.monthly_preventive_yes) {
+                        monthlyPreventive = '☑ 是 Yes';
+                    } else if (data.preventive_care.monthly_preventive_no) {
+                        monthlyPreventive = '☑ 否 No';
+                    } else if (data.preventive_care.monthly_preventive_treatment) {
+                        monthlyPreventive = data.preventive_care.monthly_preventive_treatment;
+                    }
+                    contentHtml += `<div class="mb-3"><strong>每月定期施打預防針 Monthly Preventive Treatment:</strong> ${monthlyPreventive}</div>`;
+                }
+                
+                // 重大病史及手術
+                if (data.preventive_care.major_illness_surgery) {
+                    contentHtml += `<div class="mb-3"><strong>重大病史及手術 Major Illness or Surgery:</strong> ${data.preventive_care.major_illness_surgery}</div>`;
+                }
+                
+                // 疫苗類型
+                let vaccines = [];
+                if (data.preventive_care.vaccine_rabies) vaccines.push('□ 狂犬 Rabies');
+                if (data.preventive_care.vaccine_3in1) vaccines.push('□ 三合一 3-in-1');
+                if (data.preventive_care.vaccine_4in1) vaccines.push('□ 四合一 4-in-1');
+                if (data.preventive_care.vaccine_5in1) vaccines.push('□ 五合一 5-in-1');
+                if (data.preventive_care.vaccine_others) {
+                    let othersText = '☑ 其他 Others';
+                    if (data.preventive_care.vaccine_others_detail) {
+                        othersText += `: ${data.preventive_care.vaccine_others_detail}`;
+                    }
+                    vaccines.push(othersText);
+                }
+                
+                if (vaccines.length > 0) {
+                    contentHtml += `<div class="mb-3"><strong>曾施打疫苗類型 Types of Vaccines Given:</strong><br>${vaccines.join('<br>')}</div>`;
+                }
+                
+                contentHtml += `
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 就診資訊 Visit Information
+            if (data.visit_info) {
+                contentHtml += `
+                    <div class="card mb-3">
+                        <div class="card-header bg-dark text-white">
+                            <h6 class="mb-0"><i class="fas fa-calendar-check"></i> 就診資訊 Visit Information</h6>
+                        </div>
+                        <div class="card-body">
+                            <div class="row">
+                `;
+                
+                if (data.visit_info.visit_purpose) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>初診目的:</strong> ${data.visit_info.visit_purpose}</div>`;
+                }
+                if (data.visit_info.remarks) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>備註:</strong> ${data.visit_info.remarks}</div>`;
+                }
+                
+                contentHtml += `
+                            </div>
+                        </div>
+                    </div>
+                `;
+            }
+
+            // 如果沒有任何資料，顯示提示訊息
+            if (!data.basic_info && !data.pet_info && !data.medical_history && !data.owner_info && !data.preventive_care && !data.visit_info) {
+                contentHtml += `
+                    <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> 
+                        尚未提取到結構化資料，或資料格式不符合動物醫院初診表格式。
+                    </div>
+                `;
             }
 
             contentDiv.innerHTML = contentHtml;
@@ -1239,6 +1308,8 @@
                 setEditValue('edit_color', data.pet_info.color);
                 setEditValue('edit_age_years', data.pet_info.age_years);
                 setEditValue('edit_age_months', data.pet_info.age_months);
+                setEditValue('edit_age_days', data.pet_info.age_days);
+                setEditValue('edit_age_full', data.pet_info.age_full);
             }
             
             // Medical history
@@ -1248,6 +1319,7 @@
                 setEditValue('edit_allergen_name', data.medical_history.allergen_name);
                 setEditValue('edit_skin_disease', data.medical_history.skin_disease);
                 setEditValue('edit_heartworm_infection', data.medical_history.heartworm_infection);
+                setEditValue('edit_parasitic_infection', data.medical_history.parasitic_infection);
                 setEditValue('edit_heart_condition', data.medical_history.heart_condition);
                 setEditValue('edit_other_diseases', data.medical_history.other_diseases);
             }
@@ -1259,15 +1331,46 @@
                 setEditValue('edit_owner_birth_date', data.owner_info.owner_birth_date);
                 setEditValue('edit_owner_gender', data.owner_info.owner_gender);
                 setEditValue('edit_phone', data.owner_info.phone);
+                setEditValue('edit_line_id', data.owner_info.line_id);
                 setEditValue('edit_email', data.owner_info.email);
                 setEditValue('edit_registered_address', data.owner_info.registered_address);
+                setEditValue('edit_mailing_address', data.owner_info.mailing_address);
             }
             
             // Preventive care
             if (data.preventive_care) {
-                setEditValue('edit_monthly_preventive', data.preventive_care.monthly_preventive);
-                setEditValue('edit_vaccine_rabies', data.preventive_care.vaccine_rabies);
-                setEditValue('edit_vaccine_combo', data.preventive_care.vaccine_combo);
+                // 每月定期施打預防針
+                if (data.preventive_care.monthly_preventive_yes) {
+                    const yesRadio = document.getElementById('edit_monthly_preventive_yes');
+                    if (yesRadio) yesRadio.checked = true;
+                } else if (data.preventive_care.monthly_preventive_no) {
+                    const noRadio = document.getElementById('edit_monthly_preventive_no');
+                    if (noRadio) noRadio.checked = true;
+                }
+                
+                // 疫苗類型
+                if (data.preventive_care.vaccine_rabies) {
+                    const checkbox = document.getElementById('edit_vaccine_rabies');
+                    if (checkbox) checkbox.checked = true;
+                }
+                if (data.preventive_care.vaccine_3in1) {
+                    const checkbox = document.getElementById('edit_vaccine_3in1');
+                    if (checkbox) checkbox.checked = true;
+                }
+                if (data.preventive_care.vaccine_4in1) {
+                    const checkbox = document.getElementById('edit_vaccine_4in1');
+                    if (checkbox) checkbox.checked = true;
+                }
+                if (data.preventive_care.vaccine_5in1) {
+                    const checkbox = document.getElementById('edit_vaccine_5in1');
+                    if (checkbox) checkbox.checked = true;
+                }
+                if (data.preventive_care.vaccine_others) {
+                    const checkbox = document.getElementById('edit_vaccine_others');
+                    if (checkbox) checkbox.checked = true;
+                }
+                
+                setEditValue('edit_vaccine_others_detail', data.preventive_care.vaccine_others_detail);
                 setEditValue('edit_major_illness_surgery', data.preventive_care.major_illness_surgery);
             }
             
@@ -1299,7 +1402,9 @@
                     desexed: document.getElementById('edit_desexed').value,
                     color: document.getElementById('edit_color').value,
                     age_years: document.getElementById('edit_age_years').value,
-                    age_months: document.getElementById('edit_age_months').value
+                    age_months: document.getElementById('edit_age_months').value,
+                    age_days: document.getElementById('edit_age_days')?.value || '',
+                    age_full: document.getElementById('edit_age_full')?.value || ''
                 },
                 medical_history: {
                     past_medical_history: document.getElementById('edit_past_medical_history').value,
@@ -1307,6 +1412,7 @@
                     allergen_name: document.getElementById('edit_allergen_name').value,
                     skin_disease: document.getElementById('edit_skin_disease').value,
                     heartworm_infection: document.getElementById('edit_heartworm_infection').value,
+                    parasitic_infection: document.getElementById('edit_parasitic_infection')?.value || '',
                     heart_condition: document.getElementById('edit_heart_condition').value,
                     other_diseases: document.getElementById('edit_other_diseases').value
                 },
@@ -1316,14 +1422,23 @@
                     owner_birth_date: document.getElementById('edit_owner_birth_date').value,
                     owner_gender: document.getElementById('edit_owner_gender').value,
                     phone: document.getElementById('edit_phone').value,
+                    line_id: document.getElementById('edit_line_id')?.value || '',
                     email: document.getElementById('edit_email').value,
-                    registered_address: document.getElementById('edit_registered_address').value
+                    registered_address: document.getElementById('edit_registered_address').value,
+                    mailing_address: document.getElementById('edit_mailing_address')?.value || ''
                 },
                 preventive_care: {
-                    monthly_preventive: document.getElementById('edit_monthly_preventive').value,
-                    vaccine_rabies: document.getElementById('edit_vaccine_rabies').value,
-                    vaccine_combo: document.getElementById('edit_vaccine_combo').value,
-                    major_illness_surgery: document.getElementById('edit_major_illness_surgery').value
+                    monthly_preventive_treatment: document.querySelector('input[name="edit_monthly_preventive"]:checked')?.value || '',
+                    monthly_preventive_yes: document.getElementById('edit_monthly_preventive_yes')?.checked ? '是' : '',
+                    monthly_preventive_no: document.getElementById('edit_monthly_preventive_no')?.checked ? '否' : '',
+                    major_illness_surgery: document.getElementById('edit_major_illness_surgery').value,
+                    vaccine_types: '',
+                    vaccine_rabies: document.getElementById('edit_vaccine_rabies')?.checked ? '已施打' : '',
+                    vaccine_3in1: document.getElementById('edit_vaccine_3in1')?.checked ? '已施打' : '',
+                    vaccine_4in1: document.getElementById('edit_vaccine_4in1')?.checked ? '已施打' : '',
+                    vaccine_5in1: document.getElementById('edit_vaccine_5in1')?.checked ? '已施打' : '',
+                    vaccine_others: document.getElementById('edit_vaccine_others')?.checked ? '已施打' : '',
+                    vaccine_others_detail: document.getElementById('edit_vaccine_others_detail')?.value || ''
                 },
                 visit_info: {
                     visit_purpose: document.getElementById('edit_visit_purpose').value,
