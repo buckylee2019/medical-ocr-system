@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>醫療 OCR - 增強型投票系統 + DynamoDB</title>
+    <title>醫療 OCR</title>
     <link rel="icon" type="image/png" href="{{ url_for('static', filename='favicon.png') }}">
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.1.3/dist/css/bootstrap.min.css" rel="stylesheet">
     <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
@@ -649,20 +649,68 @@
                                 <table class="table table-sm">
                     `;
                     
-                    Object.entries(data[section.key]).forEach(([field, value]) => {
-                        const fieldId = `${section.key}_${field}`;
-                        console.log(`Creating field: ${fieldId} with value: ${value}`);
+                    // 特殊處理預防醫療資料部分
+                    if (section.key === 'preventive_care') {
+                        // 處理每月定期施打預防針 - 合併為一個欄位
+                        let monthlyPreventiveValue = '';
+                        if (data[section.key].monthly_preventive_yes) {
+                            monthlyPreventiveValue = '是';
+                        } else if (data[section.key].monthly_preventive_no) {
+                            monthlyPreventiveValue = '否';
+                        } else if (data[section.key].monthly_preventive_treatment) {
+                            monthlyPreventiveValue = data[section.key].monthly_preventive_treatment;
+                        }
+                        
                         html += `
                             <tr>
-                                <td style="width: 30%;"><strong>${getFieldDisplayName(field)}</strong></td>
+                                <td style="width: 30%;"><strong>每月定期施打預防針</strong></td>
                                 <td>
                                     <input type="text" class="form-control editable-field" 
-                                           id="${fieldId}" value="${value || ''}" 
-                                           data-section="${section.key}" data-field="${field}">
+                                           id="preventive_care_monthly_preventive" value="${monthlyPreventiveValue}" 
+                                           data-section="preventive_care" data-field="monthly_preventive_treatment">
                                 </td>
                             </tr>
                         `;
-                    });
+                        
+                        // 處理其他欄位，跳過重複的每月定期施打預防針欄位
+                        Object.entries(data[section.key]).forEach(([field, value]) => {
+                            // 跳過重複的每月定期施打預防針相關欄位
+                            if (field === 'monthly_preventive_yes' || 
+                                field === 'monthly_preventive_no' || 
+                                field === 'monthly_preventive_treatment') {
+                                return;
+                            }
+                            
+                            const fieldId = `${section.key}_${field}`;
+                            console.log(`Creating field: ${fieldId} with value: ${value}`);
+                            html += `
+                                <tr>
+                                    <td style="width: 30%;"><strong>${getFieldDisplayName(field)}</strong></td>
+                                    <td>
+                                        <input type="text" class="form-control editable-field" 
+                                               id="${fieldId}" value="${value || ''}" 
+                                               data-section="${section.key}" data-field="${field}">
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    } else {
+                        // 其他部分正常處理
+                        Object.entries(data[section.key]).forEach(([field, value]) => {
+                            const fieldId = `${section.key}_${field}`;
+                            console.log(`Creating field: ${fieldId} with value: ${value}`);
+                            html += `
+                                <tr>
+                                    <td style="width: 30%;"><strong>${getFieldDisplayName(field)}</strong></td>
+                                    <td>
+                                        <input type="text" class="form-control editable-field" 
+                                               id="${fieldId}" value="${value || ''}" 
+                                               data-section="${section.key}" data-field="${field}">
+                                    </td>
+                                </tr>
+                            `;
+                        });
+                    }
                     
                     html += `
                                 </table>
@@ -682,11 +730,11 @@
 
         function getFieldDisplayName(field) {
             const fieldNames = {
-                // 基本資料 Basic Information
+                // 基本資料
                 'chart_number': '病歷號碼',
                 'first_visit_date': '初診日期',
                 
-                // 寵物資料 Pet Information
+                // 寵物資料
                 'pet_name': '寵物名',
                 'species': '物種',
                 'breed': '品種',
@@ -698,7 +746,7 @@
                 'age_days': '年齡-日',
                 'age_full': '完整年齡',
                 
-                // 病史資料 Medical History
+                // 病史資料
                 'past_medical_history': '過去病史',
                 'drug_allergy': '藥物過敏',
                 'allergen_name': '過敏藥物名稱',
@@ -708,7 +756,7 @@
                 'heart_condition': '心臟疾病',
                 'other_diseases': '其他疾病',
                 
-                // 飼主資料 Owner Information
+                // 飼主資料
                 'owner_id': '身份證/護照號碼',
                 'owner_name': '飼主姓名',
                 'owner_birth_date': '出生日期',
@@ -719,10 +767,8 @@
                 'registered_address': '戶籍地址',
                 'mailing_address': '通訊地址',
                 
-                // 預防醫療資料 Preventive Care
+                // 預防醫療資料
                 'monthly_preventive_treatment': '每月定期施打預防針',
-                'monthly_preventive_yes': '每月定期施打預防針-是',
-                'monthly_preventive_no': '每月定期施打預防針-否',
                 'major_illness_surgery': '重大病史及手術',
                 'vaccine_types': '曾施打疫苗類型',
                 'vaccine_rabies': '狂犬疫苗',
@@ -732,7 +778,7 @@
                 'vaccine_others': '其他疫苗',
                 'vaccine_others_detail': '其他疫苗詳細內容',
                 
-                // 就診資訊 Visit Information
+                // 就診資訊
                 'visit_purpose': '初診目的',
                 'remarks': '備註'
             };
