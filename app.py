@@ -150,6 +150,8 @@ VET_FORM_FIELDS = {
     'color': '毛色',
     'age_years': '年齡-年',
     'age_months': '年齡-月',
+    'age_days': '年齡-日',
+    'age_full': '完整年齡(年月日)',
     
     # 病史資料 Medical History
     'past_medical_history': '過去病史',
@@ -173,10 +175,17 @@ VET_FORM_FIELDS = {
     'mailing_address': '通訊地址',
     
     # 預防醫療資料 Preventive Care
-    'monthly_preventive': '每月定期施打預防針',
-    'vaccine_rabies': '狂犬疫苗',
-    'vaccine_combo': '綜合疫苗',
-    'major_illness_surgery': '重大病史及手術',
+    'monthly_preventive_treatment': '每月定期施打預防針 Monthly Preventive Treatment',
+    'monthly_preventive_yes': '每月定期施打預防針-是',
+    'monthly_preventive_no': '每月定期施打預防針-否',
+    'major_illness_surgery': '重大病史及手術 Major Illness or Surgery',
+    'vaccine_types': '曾施打疫苗類型 Types of Vaccines Given',
+    'vaccine_rabies': '狂犬疫苗 Rabies',
+    'vaccine_3in1': '三合一疫苗 3-in-1',
+    'vaccine_4in1': '四合一疫苗 4-in-1',
+    'vaccine_5in1': '五合一疫苗 5-in-1',
+    'vaccine_others': '其他疫苗 Others',
+    'vaccine_others_detail': '其他疫苗詳細內容',
     
     # 就診資訊 Visit Information
     'visit_purpose': '初診目的',
@@ -461,7 +470,9 @@ def process_with_claude_latest(image_data, for_human_review=False):
                     "desexed": "",
                     "color": "",
                     "age_years": "",
-                    "age_months": ""
+                    "age_months": "",
+                    "age_days": "",
+                    "age_full": ""
                 },
                 "medical_history": {
                     "past_medical_history": "",
@@ -485,16 +496,31 @@ def process_with_claude_latest(image_data, for_human_review=False):
                     "mailing_address": ""
                 },
                 "preventive_care": {
-                    "monthly_preventive": "",
+                    "monthly_preventive_treatment": "",
+                    "monthly_preventive_yes": "",
+                    "monthly_preventive_no": "",
+                    "major_illness_surgery": "",
+                    "vaccine_types": "",
                     "vaccine_rabies": "",
-                    "vaccine_combo": "",
-                    "major_illness_surgery": ""
+                    "vaccine_3in1": "",
+                    "vaccine_4in1": "",
+                    "vaccine_5in1": "",
+                    "vaccine_others": "",
+                    "vaccine_others_detail": ""
                 },
                 "visit_info": {
                     "visit_purpose": "",
                     "remarks": ""
                 }
             }
+            
+            特別注意：
+            1. 寵物年齡請盡可能精確到日，如果表格中有年、月、日的詳細資訊，請分別提取
+            2. 預防醫療資料中的勾選框請仔細識別：
+               - 每月定期施打預防針：如果勾選"是"填入monthly_preventive_yes，如果勾選"否"填入monthly_preventive_no
+               - 疫苗類型：勾選的疫苗類型請在對應欄位填入"已施打"
+               - 如果勾選"其他疫苗"，請在vaccine_others_detail中填入具體內容（如：兔用疫苗）
+            3. 重大病史及手術：如果顯示"無"請填入"無"，如果有具體內容請詳細填入
             
             請仔細提取所有可見的文字並適當地組織到相應的欄位中。
             如果某個欄位沒有資訊，請留空字串。
@@ -600,7 +626,9 @@ def get_medical_extraction_prompt():
             "desexed": "",
             "color": "",
             "age_years": "",
-            "age_months": ""
+            "age_months": "",
+            "age_days": "",
+            "age_full": ""
         },
         "medical_history": {
             "past_medical_history": "",
@@ -624,10 +652,17 @@ def get_medical_extraction_prompt():
             "mailing_address": ""
         },
         "preventive_care": {
-            "monthly_preventive": "",
+            "monthly_preventive_treatment": "",
+            "monthly_preventive_yes": "",
+            "monthly_preventive_no": "",
+            "major_illness_surgery": "",
+            "vaccine_types": "",
             "vaccine_rabies": "",
-            "vaccine_combo": "",
-            "major_illness_surgery": ""
+            "vaccine_3in1": "",
+            "vaccine_4in1": "",
+            "vaccine_5in1": "",
+            "vaccine_others": "",
+            "vaccine_others_detail": ""
         },
         "visit_info": {
             "visit_purpose": "",
@@ -650,6 +685,8 @@ def get_medical_extraction_prompt():
     - color: 毛色
     - age_years: 年齡-年
     - age_months: 年齡-月
+    - age_days: 年齡-日
+    - age_full: 完整年齡（如：2年3個月15日）
 
     病史資料 Medical History:
     - past_medical_history: 過去病史（無/有）
@@ -669,6 +706,32 @@ def get_medical_extraction_prompt():
     - phone: 電話
     - line_id: Line ID
     - email: E-mail
+    - registered_address: 戶籍地址
+    - mailing_address: 通訊地址
+
+    預防醫療資料 Preventive Care:
+    - monthly_preventive_treatment: 每月定期施打預防針 Monthly Preventive Treatment（整體描述）
+    - monthly_preventive_yes: 每月定期施打預防針-是（如果勾選"是"則填入"是"）
+    - monthly_preventive_no: 每月定期施打預防針-否（如果勾選"否"則填入"否"）
+    - major_illness_surgery: 重大病史及手術 Major Illness or Surgery
+    - vaccine_types: 曾施打疫苗類型 Types of Vaccines Given（整體描述）
+    - vaccine_rabies: 狂犬疫苗 Rabies（如果勾選則填入"已施打"）
+    - vaccine_3in1: 三合一疫苗 3-in-1（如果勾選則填入"已施打"）
+    - vaccine_4in1: 四合一疫苗 4-in-1（如果勾選則填入"已施打"）
+    - vaccine_5in1: 五合一疫苗 5-in-1（如果勾選則填入"已施打"）
+    - vaccine_others: 其他疫苗 Others（如果勾選則填入"已施打"）
+    - vaccine_others_detail: 其他疫苗的詳細內容（如：兔用疫苗）
+
+    就診資訊 Visit Information:
+    - visit_purpose: 初診目的
+    - remarks: 備註
+
+    特別注意：
+    1. 寵物年齡請盡可能精確到日，如果表格中有年、月、日的詳細資訊，請分別提取
+    2. 預防醫療資料中的勾選框請仔細識別，勾選的項目請標註為相應的值
+    3. 疫苗類型如果有勾選"其他"，請特別注意提取其詳細內容
+    4. 所有日期格式請保持一致（YYYY-MM-DD或原始格式）
+    """
     - registered_address: 戶籍地址
     - mailing_address: 通訊地址
 
