@@ -468,13 +468,17 @@
                                             </div>
                                         </div>
                                         <div class="row mt-2">
-                                            <div class="col-md-6">
+                                            <div class="col-md-4">
                                                 <label for="edit_age_years" class="form-label">年齡-年</label>
                                                 <input type="text" class="form-control" id="edit_age_years">
                                             </div>
-                                            <div class="col-md-6">
+                                            <div class="col-md-4">
                                                 <label for="edit_age_months" class="form-label">年齡-月</label>
                                                 <input type="text" class="form-control" id="edit_age_months">
+                                            </div>
+                                            <div class="col-md-4">
+                                                <label for="edit_age_days" class="form-label">年齡-日</label>
+                                                <input type="text" class="form-control" id="edit_age_days">
                                             </div>
                                         </div>
                                     </div>
@@ -525,9 +529,33 @@
                                             </div>
                                         </div>
                                         <div class="row mt-2">
-                                            <div class="col-12">
+                                            <div class="col-md-6">
+                                                <label for="edit_liver_disease" class="form-label">肝臟疾病</label>
+                                                <input type="text" class="form-control" id="edit_liver_disease">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_respiratory_disease" class="form-label">呼吸道疾病</label>
+                                                <input type="text" class="form-control" id="edit_respiratory_disease">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_urinary_stones" class="form-label">膀胱及泌尿道結石</label>
+                                                <input type="text" class="form-control" id="edit_urinary_stones">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_kidney_disease" class="form-label">腎臟疾病</label>
+                                                <input type="text" class="form-control" id="edit_kidney_disease">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_gastrointestinal_disease" class="form-label">腸胃道疾病</label>
+                                                <input type="text" class="form-control" id="edit_gastrointestinal_disease">
+                                            </div>
+                                            <div class="col-md-6">
                                                 <label for="edit_other_diseases" class="form-label">其他疾病</label>
-                                                <textarea class="form-control" id="edit_other_diseases" rows="2"></textarea>
+                                                <input type="text" class="form-control" id="edit_other_diseases">
                                             </div>
                                         </div>
                                     </div>
@@ -595,13 +623,13 @@
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="radio" name="edit_monthly_preventive" id="edit_monthly_preventive_yes" value="是">
                                                         <label class="form-check-label" for="edit_monthly_preventive_yes">
-                                                            ☑ 是 Yes
+                                                            是 Yes
                                                         </label>
                                                     </div>
                                                     <div class="form-check">
                                                         <input class="form-check-input" type="radio" name="edit_monthly_preventive" id="edit_monthly_preventive_no" value="否">
                                                         <label class="form-check-label" for="edit_monthly_preventive_no">
-                                                            ☑ 否 No
+                                                            否 No
                                                         </label>
                                                     </div>
                                                 </div>
@@ -619,7 +647,7 @@
                                                         <div class="form-check">
                                                             <input class="form-check-input" type="checkbox" id="edit_vaccine_rabies" name="edit_vaccine_rabies" value="已施打">
                                                             <label class="form-check-label" for="edit_vaccine_rabies">
-                                                                □ 狂犬 Rabies
+                                                                狂犬 Rabies
                                                             </label>
                                                         </div>
                                                     </div>
@@ -627,7 +655,7 @@
                                                         <div class="form-check">
                                                             <input class="form-check-input" type="checkbox" id="edit_vaccine_3in1" name="edit_vaccine_3in1" value="已施打">
                                                             <label class="form-check-label" for="edit_vaccine_3in1">
-                                                                □ 三合一 3-in-1
+                                                                三合一 3-in-1
                                                             </label>
                                                         </div>
                                                     </div>
@@ -635,7 +663,7 @@
                                                         <div class="form-check">
                                                             <input class="form-check-input" type="checkbox" id="edit_vaccine_4in1" name="edit_vaccine_4in1" value="已施打">
                                                             <label class="form-check-label" for="edit_vaccine_4in1">
-                                                                □ 四合一 4-in-1
+                                                                四合一 4-in-1
                                                             </label>
                                                         </div>
                                                     </div>
@@ -643,7 +671,7 @@
                                                         <div class="form-check">
                                                             <input class="form-check-input" type="checkbox" id="edit_vaccine_5in1" name="edit_vaccine_5in1" value="已施打">
                                                             <label class="form-check-label" for="edit_vaccine_5in1">
-                                                                □ 五合一 5-in-1
+                                                                五合一 5-in-1
                                                             </label>
                                                         </div>
                                                     </div>
@@ -653,7 +681,7 @@
                                                         <div class="form-check">
                                                             <input class="form-check-input" type="checkbox" id="edit_vaccine_others" name="edit_vaccine_others" value="已施打">
                                                             <label class="form-check-label" for="edit_vaccine_others">
-                                                                ☑ 其他 Others:
+                                                                其他 Others:
                                                             </label>
                                                         </div>
                                                     </div>
@@ -1063,9 +1091,9 @@
                 if (data.preventive_care.monthly_preventive_yes || data.preventive_care.monthly_preventive_no || data.preventive_care.monthly_preventive_treatment) {
                     let monthlyPreventive = '';
                     if (data.preventive_care.monthly_preventive_yes) {
-                        monthlyPreventive = '☑ 是 Yes';
+                        monthlyPreventive = '是 Yes';
                     } else if (data.preventive_care.monthly_preventive_no) {
-                        monthlyPreventive = '☑ 否 No';
+                        monthlyPreventive = '否 No';
                     } else if (data.preventive_care.monthly_preventive_treatment) {
                         monthlyPreventive = data.preventive_care.monthly_preventive_treatment;
                     }
@@ -1079,12 +1107,12 @@
                 
                 // 疫苗類型
                 let vaccines = [];
-                if (data.preventive_care.vaccine_rabies) vaccines.push('□ 狂犬 Rabies');
-                if (data.preventive_care.vaccine_3in1) vaccines.push('□ 三合一 3-in-1');
-                if (data.preventive_care.vaccine_4in1) vaccines.push('□ 四合一 4-in-1');
-                if (data.preventive_care.vaccine_5in1) vaccines.push('□ 五合一 5-in-1');
+                if (data.preventive_care.vaccine_rabies) vaccines.push('狂犬 Rabies');
+                if (data.preventive_care.vaccine_3in1) vaccines.push('三合一 3-in-1');
+                if (data.preventive_care.vaccine_4in1) vaccines.push('四合一 4-in-1');
+                if (data.preventive_care.vaccine_5in1) vaccines.push('五合一 5-in-1');
                 if (data.preventive_care.vaccine_others) {
-                    let othersText = '☑ 其他 Others';
+                    let othersText = '其他 Others';
                     if (data.preventive_care.vaccine_others_detail) {
                         othersText += `: ${data.preventive_care.vaccine_others_detail}`;
                     }
@@ -1363,6 +1391,11 @@
                 setEditValue('edit_heartworm_infection', data.medical_history.heartworm_infection);
                 setEditValue('edit_parasitic_infection', data.medical_history.parasitic_infection);
                 setEditValue('edit_heart_condition', data.medical_history.heart_condition);
+                setEditValue('edit_liver_disease', data.medical_history.liver_disease);
+                setEditValue('edit_respiratory_disease', data.medical_history.respiratory_disease);
+                setEditValue('edit_urinary_stones', data.medical_history.urinary_stones);
+                setEditValue('edit_kidney_disease', data.medical_history.kidney_disease);
+                setEditValue('edit_gastrointestinal_disease', data.medical_history.gastrointestinal_disease);
                 setEditValue('edit_other_diseases', data.medical_history.other_diseases);
             }
             
@@ -1455,6 +1488,11 @@
                     heartworm_infection: document.getElementById('edit_heartworm_infection').value,
                     parasitic_infection: document.getElementById('edit_parasitic_infection')?.value || '',
                     heart_condition: document.getElementById('edit_heart_condition').value,
+                    liver_disease: document.getElementById('edit_liver_disease')?.value || '',
+                    respiratory_disease: document.getElementById('edit_respiratory_disease')?.value || '',
+                    urinary_stones: document.getElementById('edit_urinary_stones')?.value || '',
+                    kidney_disease: document.getElementById('edit_kidney_disease')?.value || '',
+                    gastrointestinal_disease: document.getElementById('edit_gastrointestinal_disease')?.value || '',
                     other_diseases: document.getElementById('edit_other_diseases').value
                 },
                 owner_info: {

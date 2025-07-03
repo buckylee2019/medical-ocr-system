@@ -753,6 +753,11 @@
                 'heartworm_infection': '心絲蟲感染',
                 'parasitic_infection': '寄生蟲感染',
                 'heart_condition': '心臟疾病',
+                'liver_disease': '肝臟疾病',
+                'respiratory_disease': '呼吸道疾病',
+                'urinary_stones': '膀胱及泌尿道結石',
+                'kidney_disease': '腎臟疾病',
+                'gastrointestinal_disease': '腸胃道疾病',
                 'other_diseases': '其他疾病',
                 
                 // 飼主資料
@@ -1055,9 +1060,9 @@
                 // 處理每月定期施打預防針
                 let monthlyPreventive = '';
                 if (data.preventive_care.monthly_preventive_yes) {
-                    monthlyPreventive = '☑ 是';
+                    monthlyPreventive = '是';
                 } else if (data.preventive_care.monthly_preventive_no) {
-                    monthlyPreventive = '☑ 否';
+                    monthlyPreventive = '否';
                 } else if (data.preventive_care.monthly_preventive_treatment) {
                     monthlyPreventive = data.preventive_care.monthly_preventive_treatment;
                 } else {
@@ -1066,12 +1071,12 @@
                 
                 // 處理疫苗類型
                 let vaccines = [];
-                if (data.preventive_care.vaccine_rabies) vaccines.push('□ 狂犬疫苗');
-                if (data.preventive_care.vaccine_3in1) vaccines.push('□ 三合一疫苗');
-                if (data.preventive_care.vaccine_4in1) vaccines.push('□ 四合一疫苗');
-                if (data.preventive_care.vaccine_5in1) vaccines.push('□ 五合一疫苗');
+                if (data.preventive_care.vaccine_rabies) vaccines.push('狂犬疫苗');
+                if (data.preventive_care.vaccine_3in1) vaccines.push('三合一疫苗');
+                if (data.preventive_care.vaccine_4in1) vaccines.push('四合一疫苗');
+                if (data.preventive_care.vaccine_5in1) vaccines.push('五合一疫苗');
                 if (data.preventive_care.vaccine_others) {
-                    let othersText = '☑ 其他疫苗';
+                    let othersText = '其他疫苗';
                     if (data.preventive_care.vaccine_others_detail) {
                         othersText += `：${data.preventive_care.vaccine_others_detail}`;
                     }

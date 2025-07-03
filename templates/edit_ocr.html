@@ -322,6 +322,31 @@
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
+                                    <label for="liver_disease" class="form-label">肝臟疾病 Liver Disease</label>
+                                    <input type="text" class="form-control" id="liver_disease" name="liver_disease" placeholder="請輸入肝臟疾病詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="respiratory_disease" class="form-label">呼吸道疾病 Respiratory Disease</label>
+                                    <input type="text" class="form-control" id="respiratory_disease" name="respiratory_disease" placeholder="請輸入呼吸道疾病詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="urinary_stones" class="form-label">膀胱及泌尿道結石 Urinary Stones</label>
+                                    <input type="text" class="form-control" id="urinary_stones" name="urinary_stones" placeholder="請輸入膀胱及泌尿道結石詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="kidney_disease" class="form-label">腎臟疾病 Kidney Disease</label>
+                                    <input type="text" class="form-control" id="kidney_disease" name="kidney_disease" placeholder="請輸入腎臟疾病詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
+                                    <label for="gastrointestinal_disease" class="form-label">腸胃道疾病 Gastrointestinal Disease</label>
+                                    <input type="text" class="form-control" id="gastrointestinal_disease" name="gastrointestinal_disease" placeholder="請輸入腸胃道疾病詳情">
+                                </div>
+                                
+                                <div class="col-md-6 mb-3">
                                     <label for="other_diseases" class="form-label">其他疾病 Other Diseases</label>
                                     <input type="text" class="form-control" id="other_diseases" name="other_diseases" placeholder="請輸入其他疾病詳情">
                                 </div>
@@ -399,13 +424,13 @@
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="monthly_preventive" id="monthly_preventive_yes" value="是">
                                             <label class="form-check-label" for="monthly_preventive_yes">
-                                                ☑ 是 Yes
+                                                是 Yes
                                             </label>
                                         </div>
                                         <div class="form-check">
                                             <input class="form-check-input" type="radio" name="monthly_preventive" id="monthly_preventive_no" value="否">
                                             <label class="form-check-label" for="monthly_preventive_no">
-                                                ☑ 否 No
+                                                否 No
                                             </label>
                                         </div>
                                     </div>
@@ -423,7 +448,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="vaccine_rabies" name="vaccine_rabies" value="已施打">
                                                 <label class="form-check-label" for="vaccine_rabies">
-                                                    □ 狂犬 Rabies
+                                                    狂犬 Rabies
                                                 </label>
                                             </div>
                                         </div>
@@ -431,7 +456,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="vaccine_3in1" name="vaccine_3in1" value="已施打">
                                                 <label class="form-check-label" for="vaccine_3in1">
-                                                    □ 三合一 3-in-1
+                                                    三合一 3-in-1
                                                 </label>
                                             </div>
                                         </div>
@@ -439,7 +464,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="vaccine_4in1" name="vaccine_4in1" value="已施打">
                                                 <label class="form-check-label" for="vaccine_4in1">
-                                                    □ 四合一 4-in-1
+                                                    四合一 4-in-1
                                                 </label>
                                             </div>
                                         </div>
@@ -447,7 +472,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="vaccine_5in1" name="vaccine_5in1" value="已施打">
                                                 <label class="form-check-label" for="vaccine_5in1">
-                                                    □ 五合一 5-in-1
+                                                    五合一 5-in-1
                                                 </label>
                                             </div>
                                         </div>
@@ -457,7 +482,7 @@
                                             <div class="form-check">
                                                 <input class="form-check-input" type="checkbox" id="vaccine_others" name="vaccine_others" value="已施打">
                                                 <label class="form-check-label" for="vaccine_others">
-                                                    ☑ 其他 Others:
+                                                    其他 Others:
                                                 </label>
                                             </div>
                                         </div>
@@ -605,6 +630,11 @@
                 setValue('heartworm_infection', data.medical_history.heartworm_infection);
                 setValue('parasitic_infection', data.medical_history.parasitic_infection);
                 setValue('heart_condition', data.medical_history.heart_condition);
+                setValue('liver_disease', data.medical_history.liver_disease);
+                setValue('respiratory_disease', data.medical_history.respiratory_disease);
+                setValue('urinary_stones', data.medical_history.urinary_stones);
+                setValue('kidney_disease', data.medical_history.kidney_disease);
+                setValue('gastrointestinal_disease', data.medical_history.gastrointestinal_disease);
                 setValue('other_diseases', data.medical_history.other_diseases);
             }
             
@@ -801,6 +831,11 @@
                     heartworm_infection: document.getElementById('heartworm_infection').value,
                     parasitic_infection: document.getElementById('parasitic_infection').value,
                     heart_condition: document.getElementById('heart_condition').value,
+                    liver_disease: document.getElementById('liver_disease').value,
+                    respiratory_disease: document.getElementById('respiratory_disease').value,
+                    urinary_stones: document.getElementById('urinary_stones').value,
+                    kidney_disease: document.getElementById('kidney_disease').value,
+                    gastrointestinal_disease: document.getElementById('gastrointestinal_disease').value,
                     other_diseases: document.getElementById('other_diseases').value
                 },
                 owner_info: {

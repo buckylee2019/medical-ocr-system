@@ -160,6 +160,11 @@ VET_FORM_FIELDS = {
     'heartworm_infection': '心絲蟲感染',
     'parasitic_infection': '寄生蟲感染',
     'heart_condition': '心臟疾病',
+    'liver_disease': '肝臟疾病',
+    'respiratory_disease': '呼吸道疾病',
+    'urinary_stones': '膀胱及泌尿道結石',
+    'kidney_disease': '腎臟疾病',
+    'gastrointestinal_disease': '腸胃道疾病',
     'other_diseases': '其他疾病',
     
     # 飼主資料 Owner Information
@@ -480,6 +485,11 @@ def process_with_claude_latest(image_data, for_human_review=False):
                     "heartworm_infection": "",
                     "parasitic_infection": "",
                     "heart_condition": "",
+                    "liver_disease": "",
+                    "respiratory_disease": "",
+                    "urinary_stones": "",
+                    "kidney_disease": "",
+                    "gastrointestinal_disease": "",
                     "other_diseases": ""
                 },
                 "owner_info": {
@@ -635,6 +645,11 @@ def get_medical_extraction_prompt():
             "heartworm_infection": "",
             "parasitic_infection": "",
             "heart_condition": "",
+            "liver_disease": "",
+            "respiratory_disease": "",
+            "urinary_stones": "",
+            "kidney_disease": "",
+            "gastrointestinal_disease": "",
             "other_diseases": ""
         },
         "owner_info": {
@@ -692,6 +707,11 @@ def get_medical_extraction_prompt():
     - heartworm_infection: 心絲蟲感染詳情
     - parasitic_infection: 寄生蟲感染詳情
     - heart_condition: 心臟疾病詳情
+    - liver_disease: 肝臟疾病詳情
+    - respiratory_disease: 呼吸道疾病詳情
+    - urinary_stones: 膀胱及泌尿道結石詳情
+    - kidney_disease: 腎臟疾病詳情
+    - gastrointestinal_disease: 腸胃道疾病詳情
     - other_diseases: 其他疾病詳情
 
     飼主資料 Owner Information:
