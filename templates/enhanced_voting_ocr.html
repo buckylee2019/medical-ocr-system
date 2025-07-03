@@ -671,25 +671,50 @@
 
         function getFieldDisplayName(field) {
             const fieldNames = {
-                'certificate_no': '證明書編號',
-                'certificate_date': '證明書日期',
-                'name': '姓名',
-                'sex': '性別',
-                'date_of_birth': '出生日期',
-                'nationality': '國籍',
-                'passport_no_or_id': '身分證/護照',
-                'medical_history_no': '病歷號碼',
-                'address': '住址',
-                'date_of_examination': '診療日期',
-                'department': '診療科別',
-                'diagnosis': '診斷',
-                'doctors_comment': '醫師意見',
-                'hospital_name_chinese': '醫院名稱(中文)',
-                'hospital_name_english': '醫院名稱(英文)',
-                'superintendent': '院長',
-                'attending_physician': '主治醫師',
-                'stamp_or_seal': '印章/戳記',
-                'other_notes': '其他備註'
+                // 基本資料 Basic Information
+                'chart_number': '病歷號碼',
+                'first_visit_date': '初診日期',
+                
+                // 寵物資料 Pet Information
+                'pet_name': '寵物名',
+                'species': '物種',
+                'breed': '品種',
+                'pet_gender': '性別',
+                'desexed': '絕育',
+                'color': '毛色',
+                'age_years': '年齡-年',
+                'age_months': '年齡-月',
+                
+                // 病史資料 Medical History
+                'past_medical_history': '過去病史',
+                'drug_allergy': '藥物過敏',
+                'allergen_name': '過敏藥物名稱',
+                'skin_disease': '皮膚疾病',
+                'heartworm_infection': '心絲蟲感染',
+                'parasitic_infection': '寄生蟲感染',
+                'heart_condition': '心臟疾病',
+                'other_diseases': '其他疾病',
+                
+                // 飼主資料 Owner Information
+                'owner_id': '身份證/護照號碼',
+                'owner_name': '飼主姓名',
+                'owner_birth_date': '出生日期',
+                'owner_gender': '性別',
+                'phone': '電話',
+                'line_id': 'Line ID',
+                'email': 'E-mail',
+                'registered_address': '戶籍地址',
+                'mailing_address': '通訊地址',
+                
+                // 預防醫療資料 Preventive Care
+                'monthly_preventive': '每月定期施打預防針',
+                'vaccine_rabies': '狂犬疫苗',
+                'vaccine_combo': '綜合疫苗',
+                'major_illness_surgery': '重大病史及手術',
+                
+                // 就診資訊 Visit Information
+                'visit_purpose': '初診目的',
+                'remarks': '備註'
             };
             return fieldNames[field] || field;
         }
@@ -851,19 +876,19 @@
         function displayFinalResultAsHtmlTable(data) {
             let htmlContent = '';
             
-            // 證明書資訊
-            if (data.certificate_info) {
+            // 基本資料 Basic Information
+            if (data.basic_info) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-primary mb-3"><i class="fas fa-certificate"></i> 證明書資訊</h5>
+                        <h5 class="text-primary mb-3"><i class="fas fa-info-circle"></i> 基本資料 Basic Information</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-dark">
                                     <tr><th>欄位</th><th>內容</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td><strong>證明書編號</strong></td><td>${data.certificate_info.certificate_no || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>證明書日期</strong></td><td>${data.certificate_info.certificate_date || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>病歷號碼</strong></td><td>${data.basic_info.chart_number || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>初診日期</strong></td><td>${data.basic_info.first_visit_date || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -871,24 +896,25 @@
                 `;
             }
             
-            // 病患資訊
-            if (data.patient_info) {
+            // 寵物資料 Pet Information
+            if (data.pet_info) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-info mb-3"><i class="fas fa-user"></i> 病患資訊</h5>
+                        <h5 class="text-info mb-3"><i class="fas fa-paw"></i> 寵物資料 Pet Information</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-info">
                                     <tr><th>欄位</th><th>內容</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td><strong>姓名</strong></td><td>${data.patient_info.name || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>性別</strong></td><td>${data.patient_info.sex || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>出生日期</strong></td><td>${data.patient_info.date_of_birth || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>國籍</strong></td><td>${data.patient_info.nationality || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>身分證/護照</strong></td><td>${data.patient_info.passport_no_or_id || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>病歷號碼</strong></td><td>${data.patient_info.medical_history_no || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>住址</strong></td><td>${data.patient_info.address || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>寵物名</strong></td><td>${data.pet_info.pet_name || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>物種</strong></td><td>${data.pet_info.species || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>品種</strong></td><td>${data.pet_info.breed || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>性別</strong></td><td>${data.pet_info.pet_gender || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>絕育</strong></td><td>${data.pet_info.desexed || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>毛色</strong></td><td>${data.pet_info.color || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>年齡-年</strong></td><td>${data.pet_info.age_years || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>年齡-月</strong></td><td>${data.pet_info.age_months || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -896,19 +922,25 @@
                 `;
             }
             
-            // 診療資訊
-            if (data.examination_info) {
+            // 病史資料 Medical History
+            if (data.medical_history) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-success mb-3"><i class="fas fa-stethoscope"></i> 診療資訊</h5>
+                        <h5 class="text-success mb-3"><i class="fas fa-notes-medical"></i> 病史資料 Medical History</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-success">
                                     <tr><th>欄位</th><th>內容</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td><strong>診療日期</strong></td><td>${data.examination_info.date_of_examination || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>診療科別</strong></td><td>${data.examination_info.department || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>過去病史</strong></td><td>${data.medical_history.past_medical_history || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>藥物過敏</strong></td><td>${data.medical_history.drug_allergy || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>過敏藥物名稱</strong></td><td>${data.medical_history.allergen_name || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>皮膚疾病</strong></td><td>${data.medical_history.skin_disease || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>心絲蟲感染</strong></td><td>${data.medical_history.heartworm_infection || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>寄生蟲感染</strong></td><td>${data.medical_history.parasitic_infection || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>心臟疾病</strong></td><td>${data.medical_history.heart_condition || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>其他疾病</strong></td><td>${data.medical_history.other_diseases || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -916,19 +948,26 @@
                 `;
             }
             
-            // 醫療內容
-            if (data.medical_content) {
+            // 飼主資料 Owner Information
+            if (data.owner_info) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-warning mb-3"><i class="fas fa-notes-medical"></i> 醫療內容</h5>
+                        <h5 class="text-warning mb-3"><i class="fas fa-user"></i> 飼主資料 Owner Information</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-warning">
                                     <tr><th>欄位</th><th>內容</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td><strong>診斷</strong></td><td>${data.medical_content.diagnosis || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>醫師意見</strong></td><td>${data.medical_content.doctors_comment || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>身份證/護照號碼</strong></td><td>${data.owner_info.owner_id || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>飼主姓名</strong></td><td>${data.owner_info.owner_name || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>出生日期</strong></td><td>${data.owner_info.owner_birth_date || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>性別</strong></td><td>${data.owner_info.owner_gender || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>電話</strong></td><td>${data.owner_info.phone || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>Line ID</strong></td><td>${data.owner_info.line_id || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>E-mail</strong></td><td>${data.owner_info.email || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>戶籍地址</strong></td><td>${data.owner_info.registered_address || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>通訊地址</strong></td><td>${data.owner_info.mailing_address || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -936,21 +975,21 @@
                 `;
             }
             
-            // 醫院資訊
-            if (data.hospital_info) {
+            // 預防醫療資料 Preventive Care
+            if (data.preventive_care) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-secondary mb-3"><i class="fas fa-hospital"></i> 醫療院所資訊</h5>
+                        <h5 class="text-secondary mb-3"><i class="fas fa-shield-alt"></i> 預防醫療資料 Preventive Care</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-secondary">
                                     <tr><th>欄位</th><th>內容</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td><strong>醫院名稱 (中文)</strong></td><td>${data.hospital_info.hospital_name_chinese || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>醫院名稱 (英文)</strong></td><td>${data.hospital_info.hospital_name_english || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>院長</strong></td><td>${data.hospital_info.superintendent || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>主治醫師</strong></td><td>${data.hospital_info.attending_physician || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>每月定期施打預防針</strong></td><td>${data.preventive_care.monthly_preventive || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>狂犬疫苗</strong></td><td>${data.preventive_care.vaccine_rabies || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>綜合疫苗</strong></td><td>${data.preventive_care.vaccine_combo || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>重大病史及手術</strong></td><td>${data.preventive_care.major_illness_surgery || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                 </tbody>
                             </table>
                         </div>
@@ -958,19 +997,19 @@
                 `;
             }
             
-            // 其他資訊
-            if (data.additional_info && (data.additional_info.stamp_or_seal || data.additional_info.other_notes)) {
+            // 就診資訊 Visit Information
+            if (data.visit_info && (data.visit_info.visit_purpose || data.visit_info.remarks)) {
                 htmlContent += `
                     <div class="mb-4">
-                        <h5 class="text-dark mb-3"><i class="fas fa-info-circle"></i> 其他資訊</h5>
+                        <h5 class="text-dark mb-3"><i class="fas fa-stethoscope"></i> 就診資訊 Visit Information</h5>
                         <div class="table-responsive">
                             <table class="table table-striped table-hover">
                                 <thead class="table-dark">
                                     <tr><th>欄位</th><th>內容</th></tr>
                                 </thead>
                                 <tbody>
-                                    <tr><td><strong>印章/戳記</strong></td><td>${data.additional_info.stamp_or_seal || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>其他備註</strong></td><td>${data.additional_info.other_notes || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>初診目的</strong></td><td>${data.visit_info.visit_purpose || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
+                                    <tr><td><strong>備註</strong></td><td>${data.visit_info.remarks || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                 </tbody>
                             </table>
                         </div>

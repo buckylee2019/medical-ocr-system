@@ -398,153 +398,243 @@
                         <!-- 右側：編輯表單 -->
                         <div class="col-md-8">
                             <form id="editForm">
-                                <!-- Certificate Info -->
+                                <!-- Basic Information -->
                                 <div class="card mb-3">
                                     <div class="card-header">
-                                        <h6 class="mb-0">證書資訊</h6>
+                                        <h6 class="mb-0">基本資料 Basic Information</h6>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <label for="edit_certificate_no" class="form-label">證書編號</label>
-                                                <input type="text" class="form-control" id="edit_certificate_no">
+                                                <label for="edit_chart_number" class="form-label">病歷號碼</label>
+                                                <input type="text" class="form-control" id="edit_chart_number">
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="edit_certificate_date" class="form-label">證書日期</label>
-                                                <input type="text" class="form-control" id="edit_certificate_date">
+                                                <label for="edit_first_visit_date" class="form-label">初診日期</label>
+                                                <input type="text" class="form-control" id="edit_first_visit_date">
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Patient Info -->
+                                <!-- Pet Information -->
                                 <div class="card mb-3">
                                     <div class="card-header">
-                                        <h6 class="mb-0">病患資訊</h6>
+                                        <h6 class="mb-0">寵物資料 Pet Information</h6>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <label for="edit_patient_name" class="form-label">姓名</label>
-                                                <input type="text" class="form-control" id="edit_patient_name">
+                                                <label for="edit_pet_name" class="form-label">寵物名</label>
+                                                <input type="text" class="form-control" id="edit_pet_name">
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="edit_patient_sex" class="form-label">性別</label>
-                                                <input type="text" class="form-control" id="edit_patient_sex">
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-md-6">
-                                                <label for="edit_date_of_birth" class="form-label">出生日期</label>
-                                                <input type="text" class="form-control" id="edit_date_of_birth">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="edit_nationality" class="form-label">國籍</label>
-                                                <input type="text" class="form-control" id="edit_nationality">
+                                                <label for="edit_species" class="form-label">物種</label>
+                                                <select class="form-control" id="edit_species">
+                                                    <option value="">請選擇</option>
+                                                    <option value="犬">犬 Dog</option>
+                                                    <option value="貓">貓 Cat</option>
+                                                    <option value="兔">兔 Rabbit</option>
+                                                    <option value="其他">其他 Others</option>
+                                                </select>
                                             </div>
                                         </div>
                                         <div class="row mt-2">
                                             <div class="col-md-6">
-                                                <label for="edit_passport_no_or_id" class="form-label">護照號碼/身分證號</label>
-                                                <input type="text" class="form-control" id="edit_passport_no_or_id">
+                                                <label for="edit_breed" class="form-label">品種</label>
+                                                <input type="text" class="form-control" id="edit_breed">
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="edit_medical_history_no" class="form-label">病歷號</label>
-                                                <input type="text" class="form-control" id="edit_medical_history_no">
+                                                <label for="edit_pet_gender" class="form-label">性別</label>
+                                                <select class="form-control" id="edit_pet_gender">
+                                                    <option value="">請選擇</option>
+                                                    <option value="公">公 Male</option>
+                                                    <option value="母">母 Female</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_desexed" class="form-label">絕育</label>
+                                                <select class="form-control" id="edit_desexed">
+                                                    <option value="">請選擇</option>
+                                                    <option value="是">是 Yes</option>
+                                                    <option value="否">否 No</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_color" class="form-label">毛色</label>
+                                                <input type="text" class="form-control" id="edit_color">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_age_years" class="form-label">年齡-年</label>
+                                                <input type="text" class="form-control" id="edit_age_years">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_age_months" class="form-label">年齡-月</label>
+                                                <input type="text" class="form-control" id="edit_age_months">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Medical History -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">病史資料 Medical History</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-md-6">
+                                                <label for="edit_past_medical_history" class="form-label">過去病史</label>
+                                                <select class="form-control" id="edit_past_medical_history">
+                                                    <option value="">請選擇</option>
+                                                    <option value="無">無 None</option>
+                                                    <option value="有">有 Yes</option>
+                                                </select>
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_drug_allergy" class="form-label">藥物過敏</label>
+                                                <select class="form-control" id="edit_drug_allergy">
+                                                    <option value="">請選擇</option>
+                                                    <option value="無">無 None</option>
+                                                    <option value="有">有 Yes</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_allergen_name" class="form-label">過敏藥物名稱</label>
+                                                <input type="text" class="form-control" id="edit_allergen_name">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_skin_disease" class="form-label">皮膚疾病</label>
+                                                <input type="text" class="form-control" id="edit_skin_disease">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_heartworm_infection" class="form-label">心絲蟲感染</label>
+                                                <input type="text" class="form-control" id="edit_heartworm_infection">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_heart_condition" class="form-label">心臟疾病</label>
+                                                <input type="text" class="form-control" id="edit_heart_condition">
                                             </div>
                                         </div>
                                         <div class="row mt-2">
                                             <div class="col-12">
-                                                <label for="edit_patient_address" class="form-label">地址</label>
-                                                <textarea class="form-control" id="edit_patient_address" rows="2"></textarea>
+                                                <label for="edit_other_diseases" class="form-label">其他疾病</label>
+                                                <textarea class="form-control" id="edit_other_diseases" rows="2"></textarea>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Examination Info -->
+                                <!-- Owner Information -->
                                 <div class="card mb-3">
                                     <div class="card-header">
-                                        <h6 class="mb-0">檢查資訊</h6>
+                                        <h6 class="mb-0">飼主資料 Owner Information</h6>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <label for="edit_date_of_examination" class="form-label">檢查日期</label>
-                                                <input type="text" class="form-control" id="edit_date_of_examination">
+                                                <label for="edit_owner_id" class="form-label">身份證/護照號碼</label>
+                                                <input type="text" class="form-control" id="edit_owner_id">
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="edit_department" class="form-label">科別</label>
-                                                <input type="text" class="form-control" id="edit_department">
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Medical Content -->
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">醫療內容</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-12">
-                                                <label for="edit_diagnosis" class="form-label">診斷</label>
-                                                <textarea class="form-control" id="edit_diagnosis" rows="3"></textarea>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-12">
-                                                <label for="edit_doctors_comment" class="form-label">醫師意見</label>
-                                                <textarea class="form-control" id="edit_doctors_comment" rows="3"></textarea>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                <!-- Hospital Info -->
-                                <div class="card mb-3">
-                                    <div class="card-header">
-                                        <h6 class="mb-0">醫院資訊</h6>
-                                    </div>
-                                    <div class="card-body">
-                                        <div class="row">
-                                            <div class="col-md-6">
-                                                <label for="edit_hospital_name_chinese" class="form-label">醫院名稱（中文）</label>
-                                                <input type="text" class="form-control" id="edit_hospital_name_chinese">
-                                            </div>
-                                            <div class="col-md-6">
-                                                <label for="edit_hospital_name_english" class="form-label">醫院名稱（英文）</label>
-                                                <input type="text" class="form-control" id="edit_hospital_name_english">
+                                                <label for="edit_owner_name" class="form-label">飼主姓名</label>
+                                                <input type="text" class="form-control" id="edit_owner_name">
                                             </div>
                                         </div>
                                         <div class="row mt-2">
                                             <div class="col-md-6">
-                                                <label for="edit_superintendent" class="form-label">院長</label>
-                                                <input type="text" class="form-control" id="edit_superintendent">
+                                                <label for="edit_owner_birth_date" class="form-label">出生日期</label>
+                                                <input type="text" class="form-control" id="edit_owner_birth_date">
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="edit_attending_physician" class="form-label">主治醫師</label>
-                                                <input type="text" class="form-control" id="edit_attending_physician">
+                                                <label for="edit_owner_gender" class="form-label">性別</label>
+                                                <select class="form-control" id="edit_owner_gender">
+                                                    <option value="">請選擇</option>
+                                                    <option value="男">男 Male</option>
+                                                    <option value="女">女 Female</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_phone" class="form-label">電話</label>
+                                                <input type="text" class="form-control" id="edit_phone">
+                                            </div>
+                                            <div class="col-md-6">
+                                                <label for="edit_email" class="form-label">E-mail</label>
+                                                <input type="email" class="form-control" id="edit_email">
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <label for="edit_registered_address" class="form-label">戶籍地址</label>
+                                                <textarea class="form-control" id="edit_registered_address" rows="2"></textarea>
                                             </div>
                                         </div>
                                     </div>
                                 </div>
 
-                                <!-- Additional Info -->
+                                <!-- Preventive Care -->
                                 <div class="card mb-3">
                                     <div class="card-header">
-                                        <h6 class="mb-0">其他資訊</h6>
+                                        <h6 class="mb-0">預防醫療資料 Preventive Care</h6>
                                     </div>
                                     <div class="card-body">
                                         <div class="row">
                                             <div class="col-md-6">
-                                                <label for="edit_stamp_or_seal" class="form-label">印章/印鑑</label>
-                                                <input type="text" class="form-control" id="edit_stamp_or_seal">
+                                                <label for="edit_monthly_preventive" class="form-label">每月定期施打預防針</label>
+                                                <select class="form-control" id="edit_monthly_preventive">
+                                                    <option value="">請選擇</option>
+                                                    <option value="是">是 Yes</option>
+                                                    <option value="否">否 No</option>
+                                                </select>
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="edit_other_notes" class="form-label">其他備註</label>
-                                                <textarea class="form-control" id="edit_other_notes" rows="2"></textarea>
+                                                <label for="edit_vaccine_rabies" class="form-label">狂犬疫苗</label>
+                                                <select class="form-control" id="edit_vaccine_rabies">
+                                                    <option value="">請選擇</option>
+                                                    <option value="已施打">已施打 Vaccinated</option>
+                                                    <option value="未施打">未施打 Not Vaccinated</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-md-6">
+                                                <label for="edit_vaccine_combo" class="form-label">綜合疫苗</label>
+                                                <input type="text" class="form-control" id="edit_vaccine_combo" placeholder="三合一/四合一/五合一/其他">
+                                            </div>
+                                            <div class="col-12 mt-2">
+                                                <label for="edit_major_illness_surgery" class="form-label">重大病史及手術</label>
+                                                <textarea class="form-control" id="edit_major_illness_surgery" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <!-- Visit Information -->
+                                <div class="card mb-3">
+                                    <div class="card-header">
+                                        <h6 class="mb-0">就診資訊 Visit Information</h6>
+                                    </div>
+                                    <div class="card-body">
+                                        <div class="row">
+                                            <div class="col-12">
+                                                <label for="edit_visit_purpose" class="form-label">初診目的</label>
+                                                <textarea class="form-control" id="edit_visit_purpose" rows="3"></textarea>
+                                            </div>
+                                        </div>
+                                        <div class="row mt-2">
+                                            <div class="col-12">
+                                                <label for="edit_remarks" class="form-label">備註</label>
+                                                <textarea class="form-control" id="edit_remarks" rows="2"></textarea>
                                             </div>
                                         </div>
                                     </div>
@@ -882,22 +972,22 @@
                 `;
             }
 
-            // 顯示證明書資訊
-            if (data.certificate_info && (data.certificate_info.certificate_no || data.certificate_info.certificate_date)) {
+            // 顯示基本資料
+            if (data.basic_info && (data.basic_info.chart_number || data.basic_info.first_visit_date)) {
                 contentHtml += `
                     <div class="card mb-3">
                         <div class="card-header bg-warning text-dark">
-                            <h6 class="mb-0"><i class="fas fa-certificate"></i> 證明書資訊</h6>
+                            <h6 class="mb-0"><i class="fas fa-info-circle"></i> 基本資料 Basic Information</h6>
                         </div>
                         <div class="card-body">
                             <div class="row">
                 `;
                 
-                if (data.certificate_info.certificate_no) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>證明書字號:</strong> ${data.certificate_info.certificate_no}</div>`;
+                if (data.basic_info.chart_number) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>病歷號碼:</strong> ${data.basic_info.chart_number}</div>`;
                 }
-                if (data.certificate_info.certificate_date) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>開立日期:</strong> ${data.certificate_info.certificate_date}</div>`;
+                if (data.basic_info.first_visit_date) {
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>初診日期:</strong> ${data.basic_info.first_visit_date}</div>`;
                 }
                 
                 contentHtml += `
@@ -1133,47 +1223,58 @@
         }
 
         function populateEditForm(data) {
-            // Certificate info
-            if (data.certificate_info) {
-                setEditValue('edit_certificate_no', data.certificate_info.certificate_no);
-                setEditValue('edit_certificate_date', data.certificate_info.certificate_date);
+            // Basic info
+            if (data.basic_info) {
+                setEditValue('edit_chart_number', data.basic_info.chart_number);
+                setEditValue('edit_first_visit_date', data.basic_info.first_visit_date);
             }
             
-            // Patient info
-            if (data.patient_info) {
-                setEditValue('edit_patient_name', data.patient_info.name);
-                setEditValue('edit_patient_sex', data.patient_info.sex);
-                setEditValue('edit_date_of_birth', data.patient_info.date_of_birth);
-                setEditValue('edit_nationality', data.patient_info.nationality);
-                setEditValue('edit_passport_no_or_id', data.patient_info.passport_no_or_id);
-                setEditValue('edit_medical_history_no', data.patient_info.medical_history_no);
-                setEditValue('edit_patient_address', data.patient_info.address);
+            // Pet info
+            if (data.pet_info) {
+                setEditValue('edit_pet_name', data.pet_info.pet_name);
+                setEditValue('edit_species', data.pet_info.species);
+                setEditValue('edit_breed', data.pet_info.breed);
+                setEditValue('edit_pet_gender', data.pet_info.pet_gender);
+                setEditValue('edit_desexed', data.pet_info.desexed);
+                setEditValue('edit_color', data.pet_info.color);
+                setEditValue('edit_age_years', data.pet_info.age_years);
+                setEditValue('edit_age_months', data.pet_info.age_months);
             }
             
-            // Examination info
-            if (data.examination_info) {
-                setEditValue('edit_date_of_examination', data.examination_info.date_of_examination);
-                setEditValue('edit_department', data.examination_info.department);
+            // Medical history
+            if (data.medical_history) {
+                setEditValue('edit_past_medical_history', data.medical_history.past_medical_history);
+                setEditValue('edit_drug_allergy', data.medical_history.drug_allergy);
+                setEditValue('edit_allergen_name', data.medical_history.allergen_name);
+                setEditValue('edit_skin_disease', data.medical_history.skin_disease);
+                setEditValue('edit_heartworm_infection', data.medical_history.heartworm_infection);
+                setEditValue('edit_heart_condition', data.medical_history.heart_condition);
+                setEditValue('edit_other_diseases', data.medical_history.other_diseases);
             }
             
-            // Medical content
-            if (data.medical_content) {
-                setEditValue('edit_diagnosis', data.medical_content.diagnosis);
-                setEditValue('edit_doctors_comment', data.medical_content.doctors_comment);
+            // Owner info
+            if (data.owner_info) {
+                setEditValue('edit_owner_id', data.owner_info.owner_id);
+                setEditValue('edit_owner_name', data.owner_info.owner_name);
+                setEditValue('edit_owner_birth_date', data.owner_info.owner_birth_date);
+                setEditValue('edit_owner_gender', data.owner_info.owner_gender);
+                setEditValue('edit_phone', data.owner_info.phone);
+                setEditValue('edit_email', data.owner_info.email);
+                setEditValue('edit_registered_address', data.owner_info.registered_address);
             }
             
-            // Hospital info
-            if (data.hospital_info) {
-                setEditValue('edit_hospital_name_chinese', data.hospital_info.hospital_name_chinese);
-                setEditValue('edit_hospital_name_english', data.hospital_info.hospital_name_english);
-                setEditValue('edit_superintendent', data.hospital_info.superintendent);
-                setEditValue('edit_attending_physician', data.hospital_info.attending_physician);
+            // Preventive care
+            if (data.preventive_care) {
+                setEditValue('edit_monthly_preventive', data.preventive_care.monthly_preventive);
+                setEditValue('edit_vaccine_rabies', data.preventive_care.vaccine_rabies);
+                setEditValue('edit_vaccine_combo', data.preventive_care.vaccine_combo);
+                setEditValue('edit_major_illness_surgery', data.preventive_care.major_illness_surgery);
             }
             
-            // Additional info
-            if (data.additional_info) {
-                setEditValue('edit_stamp_or_seal', data.additional_info.stamp_or_seal);
-                setEditValue('edit_other_notes', data.additional_info.other_notes);
+            // Visit info
+            if (data.visit_info) {
+                setEditValue('edit_visit_purpose', data.visit_info.visit_purpose);
+                setEditValue('edit_remarks', data.visit_info.remarks);
             }
         }
 
@@ -1186,36 +1287,47 @@
 
         function collectEditFormData() {
             return {
-                certificate_info: {
-                    certificate_no: document.getElementById('edit_certificate_no').value,
-                    certificate_date: document.getElementById('edit_certificate_date').value
+                basic_info: {
+                    chart_number: document.getElementById('edit_chart_number').value,
+                    first_visit_date: document.getElementById('edit_first_visit_date').value
                 },
-                patient_info: {
-                    name: document.getElementById('edit_patient_name').value,
-                    sex: document.getElementById('edit_patient_sex').value,
-                    date_of_birth: document.getElementById('edit_date_of_birth').value,
-                    nationality: document.getElementById('edit_nationality').value,
-                    passport_no_or_id: document.getElementById('edit_passport_no_or_id').value,
-                    medical_history_no: document.getElementById('edit_medical_history_no').value,
-                    address: document.getElementById('edit_patient_address').value
+                pet_info: {
+                    pet_name: document.getElementById('edit_pet_name').value,
+                    species: document.getElementById('edit_species').value,
+                    breed: document.getElementById('edit_breed').value,
+                    pet_gender: document.getElementById('edit_pet_gender').value,
+                    desexed: document.getElementById('edit_desexed').value,
+                    color: document.getElementById('edit_color').value,
+                    age_years: document.getElementById('edit_age_years').value,
+                    age_months: document.getElementById('edit_age_months').value
                 },
-                examination_info: {
-                    date_of_examination: document.getElementById('edit_date_of_examination').value,
-                    department: document.getElementById('edit_department').value
+                medical_history: {
+                    past_medical_history: document.getElementById('edit_past_medical_history').value,
+                    drug_allergy: document.getElementById('edit_drug_allergy').value,
+                    allergen_name: document.getElementById('edit_allergen_name').value,
+                    skin_disease: document.getElementById('edit_skin_disease').value,
+                    heartworm_infection: document.getElementById('edit_heartworm_infection').value,
+                    heart_condition: document.getElementById('edit_heart_condition').value,
+                    other_diseases: document.getElementById('edit_other_diseases').value
                 },
-                medical_content: {
-                    diagnosis: document.getElementById('edit_diagnosis').value,
-                    doctors_comment: document.getElementById('edit_doctors_comment').value
+                owner_info: {
+                    owner_id: document.getElementById('edit_owner_id').value,
+                    owner_name: document.getElementById('edit_owner_name').value,
+                    owner_birth_date: document.getElementById('edit_owner_birth_date').value,
+                    owner_gender: document.getElementById('edit_owner_gender').value,
+                    phone: document.getElementById('edit_phone').value,
+                    email: document.getElementById('edit_email').value,
+                    registered_address: document.getElementById('edit_registered_address').value
                 },
-                hospital_info: {
-                    hospital_name_chinese: document.getElementById('edit_hospital_name_chinese').value,
-                    hospital_name_english: document.getElementById('edit_hospital_name_english').value,
-                    superintendent: document.getElementById('edit_superintendent').value,
-                    attending_physician: document.getElementById('edit_attending_physician').value
+                preventive_care: {
+                    monthly_preventive: document.getElementById('edit_monthly_preventive').value,
+                    vaccine_rabies: document.getElementById('edit_vaccine_rabies').value,
+                    vaccine_combo: document.getElementById('edit_vaccine_combo').value,
+                    major_illness_surgery: document.getElementById('edit_major_illness_surgery').value
                 },
-                additional_info: {
-                    stamp_or_seal: document.getElementById('edit_stamp_or_seal').value,
-                    other_notes: document.getElementById('edit_other_notes').value
+                visit_info: {
+                    visit_purpose: document.getElementById('edit_visit_purpose').value,
+                    remarks: document.getElementById('edit_remarks').value
                 }
             };
         }
