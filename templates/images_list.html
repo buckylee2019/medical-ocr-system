@@ -898,6 +898,57 @@
                 });
         }
 
+        // 文字標準化函數
+        function normalizeText(text) {
+            if (!text) return text;
+            
+            const normalizations = {
+                // 英文轉中文
+                'yes': '是',
+                'no': '否',
+                'none': '無',
+                'cat': '貓',
+                'dog': '狗',
+                'male': '公',
+                'female': '母',
+                'spayed': '已絕育',
+                'neutered': '已絕育',
+                'intact': '未絕育',
+                'vaccinated': '已施打',
+                'not vaccinated': '未施打',
+                
+                // 大小寫變體
+                'Yes': '是',
+                'No': '否',
+                'None': '無',
+                'Cat': '貓',
+                'Dog': '狗',
+                'Male': '公',
+                'Female': '母',
+                'Spayed': '已絕育',
+                'Neutered': '已絕育',
+                'Intact': '未絕育',
+                'Vaccinated': '已施打',
+                'Not Vaccinated': '未施打',
+                
+                // 全大寫變體
+                'YES': '是',
+                'NO': '否',
+                'NONE': '無',
+                'CAT': '貓',
+                'DOG': '狗',
+                'MALE': '公',
+                'FEMALE': '母'
+            };
+            
+            let normalizedText = text;
+            for (const [english, chinese] of Object.entries(normalizations)) {
+                normalizedText = normalizedText.replace(new RegExp(english, 'gi'), chinese);
+            }
+            
+            return normalizedText;
+        }
+
         function displayMedicalDocumentContent(ocrResult) {
             const contentDiv = document.getElementById('medicalDocumentContent');
             const data = ocrResult.data;
@@ -952,19 +1003,19 @@
                 `;
                 
                 if (data.pet_info.pet_name) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>寵物名:</strong> ${data.pet_info.pet_name}</div>`;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>寵物名:</strong> ${normalizeText(data.pet_info.pet_name)}</div>`;
                 }
                 if (data.pet_info.species) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>物種:</strong> ${data.pet_info.species}</div>`;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>物種:</strong> ${normalizeText(data.pet_info.species)}</div>`;
                 }
                 if (data.pet_info.breed) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>品種:</strong> ${data.pet_info.breed}</div>`;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>品種:</strong> ${normalizeText(data.pet_info.breed)}</div>`;
                 }
                 if (data.pet_info.pet_gender) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>性別:</strong> ${data.pet_info.pet_gender}</div>`;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>性別:</strong> ${normalizeText(data.pet_info.pet_gender)}</div>`;
                 }
                 if (data.pet_info.desexed) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>絕育:</strong> ${data.pet_info.desexed}</div>`;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>絕育:</strong> ${normalizeText(data.pet_info.desexed)}</div>`;
                 }
                 if (data.pet_info.color) {
                     contentHtml += `<div class="col-md-6 mb-2"><strong>毛色:</strong> ${data.pet_info.color}</div>`;
@@ -1000,28 +1051,43 @@
                 `;
                 
                 if (data.medical_history.past_medical_history) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>過去病史:</strong> ${data.medical_history.past_medical_history}</div>`;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>過去病史:</strong> ${normalizeText(data.medical_history.past_medical_history)}</div>`;
                 }
                 if (data.medical_history.drug_allergy) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>藥物過敏:</strong> ${data.medical_history.drug_allergy}</div>`;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>藥物過敏:</strong> ${normalizeText(data.medical_history.drug_allergy)}</div>`;
                 }
                 if (data.medical_history.allergen_name) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>過敏藥物名稱:</strong> ${data.medical_history.allergen_name}</div>`;
+                    contentHtml += `<div class="col-md-6 mb-2"><strong>過敏藥物名稱:</strong> ${normalizeText(data.medical_history.allergen_name)}</div>`;
                 }
                 if (data.medical_history.skin_disease) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>皮膚疾病:</strong> ${data.medical_history.skin_disease}</div>`;
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>皮膚疾病:</strong> ${normalizeText(data.medical_history.skin_disease)}</div>`;
                 }
                 if (data.medical_history.heartworm_infection) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>心絲蟲感染:</strong> ${data.medical_history.heartworm_infection}</div>`;
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>心絲蟲感染:</strong> ${normalizeText(data.medical_history.heartworm_infection)}</div>`;
                 }
                 if (data.medical_history.parasitic_infection) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>寄生蟲感染:</strong> ${data.medical_history.parasitic_infection}</div>`;
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>寄生蟲感染:</strong> ${normalizeText(data.medical_history.parasitic_infection)}</div>`;
                 }
                 if (data.medical_history.heart_condition) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>心臟疾病:</strong> ${data.medical_history.heart_condition}</div>`;
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>心臟疾病:</strong> ${normalizeText(data.medical_history.heart_condition)}</div>`;
+                }
+                if (data.medical_history.liver_disease) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>肝臟疾病:</strong> ${normalizeText(data.medical_history.liver_disease)}</div>`;
+                }
+                if (data.medical_history.respiratory_disease) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>呼吸道疾病:</strong> ${normalizeText(data.medical_history.respiratory_disease)}</div>`;
+                }
+                if (data.medical_history.urinary_stones) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>膀胱及泌尿道結石:</strong> ${normalizeText(data.medical_history.urinary_stones)}</div>`;
+                }
+                if (data.medical_history.kidney_disease) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>腎臟疾病:</strong> ${normalizeText(data.medical_history.kidney_disease)}</div>`;
+                }
+                if (data.medical_history.gastrointestinal_disease) {
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>腸胃道疾病:</strong> ${normalizeText(data.medical_history.gastrointestinal_disease)}</div>`;
                 }
                 if (data.medical_history.other_diseases) {
-                    contentHtml += `<div class="col-md-12 mb-2"><strong>其他疾病:</strong> ${data.medical_history.other_diseases}</div>`;
+                    contentHtml += `<div class="col-md-12 mb-2"><strong>其他疾病:</strong> ${normalizeText(data.medical_history.other_diseases)}</div>`;
                 }
                 
                 contentHtml += `

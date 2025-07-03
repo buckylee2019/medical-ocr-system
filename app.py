@@ -197,6 +197,68 @@ VET_FORM_FIELDS = {
 }
 
 def normalize_vet_form_data(data):
+    """標準化動物醫院表格資料，將英文轉換為繁體中文"""
+    
+    def normalize_text(text):
+        if not text or not isinstance(text, str):
+            return text
+            
+        normalizations = {
+            # 英文轉中文
+            'yes': '是',
+            'no': '否',
+            'none': '無',
+            'cat': '貓',
+            'dog': '狗',
+            'male': '公',
+            'female': '母',
+            'spayed': '已絕育',
+            'neutered': '已絕育',
+            'intact': '未絕育',
+            'vaccinated': '已施打',
+            'not vaccinated': '未施打',
+            
+            # 大小寫變體
+            'Yes': '是',
+            'No': '否',
+            'None': '無',
+            'Cat': '貓',
+            'Dog': '狗',
+            'Male': '公',
+            'Female': '母',
+            'Spayed': '已絕育',
+            'Neutered': '已絕育',
+            'Intact': '未絕育',
+            'Vaccinated': '已施打',
+            'Not Vaccinated': '未施打',
+            
+            # 全大寫變體
+            'YES': '是',
+            'NO': '否',
+            'NONE': '無',
+            'CAT': '貓',
+            'DOG': '狗',
+            'MALE': '公',
+            'FEMALE': '母'
+        }
+        
+        normalized_text = text
+        for english, chinese in normalizations.items():
+            normalized_text = re.sub(r'\b' + re.escape(english) + r'\b', chinese, normalized_text, flags=re.IGNORECASE)
+        
+        return normalized_text
+    
+    def normalize_dict(d):
+        if isinstance(d, dict):
+            return {k: normalize_dict(v) for k, v in d.items()}
+        elif isinstance(d, list):
+            return [normalize_dict(item) for item in d]
+        elif isinstance(d, str):
+            return normalize_text(d)
+        else:
+            return d
+    
+    return normalize_dict(data)
     """
     正規化動物醫院初診表數據，包含日期格式化和字段驗證
     """
