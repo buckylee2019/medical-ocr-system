@@ -151,7 +151,6 @@ VET_FORM_FIELDS = {
     'age_years': '年齡-年',
     'age_months': '年齡-月',
     'age_days': '年齡-日',
-    'age_full': '完整年齡(年月日)',
     
     # 病史資料 Medical History
     'past_medical_history': '過去病史',
@@ -471,8 +470,7 @@ def process_with_claude_latest(image_data, for_human_review=False):
                     "color": "",
                     "age_years": "",
                     "age_months": "",
-                    "age_days": "",
-                    "age_full": ""
+                    "age_days": ""
                 },
                 "medical_history": {
                     "past_medical_history": "",
@@ -627,8 +625,7 @@ def get_medical_extraction_prompt():
             "color": "",
             "age_years": "",
             "age_months": "",
-            "age_days": "",
-            "age_full": ""
+            "age_days": ""
         },
         "medical_history": {
             "past_medical_history": "",
@@ -686,7 +683,6 @@ def get_medical_extraction_prompt():
     - age_years: 年齡-年
     - age_months: 年齡-月
     - age_days: 年齡-日
-    - age_full: 完整年齡（如：2年3個月15日）
 
     病史資料 Medical History:
     - past_medical_history: 過去病史（無/有）

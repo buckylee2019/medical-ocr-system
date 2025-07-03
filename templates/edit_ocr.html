@@ -268,11 +268,6 @@
                                     <label for="age_days" class="form-label">年齡-日 Age (Days)</label>
                                     <input type="text" class="form-control" id="age_days" name="age_days" placeholder="請輸入年齡（日）">
                                 </div>
-                                
-                                <div class="col-md-12 mb-3">
-                                    <label for="age_full" class="form-label">完整年齡 Full Age</label>
-                                    <input type="text" class="form-control" id="age_full" name="age_full" placeholder="例如：2年3個月15日">
-                                </div>
                             </div>
                         </div>
 
@@ -599,7 +594,6 @@
                 setValue('age_years', data.pet_info.age_years);
                 setValue('age_months', data.pet_info.age_months);
                 setValue('age_days', data.pet_info.age_days);
-                setValue('age_full', data.pet_info.age_full);
             }
             
             // Medical history
@@ -797,8 +791,7 @@
                     color: document.getElementById('color').value,
                     age_years: document.getElementById('age_years').value,
                     age_months: document.getElementById('age_months').value,
-                    age_days: document.getElementById('age_days').value,
-                    age_full: document.getElementById('age_full').value
+                    age_days: document.getElementById('age_days').value
                 },
                 medical_history: {
                     past_medical_history: document.getElementById('past_medical_history').value,

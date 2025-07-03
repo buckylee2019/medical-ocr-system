@@ -744,7 +744,6 @@
                 'age_years': '年齡-年',
                 'age_months': '年齡-月',
                 'age_days': '年齡-日',
-                'age_full': '完整年齡',
                 
                 // 病史資料
                 'past_medical_history': '過去病史',
@@ -966,15 +965,11 @@
             if (data.pet_info) {
                 // 處理年齡顯示
                 let ageDisplay = '';
-                if (data.pet_info.age_full) {
-                    ageDisplay = data.pet_info.age_full;
-                } else {
-                    let ageParts = [];
-                    if (data.pet_info.age_years) ageParts.push(`${data.pet_info.age_years}年`);
-                    if (data.pet_info.age_months) ageParts.push(`${data.pet_info.age_months}月`);
-                    if (data.pet_info.age_days) ageParts.push(`${data.pet_info.age_days}日`);
-                    ageDisplay = ageParts.join('') || '<span class="text-muted fst-italic">N/A</span>';
-                }
+                let ageParts = [];
+                if (data.pet_info.age_years) ageParts.push(`${data.pet_info.age_years}年`);
+                if (data.pet_info.age_months) ageParts.push(`${data.pet_info.age_months}月`);
+                if (data.pet_info.age_days) ageParts.push(`${data.pet_info.age_days}日`);
+                ageDisplay = ageParts.join('') || '<span class="text-muted fst-italic">N/A</span>';
                 
                 htmlContent += `
                     <div class="mb-4">
