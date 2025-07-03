@@ -209,7 +209,7 @@
         <div class="row">
             <div class="col-12">
                 <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2><i class="fas fa-images"></i> 醫療 OCR 圖片管理</h2>
+                    <h2><i class="fas fa-images"></i> 圖片管理</h2>
                     <div>
                         <a href="/" class="btn btn-primary">
                             <i class="fas fa-plus"></i> 新增處理
@@ -685,8 +685,7 @@
                     <tr><td><strong>狀態</strong></td><td><span class="badge status-${image.processing_status}">${getStatusText(image.processing_status)}</span></td></tr>
                     <tr><td><strong>上傳時間</strong></td><td>${formatDate(image.created_at)}</td></tr>
                     <tr><td><strong>更新時間</strong></td><td>${formatDate(image.updated_at)}</td></tr>
-                    ${image.session_id ? `<tr><td><strong>會話ID</strong></td><td><code>${image.session_id}</code></td></tr>` : ''}
-                    ${image.ocr_result_id ? `<tr><td><strong>OCR結果ID</strong></td><td><code>${image.ocr_result_id}</code></td></tr>` : ''}
+                    ${image.ocr_result_id ? `<tr><td><strong>Record ID</strong></td><td><code>${image.ocr_result_id}</code></td></tr>` : ''}
                 </table>
                 ${image.processing_status === 'pending_review' ? 
                     '<div class="alert alert-info"><i class="fas fa-info-circle"></i> 此圖片正在等待人工審核，點擊"進入審核"按鈕開始審核流程。</div>' : 

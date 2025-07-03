@@ -390,7 +390,7 @@
                                         <div class="card-body">
                                             <p><strong>處理模式:</strong> <span id="processingMode"></span></p>
                                             <p><strong>信心度:</strong> <span id="confidenceScore"></span></p>
-                                            <p><strong>DynamoDB 記錄 ID:</strong> <span id="recordId"></span></p>
+                                            <p><strong>Record ID:</strong> <span id="recordId"></span></p>
                                         </div>
                                     </div>
                                 </div>
@@ -744,8 +744,7 @@
                 dbStatus.className = 'dynamodb-status success';
                 dbStatus.innerHTML = `
                     <i class="fas fa-check-circle"></i>
-                    <strong>人工審核完成，成功存入 DynamoDB</strong><br>
-                    記錄 ID: ${data.dynamodb_result.record_id}<br>
+                    <strong>人工審核完成，已成功儲存</strong><br>
                     時間: ${data.dynamodb_result.timestamp}
                 `;
             } else {

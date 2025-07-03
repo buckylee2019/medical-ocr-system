@@ -18,6 +18,122 @@ import concurrent.futures
 from decimal import Decimal
 
 app = Flask(__name__)
+
+# 日期格式正規化函數
+def normalize_date_format(date_string):
+    """
+    將各種日期格式統一轉換為 yyyy/mm/dd 格式
+    支持的輸入格式包括：
+    - yyyy-mm-dd, yyyy/mm/dd, yyyy.mm.dd
+    - dd-mm-yyyy, dd/mm/yyyy, dd.mm.yyyy
+    - mm-dd-yyyy, mm/dd/yyyy, mm.dd.yyyy
+    - yyyy年mm月dd日, yyyy年mm月dd號
+    - 民國年格式等
+    """
+    if not date_string or not isinstance(date_string, str):
+        return date_string
+    
+    # 移除多餘的空白字符
+    date_string = date_string.strip()
+    
+    if not date_string:
+        return date_string
+    
+    try:
+        # 處理中文日期格式 (yyyy年mm月dd日, yyyy年mm月dd號)
+        chinese_date_pattern = r'(\d{4})年(\d{1,2})月(\d{1,2})[日號]?'
+        chinese_match = re.search(chinese_date_pattern, date_string)
+        if chinese_match:
+            year, month, day = chinese_match.groups()
+            return f"{year}/{month.zfill(2)}/{day.zfill(2)}"
+        
+        # 處理民國年格式 (民國xxx年mm月dd日)
+        roc_date_pattern = r'民國(\d{1,3})年(\d{1,2})月(\d{1,2})[日號]?'
+        roc_match = re.search(roc_date_pattern, date_string)
+        if roc_match:
+            roc_year, month, day = roc_match.groups()
+            year = int(roc_year) + 1911  # 民國年轉西元年
+            return f"{year}/{month.zfill(2)}/{day.zfill(2)}"
+        
+        # 處理各種分隔符的日期格式
+        # 匹配 yyyy-mm-dd, yyyy/mm/dd, yyyy.mm.dd 格式
+        iso_pattern = r'(\d{4})[-/.](\d{1,2})[-/.](\d{1,2})'
+        iso_match = re.search(iso_pattern, date_string)
+        if iso_match:
+            year, month, day = iso_match.groups()
+            # 驗證是否為合理的日期
+            try:
+                datetime(int(year), int(month), int(day))
+                return f"{year}/{month.zfill(2)}/{day.zfill(2)}"
+            except ValueError:
+                pass
+        
+        # 處理 dd-mm-yyyy, dd/mm/yyyy, dd.mm.yyyy 格式
+        dmy_pattern = r'(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})'
+        dmy_match = re.search(dmy_pattern, date_string)
+        if dmy_match:
+            day, month, year = dmy_match.groups()
+            # 驗證是否為合理的日期
+            try:
+                datetime(int(year), int(month), int(day))
+                return f"{year}/{month.zfill(2)}/{day.zfill(2)}"
+            except ValueError:
+                pass
+        
+        # 處理 mm-dd-yyyy, mm/dd/yyyy, mm.dd.yyyy 格式 (美式日期)
+        mdy_pattern = r'(\d{1,2})[-/.](\d{1,2})[-/.](\d{4})'
+        mdy_match = re.search(mdy_pattern, date_string)
+        if mdy_match:
+            month, day, year = mdy_match.groups()
+            # 驗證是否為合理的日期
+            try:
+                datetime(int(year), int(month), int(day))
+                # 如果月份大於12，可能是dd/mm/yyyy格式
+                if int(month) > 12:
+                    return f"{year}/{day.zfill(2)}/{month.zfill(2)}"
+                else:
+                    return f"{year}/{month.zfill(2)}/{day.zfill(2)}"
+            except ValueError:
+                pass
+        
+        # 處理純數字格式 (yyyymmdd)
+        numeric_pattern = r'^(\d{4})(\d{2})(\d{2})$'
+        numeric_match = re.match(numeric_pattern, date_string)
+        if numeric_match:
+            year, month, day = numeric_match.groups()
+            try:
+                datetime(int(year), int(month), int(day))
+                return f"{year}/{month}/{day}"
+            except ValueError:
+                pass
+        
+        # 如果都無法匹配，返回原始字符串
+        return date_string
+        
+    except Exception as e:
+        print(f"日期格式化錯誤: {str(e)}")
+        return date_string
+
+def normalize_dates_in_data(data):
+    """
+    遞歸地正規化數據結構中的所有日期字段
+    """
+    if isinstance(data, dict):
+        normalized_data = {}
+        for key, value in data.items():
+            # 檢查是否為日期相關字段
+            if any(date_keyword in key.lower() for date_keyword in ['date', '日期', 'time', '時間']):
+                if isinstance(value, str):
+                    normalized_data[key] = normalize_date_format(value)
+                else:
+                    normalized_data[key] = value
+            else:
+                normalized_data[key] = normalize_dates_in_data(value)
+        return normalized_data
+    elif isinstance(data, list):
+        return [normalize_dates_in_data(item) for item in data]
+    else:
+        return data
 app.config['MAX_CONTENT_LENGTH'] = 16 * 1024 * 1024  # 16MB max file size
 
 # Load environment variables
@@ -208,8 +324,12 @@ def save_to_dynamodb(data, processing_mode, confidence_score=None, human_reviewe
         if confidence_score is not None:
             confidence_score = Decimal(str(confidence_score))
         
+        # 正規化日期格式
+        normalized_data = normalize_dates_in_data(data)
+        print(f"📅 日期正規化完成: {json.dumps(normalized_data, indent=2, ensure_ascii=False)}")
+        
         # Convert all float values in data to Decimal
-        converted_data = convert_floats_to_decimal(data)
+        converted_data = convert_floats_to_decimal(normalized_data)
         
         # Prepare DynamoDB item
         item = {
@@ -1414,8 +1534,12 @@ def api_update_ocr_result(image_id):
         
         ocr_item = ocr_response['Item']
         
-        # 更新OCR結果資料
-        updated_data = data
+        # 正規化日期格式
+        normalized_data = normalize_dates_in_data(data)
+        print(f"📅 更新OCR結果時日期正規化完成: {json.dumps(normalized_data, indent=2, ensure_ascii=False)}")
+        
+        # 轉換浮點數為Decimal
+        updated_data = convert_floats_to_decimal(normalized_data)
         
         # 更新OCR結果記錄
         update_expression = "SET #data = :data, updated_at = :updated_at, human_reviewed = :human_reviewed"
