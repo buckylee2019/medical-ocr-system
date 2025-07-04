@@ -376,15 +376,6 @@
                                 </div>
                                 
                                 <div class="col-md-6 mb-3">
-                                    <label for="owner_gender" class="form-label">性別 Gender</label>
-                                    <select class="form-select" id="owner_gender" name="owner_gender">
-                                        <option value="">請選擇性別</option>
-                                        <option value="男">男 Male</option>
-                                        <option value="女">女 Female</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
                                     <label for="phone" class="form-label">電話 Phone</label>
                                     <input type="text" class="form-control" id="phone" name="phone" placeholder="請輸入電話號碼">
                                 </div>
@@ -643,7 +634,6 @@
                 setValue('owner_id', data.owner_info.owner_id);
                 setValue('owner_name', data.owner_info.owner_name);
                 setValue('owner_birth_date', data.owner_info.owner_birth_date);
-                setValue('owner_gender', data.owner_info.owner_gender);
                 setValue('phone', data.owner_info.phone);
                 setValue('line_id', data.owner_info.line_id);
                 setValue('email', data.owner_info.email);
@@ -842,7 +832,6 @@
                     owner_id: document.getElementById('owner_id').value,
                     owner_name: document.getElementById('owner_name').value,
                     owner_birth_date: document.getElementById('owner_birth_date').value,
-                    owner_gender: document.getElementById('owner_gender').value,
                     phone: document.getElementById('phone').value,
                     line_id: document.getElementById('line_id').value,
                     email: document.getElementById('email').value,

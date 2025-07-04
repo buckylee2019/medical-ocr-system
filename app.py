@@ -171,7 +171,6 @@ VET_FORM_FIELDS = {
     'owner_id': '身份證/護照號碼',
     'owner_name': '飼主姓名',
     'owner_birth_date': '出生日期',
-    'owner_gender': '性別',
     'phone': '電話',
     'line_id': 'Line ID',
     'email': 'E-mail',
@@ -558,7 +557,6 @@ def process_with_claude_latest(image_data, for_human_review=False):
                     "owner_id": "",
                     "owner_name": "",
                     "owner_birth_date": "",
-                    "owner_gender": "",
                     "phone": "",
                     "line_id": "",
                     "email": "",
@@ -718,7 +716,6 @@ def get_medical_extraction_prompt():
             "owner_id": "",
             "owner_name": "",
             "owner_birth_date": "",
-            "owner_gender": "",
             "phone": "",
             "line_id": "",
             "email": "",
@@ -780,7 +777,6 @@ def get_medical_extraction_prompt():
     - owner_id: 身份證/護照號碼
     - owner_name: 飼主姓名
     - owner_birth_date: 出生日期
-    - owner_gender: 性別（男/女）
     - phone: 電話
     - line_id: Line ID
     - email: E-mail

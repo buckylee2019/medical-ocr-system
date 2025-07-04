@@ -583,19 +583,11 @@
                                                 <input type="text" class="form-control" id="edit_owner_birth_date">
                                             </div>
                                             <div class="col-md-6">
-                                                <label for="edit_owner_gender" class="form-label">性別</label>
-                                                <select class="form-control" id="edit_owner_gender">
-                                                    <option value="">請選擇</option>
-                                                    <option value="男">男 Male</option>
-                                                    <option value="女">女 Female</option>
-                                                </select>
-                                            </div>
-                                        </div>
-                                        <div class="row mt-2">
-                                            <div class="col-md-6">
                                                 <label for="edit_phone" class="form-label">電話</label>
                                                 <input type="text" class="form-control" id="edit_phone">
                                             </div>
+                                        </div>
+                                        <div class="row mt-2">
                                             <div class="col-md-6">
                                                 <label for="edit_email" class="form-label">E-mail</label>
                                                 <input type="email" class="form-control" id="edit_email">
@@ -903,9 +895,8 @@
             if (!text) return text;
             
             const normalizations = {
-                // 英文轉中文
                 'yes': '是',
-                'no': '否',
+                'no': '否', 
                 'none': '無',
                 'cat': '貓',
                 'dog': '狗',
@@ -915,39 +906,15 @@
                 'neutered': '已絕育',
                 'intact': '未絕育',
                 'vaccinated': '已施打',
-                'not vaccinated': '未施打',
-                
-                // 大小寫變體
-                'Yes': '是',
-                'No': '否',
-                'None': '無',
-                'Cat': '貓',
-                'Dog': '狗',
-                'Male': '公',
-                'Female': '母',
-                'Spayed': '已絕育',
-                'Neutered': '已絕育',
-                'Intact': '未絕育',
-                'Vaccinated': '已施打',
-                'Not Vaccinated': '未施打',
-                
-                // 全大寫變體
-                'YES': '是',
-                'NO': '否',
-                'NONE': '無',
-                'CAT': '貓',
-                'DOG': '狗',
-                'MALE': '公',
-                'FEMALE': '母'
+                'not vaccinated': '未施打'
             };
             
-            let normalizedText = text;
-            for (const [english, chinese] of Object.entries(normalizations)) {
-                normalizedText = normalizedText.replace(new RegExp(english, 'gi'), chinese);
-            }
+            // Create single regex pattern with word boundaries and case-insensitive flag
+            const pattern = new RegExp(`\\b(${Object.keys(normalizations).join('|')})\\b`, 'gi');
             
-            return normalizedText;
+            return text.replace(pattern, match => normalizations[match.toLowerCase()]);
         }
+
 
         function displayMedicalDocumentContent(ocrResult) {
             const contentDiv = document.getElementById('medicalDocumentContent');
@@ -1116,9 +1083,6 @@
                 }
                 if (data.owner_info.owner_birth_date) {
                     contentHtml += `<div class="col-md-6 mb-2"><strong>出生日期:</strong> ${data.owner_info.owner_birth_date}</div>`;
-                }
-                if (data.owner_info.owner_gender) {
-                    contentHtml += `<div class="col-md-6 mb-2"><strong>性別:</strong> ${data.owner_info.owner_gender}</div>`;
                 }
                 if (data.owner_info.phone) {
                     contentHtml += `<div class="col-md-6 mb-2"><strong>電話:</strong> ${data.owner_info.phone}</div>`;
@@ -1470,7 +1434,6 @@
                 setEditValue('edit_owner_id', data.owner_info.owner_id);
                 setEditValue('edit_owner_name', data.owner_info.owner_name);
                 setEditValue('edit_owner_birth_date', data.owner_info.owner_birth_date);
-                setEditValue('edit_owner_gender', data.owner_info.owner_gender);
                 setEditValue('edit_phone', data.owner_info.phone);
                 setEditValue('edit_line_id', data.owner_info.line_id);
                 setEditValue('edit_email', data.owner_info.email);
@@ -1565,7 +1528,6 @@
                     owner_id: document.getElementById('edit_owner_id').value,
                     owner_name: document.getElementById('edit_owner_name').value,
                     owner_birth_date: document.getElementById('edit_owner_birth_date').value,
-                    owner_gender: document.getElementById('edit_owner_gender').value,
                     phone: document.getElementById('edit_phone').value,
                     line_id: document.getElementById('edit_line_id')?.value || '',
                     email: document.getElementById('edit_email').value,
