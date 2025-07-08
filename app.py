@@ -321,7 +321,7 @@ dynamodb = aws_session.resource('dynamodb')
 dynamodb_table = dynamodb.Table(DYNAMODB_TABLE_NAME)
 dynamodb_images_table = dynamodb.Table(DYNAMODB_IMAGES_TABLE_NAME)
 
-ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg', 'pdf', 'tiff'}
+ALLOWED_EXTENSIONS = {'png', 'jpg', 'jpeg'}
 
 def allowed_file(filename):
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS

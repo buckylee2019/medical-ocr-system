@@ -170,10 +170,10 @@
                         <div id="upload-section">
                             <div class="upload-area" id="uploadArea">
                                 <i class="fas fa-cloud-upload-alt fa-3x text-primary mb-3"></i>
-                                <h5>上傳醫療文件</h5>
+                                <h5>上傳動物醫院初診資料表</h5>
                                 <p class="text-muted">系統將使用 4 個 AI 模型實例進行處理並投票</p>
-                                <p class="text-muted">支援格式: PNG, JPG, JPEG, PDF, TIFF | 最大: 16MB</p>
-                                <input type="file" id="fileInput" class="d-none" accept=".png,.jpg,.jpeg,.pdf,.tiff">
+                                <p class="text-muted">支援格式: PNG, JPG, JPEG | 最大: 16MB</p>
+                                <input type="file" id="fileInput" class="d-none" accept=".png,.jpg,.jpeg">
                             </div>
                         </div>
 
@@ -510,8 +510,8 @@
         }
 
         function displayStructuredView(data) {
-            // 根據診斷證明書格式顯示結構化資料
-            console.log('診斷證明書結構化資料:', data);
+            // 根據動物醫院初診資料表格式顯示結構化資料
+            console.log('動物醫院初診資料表結構化資料:', data);
             
             // 可以在這裡添加更詳細的結構化顯示邏輯
             // 目前先在控制台顯示，之後可以擴展到 UI
