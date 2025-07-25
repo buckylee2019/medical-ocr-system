@@ -135,6 +135,24 @@ def normalize_dates_in_data(data):
     else:
         return data
 
+def set_default_values(data):
+    """
+    為缺失的字段設置默認值
+    """
+    if isinstance(data, dict):
+        # 如果 desexed (絕育) 字段不存在或為空，設置默認值為 "否"
+        if 'desexed' not in data or not data.get('desexed') or data.get('desexed').strip() == '':
+            data['desexed'] = '否'
+        
+        # 遞歸處理嵌套字典
+        for key, value in data.items():
+            if isinstance(value, dict):
+                data[key] = set_default_values(value)
+            elif isinstance(value, list):
+                data[key] = [set_default_values(item) if isinstance(item, dict) else item for item in value]
+    
+    return data
+
 # 動物醫院初診表字段映射
 VET_FORM_FIELDS = {
     # 基本資料 Basic Information
@@ -461,8 +479,12 @@ def save_to_dynamodb(data, processing_mode, confidence_score=None, human_reviewe
         if confidence_score is not None:
             confidence_score = Decimal(str(confidence_score))
         
+        # 設置默認值
+        data_with_defaults = set_default_values(data)
+        print(f"🔧 設置默認值完成: {json.dumps(data_with_defaults, indent=2, ensure_ascii=False)}")
+        
         # 正規化動物醫院初診表數據
-        normalized_data = normalize_vet_form_data(data)
+        normalized_data = normalize_vet_form_data(data_with_defaults)
         print(f"🐾 動物醫院初診表數據正規化完成: {json.dumps(normalized_data, indent=2, ensure_ascii=False)}")
         
         # Convert all float values in data to Decimal
@@ -1740,8 +1762,12 @@ def api_update_ocr_result(image_id):
         
         ocr_item = ocr_response['Item']
         
+        # 設置默認值
+        data_with_defaults = set_default_values(data)
+        print(f"🔧 設置默認值完成: {json.dumps(data_with_defaults, indent=2, ensure_ascii=False)}")
+        
         # 正規化日期格式
-        normalized_data = normalize_dates_in_data(data)
+        normalized_data = normalize_dates_in_data(data_with_defaults)
         print(f"📅 更新OCR結果時日期正規化完成: {json.dumps(normalized_data, indent=2, ensure_ascii=False)}")
         
         # 轉換浮點數為Decimal
