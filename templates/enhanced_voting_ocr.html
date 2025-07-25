@@ -741,24 +741,11 @@
                 'pet_gender': '性別',
                 'desexed': '絕育',
                 'color': '毛色',
-                'age_years': '年齡-年',
-                'age_months': '年齡-月',
-                'age_days': '年齡-日',
+                'pet_age': '寵物年齡',
+                'pet_birth_date': '寵物出生日期',
                 
                 // 病史資料
                 'past_medical_history': '過去病史',
-                'drug_allergy': '藥物過敏',
-                'allergen_name': '過敏藥物名稱',
-                'skin_disease': '皮膚疾病',
-                'heartworm_infection': '心絲蟲感染',
-                'parasitic_infection': '寄生蟲感染',
-                'heart_condition': '心臟疾病',
-                'liver_disease': '肝臟疾病',
-                'respiratory_disease': '呼吸道疾病',
-                'urinary_stones': '膀胱及泌尿道結石',
-                'kidney_disease': '腎臟疾病',
-                'gastrointestinal_disease': '腸胃道疾病',
-                'other_diseases': '其他疾病',
                 
                 // 飼主資料
                 'owner_id': '身份證/護照號碼',
@@ -969,11 +956,17 @@
             if (data.pet_info) {
                 // 處理年齡顯示
                 let ageDisplay = '';
-                let ageParts = [];
-                if (data.pet_info.age_years) ageParts.push(`${data.pet_info.age_years}年`);
-                if (data.pet_info.age_months) ageParts.push(`${data.pet_info.age_months}月`);
-                if (data.pet_info.age_days) ageParts.push(`${data.pet_info.age_days}日`);
-                ageDisplay = ageParts.join('') || '<span class="text-muted fst-italic">N/A</span>';
+                if (data.pet_info.pet_age) {
+                    ageDisplay = data.pet_info.pet_age;
+                } else {
+                    // Fallback for old format
+                    let ageParts = [];
+                    if (data.pet_info.age_years) ageParts.push(`${data.pet_info.age_years}年`);
+                    if (data.pet_info.age_months) ageParts.push(`${data.pet_info.age_months}月`);
+                    if (data.pet_info.age_days) ageParts.push(`${data.pet_info.age_days}日`);
+                    ageDisplay = ageParts.join('');
+                }
+                ageDisplay = ageDisplay || '<span class="text-muted fst-italic">N/A</span>';
                 
                 htmlContent += `
                     <div class="mb-4">
@@ -991,9 +984,7 @@
                                     <tr><td><strong>絕育</strong></td><td>${data.pet_info.desexed || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                     <tr><td><strong>毛色</strong></td><td>${data.pet_info.color || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                     <tr><td><strong>年齡</strong></td><td>${ageDisplay}</td></tr>
-                                    ${data.pet_info.age_years ? `<tr><td><strong>年齡-年</strong></td><td>${data.pet_info.age_years}</td></tr>` : ''}
-                                    ${data.pet_info.age_months ? `<tr><td><strong>年齡-月</strong></td><td>${data.pet_info.age_months}</td></tr>` : ''}
-                                    ${data.pet_info.age_days ? `<tr><td><strong>年齡-日</strong></td><td>${data.pet_info.age_days}</td></tr>` : ''}
+                                    ${data.pet_info.pet_birth_date ? `<tr><td><strong>寵物出生日期</strong></td><td>${data.pet_info.pet_birth_date}</td></tr>` : ''}
                                 </tbody>
                             </table>
                         </div>
@@ -1013,13 +1004,6 @@
                                 </thead>
                                 <tbody>
                                     <tr><td><strong>過去病史</strong></td><td>${data.medical_history.past_medical_history || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>藥物過敏</strong></td><td>${data.medical_history.drug_allergy || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>過敏藥物名稱</strong></td><td>${data.medical_history.allergen_name || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>皮膚疾病</strong></td><td>${data.medical_history.skin_disease || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>心絲蟲感染</strong></td><td>${data.medical_history.heartworm_infection || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>寄生蟲感染</strong></td><td>${data.medical_history.parasitic_infection || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>心臟疾病</strong></td><td>${data.medical_history.heart_condition || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
-                                    <tr><td><strong>其他疾病</strong></td><td>${data.medical_history.other_diseases || '<span class="text-muted fst-italic">N/A</span>'}</td></tr>
                                 </tbody>
                             </table>
                         </div>

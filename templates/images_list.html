@@ -468,17 +468,13 @@
                                             </div>
                                         </div>
                                         <div class="row mt-2">
-                                            <div class="col-md-4">
-                                                <label for="edit_age_years" class="form-label">年齡-年</label>
-                                                <input type="text" class="form-control" id="edit_age_years">
+                                            <div class="col-md-6">
+                                                <label for="edit_pet_age" class="form-label">寵物年齡</label>
+                                                <input type="text" class="form-control" id="edit_pet_age" placeholder="例：2歲3個月">
                                             </div>
-                                            <div class="col-md-4">
-                                                <label for="edit_age_months" class="form-label">年齡-月</label>
-                                                <input type="text" class="form-control" id="edit_age_months">
-                                            </div>
-                                            <div class="col-md-4">
-                                                <label for="edit_age_days" class="form-label">年齡-日</label>
-                                                <input type="text" class="form-control" id="edit_age_days">
+                                            <div class="col-md-6">
+                                                <label for="edit_pet_birth_date" class="form-label">寵物出生日期</label>
+                                                <input type="text" class="form-control" id="edit_pet_birth_date" placeholder="例：2022/01/15">
                                             </div>
                                         </div>
                                     </div>
@@ -990,11 +986,16 @@
                 
                 // 年齡資訊
                 let ageInfo = '';
-                let ageParts = [];
-                if (data.pet_info.age_years) ageParts.push(`${data.pet_info.age_years}年`);
-                if (data.pet_info.age_months) ageParts.push(`${data.pet_info.age_months}月`);
-                if (data.pet_info.age_days) ageParts.push(`${data.pet_info.age_days}日`);
-                ageInfo = ageParts.join('');
+                if (data.pet_info.pet_age) {
+                    ageInfo = data.pet_info.pet_age;
+                } else {
+                    // Fallback for old format
+                    let ageParts = [];
+                    if (data.pet_info.age_years) ageParts.push(`${data.pet_info.age_years}年`);
+                    if (data.pet_info.age_months) ageParts.push(`${data.pet_info.age_months}月`);
+                    if (data.pet_info.age_days) ageParts.push(`${data.pet_info.age_days}日`);
+                    ageInfo = ageParts.join('');
+                }
                 if (ageInfo) {
                     contentHtml += `<div class="col-md-6 mb-2"><strong>年齡:</strong> ${ageInfo}</div>`;
                 }
@@ -1407,9 +1408,8 @@
                 setEditValue('edit_pet_gender', data.pet_info.pet_gender);
                 setEditValue('edit_desexed', data.pet_info.desexed);
                 setEditValue('edit_color', data.pet_info.color);
-                setEditValue('edit_age_years', data.pet_info.age_years);
-                setEditValue('edit_age_months', data.pet_info.age_months);
-                setEditValue('edit_age_days', data.pet_info.age_days);
+                setEditValue('edit_pet_age', data.pet_info.pet_age);
+                setEditValue('edit_pet_birth_date', data.pet_info.pet_birth_date);
             }
             
             // Medical history
@@ -1505,9 +1505,8 @@
                     pet_gender: document.getElementById('edit_pet_gender').value,
                     desexed: document.getElementById('edit_desexed').value,
                     color: document.getElementById('edit_color').value,
-                    age_years: document.getElementById('edit_age_years').value,
-                    age_months: document.getElementById('edit_age_months').value,
-                    age_days: document.getElementById('edit_age_days')?.value || ''
+                    pet_age: document.getElementById('edit_pet_age').value,
+                    pet_birth_date: document.getElementById('edit_pet_birth_date').value
                 },
                 medical_history: {
                     past_medical_history: document.getElementById('edit_past_medical_history').value,

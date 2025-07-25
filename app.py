@@ -1,5 +1,5 @@
 # Medical OCR Application - Multi-Model Voting System
-# Claude 3.5 Sonnet 和 Claude 3 Haiku 各跑兩次，然後投票比對
+# Claude Sonnet 4 和 Claude 3 Haiku 各跑兩次，然後投票比對
 
 from flask import Flask, render_template, request, jsonify, redirect
 import boto3
@@ -148,24 +148,11 @@ VET_FORM_FIELDS = {
     'pet_gender': '性別',
     'desexed': '絕育',
     'color': '毛色',
-    'age_years': '年齡-年',
-    'age_months': '年齡-月',
-    'age_days': '年齡-日',
+    'pet_age': '寵物年齡',
+    'pet_birth_date': '寵物出生日期',
     
     # 病史資料 Medical History
     'past_medical_history': '過去病史',
-    'drug_allergy': '藥物過敏',
-    'allergen_name': '過敏藥物名稱',
-    'skin_disease': '皮膚疾病',
-    'heartworm_infection': '心絲蟲感染',
-    'parasitic_infection': '寄生蟲感染',
-    'heart_condition': '心臟疾病',
-    'liver_disease': '肝臟疾病',
-    'respiratory_disease': '呼吸道疾病',
-    'urinary_stones': '膀胱及泌尿道結石',
-    'kidney_disease': '腎臟疾病',
-    'gastrointestinal_disease': '腸胃道疾病',
-    'other_diseases': '其他疾病',
     
     # 飼主資料 Owner Information
     'owner_id': '身份證/護照號碼',
@@ -296,9 +283,9 @@ AWS_PROFILE = os.getenv('AWS_PROFILE')
 S3_BUCKET = os.getenv('S3_BUCKET', 'medical-ocr-documents')
 
 # Model Configuration - Multi-model voting + Final validation
-CLAUDE_SONNET_MODEL_ID = 'us.anthropic.claude-3-5-sonnet-20241022-v2:0'
+CLAUDE_SONNET_MODEL_ID = 'us.anthropic.claude-sonnet-4-20250514-v1:0'
 CLAUDE_HAIKU_MODEL_ID = 'anthropic.claude-3-haiku-20240307-v1:0'
-CLAUDE_SONNET_LATEST_MODEL_ID = 'us.anthropic.claude-3-7-sonnet-20250219-v1:0'  # For automatic validation
+CLAUDE_SONNET_LATEST_MODEL_ID = 'us.anthropic.claude-sonnet-4-20250514-v1:0'  # For automatic validation
 
 # DynamoDB Configuration
 DYNAMODB_TABLE_NAME = os.getenv('DYNAMODB_TABLE_NAME', 'medical-ocr-results')
@@ -514,7 +501,7 @@ def save_to_dynamodb(data, processing_mode, confidence_score=None, human_reviewe
         }
 
 def process_with_claude_latest(image_data, for_human_review=False):
-    """Process with Claude 3.7 Sonnet for final validation or human review"""
+    """Process with Claude Sonnet 4 for final validation or human review"""
     try:
         if for_human_review:
             prompt = """
@@ -534,24 +521,11 @@ def process_with_claude_latest(image_data, for_human_review=False):
                     "pet_gender": "",
                     "desexed": "",
                     "color": "",
-                    "age_years": "",
-                    "age_months": "",
-                    "age_days": ""
+                    "pet_age": "",
+                    "pet_birth_date": ""
                 },
                 "medical_history": {
-                    "past_medical_history": "",
-                    "drug_allergy": "",
-                    "allergen_name": "",
-                    "skin_disease": "",
-                    "heartworm_infection": "",
-                    "parasitic_infection": "",
-                    "heart_condition": "",
-                    "liver_disease": "",
-                    "respiratory_disease": "",
-                    "urinary_stones": "",
-                    "kidney_disease": "",
-                    "gastrointestinal_disease": "",
-                    "other_diseases": ""
+                    "past_medical_history": ""
                 },
                 "owner_info": {
                     "owner_id": "",
@@ -583,12 +557,13 @@ def process_with_claude_latest(image_data, for_human_review=False):
             }
             
             特別注意：
-            1. 寵物年齡請盡可能精確到日，如果表格中有年、月、日的詳細資訊，請分別提取
+            1. 寵物年齡請填入pet_age欄位（如：2歲3個月），寵物出生日期請填入pet_birth_date欄位
             2. 預防醫療資料中的勾選框請仔細識別：
                - 每月定期施打預防針：如果勾選"是"填入monthly_preventive_yes，如果勾選"否"填入monthly_preventive_no
                - 疫苗類型：勾選的疫苗類型請在對應欄位填入"已施打"
                - 如果勾選"其他疫苗"，請在vaccine_others_detail中填入具體內容（如：兔用疫苗）
             3. 重大病史及手術：如果顯示"無"請填入"無"，如果有具體內容請詳細填入
+            4. 病史資料只需要填入過去病史欄位即可
             
             請仔細提取所有可見的文字並適當地組織到相應的欄位中。
             如果某個欄位沒有資訊，請留空字串。
@@ -597,7 +572,7 @@ def process_with_claude_latest(image_data, for_human_review=False):
         else:
             prompt = get_medical_extraction_prompt()
 
-        # Call Claude 3.7 Sonnet
+        # Call Claude Sonnet 4
         response = bedrock_client.converse(
             modelId=CLAUDE_SONNET_LATEST_MODEL_ID,
             messages=[{
@@ -615,7 +590,7 @@ def process_with_claude_latest(image_data, for_human_review=False):
         
         return {
             "success": True,
-            "model": "claude-3.7-sonnet",
+            "model": "claude-sonnet-4",
             "extracted_data": extracted_data,
             "raw_response": response_text
         }
@@ -623,21 +598,21 @@ def process_with_claude_latest(image_data, for_human_review=False):
     except Exception as e:
         return {
             "success": False,
-            "model": "claude-3.7-sonnet",
+            "model": "claude-sonnet-4",
             "error": str(e)
         }
 
 def run_enhanced_voting_system(image_data):
-    """Enhanced voting system with Claude 3.7 Sonnet for automatic path"""
+    """Enhanced voting system with Claude Sonnet 4 for automatic path"""
     print("🗳️ 開始增強型多模型投票處理...")
     
-    # 準備所有任務 - 包含 Claude 3.7 Sonnet
+    # 準備所有任務 - 包含 Claude Sonnet 4
     tasks = [
-        # Claude 3.5 Sonnet 跑一次
+        # Claude Sonnet 4 跑一次
         (CLAUDE_SONNET_MODEL_ID, 1),
         # Claude 3 Haiku 跑一次  
         (CLAUDE_HAIKU_MODEL_ID, 1),
-        # Claude 3.7 Sonnet 跑一次
+        # Claude Sonnet 4 跑一次
         (CLAUDE_SONNET_LATEST_MODEL_ID, 1)
     ]
     
@@ -693,24 +668,11 @@ def get_medical_extraction_prompt():
             "pet_gender": "",
             "desexed": "",
             "color": "",
-            "age_years": "",
-            "age_months": "",
-            "age_days": ""
+            "pet_age": "",
+            "pet_birth_date": ""
         },
         "medical_history": {
-            "past_medical_history": "",
-            "drug_allergy": "",
-            "allergen_name": "",
-            "skin_disease": "",
-            "heartworm_infection": "",
-            "parasitic_infection": "",
-            "heart_condition": "",
-            "liver_disease": "",
-            "respiratory_disease": "",
-            "urinary_stones": "",
-            "kidney_disease": "",
-            "gastrointestinal_disease": "",
-            "other_diseases": ""
+            "past_medical_history": ""
         },
         "owner_info": {
             "owner_id": "",
@@ -754,24 +716,11 @@ def get_medical_extraction_prompt():
     - pet_gender: 性別（公/母）
     - desexed: 絕育（是/否）
     - color: 毛色
-    - age_years: 年齡-年
-    - age_months: 年齡-月
-    - age_days: 年齡-日
+    - pet_age: 寵物年齡
+    - pet_birth_date: 寵物出生日期
 
     病史資料 Medical History:
-    - past_medical_history: 過去病史（無/有）
-    - drug_allergy: 藥物過敏（無/有）
-    - allergen_name: 過敏藥物名稱
-    - skin_disease: 皮膚疾病詳情
-    - heartworm_infection: 心絲蟲感染詳情
-    - parasitic_infection: 寄生蟲感染詳情
-    - heart_condition: 心臟疾病詳情
-    - liver_disease: 肝臟疾病詳情
-    - respiratory_disease: 呼吸道疾病詳情
-    - urinary_stones: 膀胱及泌尿道結石詳情
-    - kidney_disease: 腎臟疾病詳情
-    - gastrointestinal_disease: 腸胃道疾病詳情
-    - other_diseases: 其他疾病詳情
+    - past_medical_history: 過去病史
 
     飼主資料 Owner Information:
     - owner_id: 身份證/護照號碼
@@ -801,10 +750,11 @@ def get_medical_extraction_prompt():
     - remarks: 備註
 
     特別注意：
-    1. 寵物年齡請盡可能精確到日，如果表格中有年、月、日的詳細資訊，請分別提取
+    1. 寵物年齡請填入pet_age欄位（如：2歲3個月），寵物出生日期請填入pet_birth_date欄位
     2. 預防醫療資料中的勾選框請仔細識別，勾選的項目請標註為相應的值
     3. 疫苗類型如果有勾選"其他"，請特別注意提取其詳細內容
     4. 所有日期格式請保持一致（YYYY-MM-DD或原始格式）
+    5. 病史資料只需要填入過去病史欄位即可
     
 
     如果某個欄位沒有資訊，請留空字串。
@@ -878,7 +828,7 @@ def run_multi_model_voting(image_data):
     
     # 準備所有任務
     tasks = [
-        # Claude 3.5 Sonnet 跑兩次
+        # Claude Sonnet 4 跑兩次
         (CLAUDE_SONNET_MODEL_ID, 1),
         (CLAUDE_SONNET_MODEL_ID, 2),
         # Claude 3 Haiku 跑兩次
@@ -1290,7 +1240,7 @@ def process_automatic():
 
 @app.route('/process_human_review', methods=['POST'])
 def process_human_review():
-    """路徑2: 人工審核 - Claude 3.7 Sonnet處理後等待人工確認"""
+    """路徑2: 人工審核 - Claude Sonnet 4處理後等待人工確認"""
     if 'file' not in request.files:
         return jsonify({'error': '沒有上傳檔案'}), 400
     
@@ -1335,7 +1285,7 @@ def process_human_review():
         # 更新處理狀態為 processing
         update_image_processing_status(image_id, 'processing')
         
-        # 使用 Claude 3.7 Sonnet 處理
+        # 使用 Claude Sonnet 4 處理
         claude_result = process_with_claude_latest(file_data, for_human_review=True)
         
         if claude_result['success']:
@@ -1930,7 +1880,7 @@ def debug_models():
 if __name__ == '__main__':
     print("🚀 啟動醫療 OCR 增強型投票系統")
     print("📍 訪問地址: http://localhost:5006")
-    print("🤖 模型: Claude 3.7 Sonnet + Claude 3.5 Sonnet + Claude 3 Haiku")
+    print("🤖 模型: Claude Sonnet 4 + Claude 3 Haiku")
     print("🗳️ 投票機制: 多模型結果比對和投票")
     print("💾 DynamoDB: 自動存儲處理結果")
     

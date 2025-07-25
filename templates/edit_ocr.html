@@ -254,19 +254,14 @@
                                     <input type="text" class="form-control" id="color" name="color" placeholder="請輸入毛色">
                                 </div>
                                 
-                                <div class="col-md-4 mb-3">
-                                    <label for="age_years" class="form-label">年齡-年 Age (Years)</label>
-                                    <input type="text" class="form-control" id="age_years" name="age_years" placeholder="請輸入年齡（年）">
+                                <div class="col-md-6 mb-3">
+                                    <label for="pet_age" class="form-label">寵物年齡 Pet Age</label>
+                                    <input type="text" class="form-control" id="pet_age" name="pet_age" placeholder="例：2歲3個月">
                                 </div>
                                 
-                                <div class="col-md-4 mb-3">
-                                    <label for="age_months" class="form-label">年齡-月 Age (Months)</label>
-                                    <input type="text" class="form-control" id="age_months" name="age_months" placeholder="請輸入年齡（月）">
-                                </div>
-                                
-                                <div class="col-md-4 mb-3">
-                                    <label for="age_days" class="form-label">年齡-日 Age (Days)</label>
-                                    <input type="text" class="form-control" id="age_days" name="age_days" placeholder="請輸入年齡（日）">
+                                <div class="col-md-6 mb-3">
+                                    <label for="pet_birth_date" class="form-label">寵物出生日期 Pet Birth Date</label>
+                                    <input type="text" class="form-control" id="pet_birth_date" name="pet_birth_date" placeholder="例：2022/01/15">
                                 </div>
                             </div>
                         </div>
@@ -278,77 +273,9 @@
                             </div>
                             
                             <div class="row">
-                                <div class="col-md-6 mb-3">
+                                <div class="col-md-12 mb-3">
                                     <label for="past_medical_history" class="form-label">過去病史 Past Medical History</label>
-                                    <select class="form-select" id="past_medical_history" name="past_medical_history">
-                                        <option value="">請選擇</option>
-                                        <option value="無">無 None</option>
-                                        <option value="有">有 Yes</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="drug_allergy" class="form-label">藥物過敏 Drug Allergy</label>
-                                    <select class="form-select" id="drug_allergy" name="drug_allergy">
-                                        <option value="">請選擇</option>
-                                        <option value="無">無 None</option>
-                                        <option value="有">有 Yes</option>
-                                    </select>
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="allergen_name" class="form-label">過敏藥物名稱 Name of Allergen</label>
-                                    <input type="text" class="form-control" id="allergen_name" name="allergen_name" placeholder="請輸入過敏藥物名稱">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="skin_disease" class="form-label">皮膚疾病 Skin Disease</label>
-                                    <input type="text" class="form-control" id="skin_disease" name="skin_disease" placeholder="請輸入皮膚疾病詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="heartworm_infection" class="form-label">心絲蟲感染 Heartworm Infection</label>
-                                    <input type="text" class="form-control" id="heartworm_infection" name="heartworm_infection" placeholder="請輸入心絲蟲感染詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="parasitic_infection" class="form-label">寄生蟲感染 Parasitic Infection</label>
-                                    <input type="text" class="form-control" id="parasitic_infection" name="parasitic_infection" placeholder="請輸入寄生蟲感染詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="heart_condition" class="form-label">心臟疾病 Heart Condition</label>
-                                    <input type="text" class="form-control" id="heart_condition" name="heart_condition" placeholder="請輸入心臟疾病詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="liver_disease" class="form-label">肝臟疾病 Liver Disease</label>
-                                    <input type="text" class="form-control" id="liver_disease" name="liver_disease" placeholder="請輸入肝臟疾病詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="respiratory_disease" class="form-label">呼吸道疾病 Respiratory Disease</label>
-                                    <input type="text" class="form-control" id="respiratory_disease" name="respiratory_disease" placeholder="請輸入呼吸道疾病詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="urinary_stones" class="form-label">膀胱及泌尿道結石 Urinary Stones</label>
-                                    <input type="text" class="form-control" id="urinary_stones" name="urinary_stones" placeholder="請輸入膀胱及泌尿道結石詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="kidney_disease" class="form-label">腎臟疾病 Kidney Disease</label>
-                                    <input type="text" class="form-control" id="kidney_disease" name="kidney_disease" placeholder="請輸入腎臟疾病詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="gastrointestinal_disease" class="form-label">腸胃道疾病 Gastrointestinal Disease</label>
-                                    <input type="text" class="form-control" id="gastrointestinal_disease" name="gastrointestinal_disease" placeholder="請輸入腸胃道疾病詳情">
-                                </div>
-                                
-                                <div class="col-md-6 mb-3">
-                                    <label for="other_diseases" class="form-label">其他疾病 Other Diseases</label>
-                                    <input type="text" class="form-control" id="other_diseases" name="other_diseases" placeholder="請輸入其他疾病詳情">
+                                    <textarea class="form-control" id="past_medical_history" name="past_medical_history" rows="3" placeholder="請輸入過去病史詳情"></textarea>
                                 </div>
                             </div>
                         </div>
@@ -607,26 +534,13 @@
                 setValue('pet_gender', data.pet_info.pet_gender);
                 setValue('desexed', data.pet_info.desexed);
                 setValue('color', data.pet_info.color);
-                setValue('age_years', data.pet_info.age_years);
-                setValue('age_months', data.pet_info.age_months);
-                setValue('age_days', data.pet_info.age_days);
+                setValue('pet_age', data.pet_info.pet_age);
+                setValue('pet_birth_date', data.pet_info.pet_birth_date);
             }
             
             // Medical history
             if (data.medical_history) {
                 setValue('past_medical_history', data.medical_history.past_medical_history);
-                setValue('drug_allergy', data.medical_history.drug_allergy);
-                setValue('allergen_name', data.medical_history.allergen_name);
-                setValue('skin_disease', data.medical_history.skin_disease);
-                setValue('heartworm_infection', data.medical_history.heartworm_infection);
-                setValue('parasitic_infection', data.medical_history.parasitic_infection);
-                setValue('heart_condition', data.medical_history.heart_condition);
-                setValue('liver_disease', data.medical_history.liver_disease);
-                setValue('respiratory_disease', data.medical_history.respiratory_disease);
-                setValue('urinary_stones', data.medical_history.urinary_stones);
-                setValue('kidney_disease', data.medical_history.kidney_disease);
-                setValue('gastrointestinal_disease', data.medical_history.gastrointestinal_disease);
-                setValue('other_diseases', data.medical_history.other_diseases);
             }
             
             // Owner info
