@@ -102,14 +102,13 @@ class RpaOcrEcsStack(Stack):
             ),
             environment={
                 "AWS_REGION": "us-west-2",
-                "S3_BUCKET": "medical-ocr-495599739878",
+                "S3_BUCKET": "medical-ocr-documents",
                 "DYNAMODB_TABLE_NAME": "medical-ocr-results",
                 "DYNAMODB_IMAGES_TABLE_NAME": "medical-ocr-images",
-                "FLASK_ENV": "production",
-                "BEDROCK_MODEL_ID": "us.anthropic.claude-sonnet-4-20250514-v1:0"
+                "FLASK_ENV": "production"
             },
             health_check=ecs.HealthCheck(
-                command=["CMD-SHELL", "curl -f http://localhost:5006/ || exit 1"],
+                command=["CMD-SHELL", "curl -f http://localhost:5000/health || exit 1"],
                 interval=Duration.seconds(30),
                 timeout=Duration.seconds(5),
                 retries=3,
@@ -120,7 +119,7 @@ class RpaOcrEcsStack(Stack):
         # Container port mapping
         container.add_port_mappings(
             ecs.PortMapping(
-                container_port=5006,
+                container_port=5000,
                 protocol=ecs.Protocol.TCP
             )
         )
@@ -139,8 +138,8 @@ class RpaOcrEcsStack(Stack):
 
         # Configure health check for the target group
         self.fargate_service.target_group.configure_health_check(
-            path="/",
-            port="5006",
+            path="/health",
+            port="5000",
             healthy_http_codes="200",
             interval=Duration.seconds(30),
             timeout=Duration.seconds(5),
