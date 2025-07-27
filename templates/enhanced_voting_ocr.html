@@ -450,15 +450,32 @@
         function loadImageForReview(imageId) {
             console.log('🔍 Starting loadImageForReview for imageId:', imageId);
             
-            // 隱藏上傳區域，直接進入人工審核模式
+            // 檢查必要的 DOM 元素
             const uploadSection = document.getElementById('upload-section');
+            const processingSection = document.getElementById('processing');
+            const humanReviewSection = document.getElementById('human-review-section');
+            
+            console.log('🏗️ DOM elements check:', {
+                uploadSection: !!uploadSection,
+                processingSection: !!processingSection,
+                humanReviewSection: !!humanReviewSection
+            });
+            
+            // 隱藏上傳區域，顯示處理中狀態
             if (uploadSection) {
                 uploadSection.style.display = 'none';
+                console.log('✅ Upload section hidden');
+            } else {
+                console.warn('⚠️ Upload section not found');
             }
             
-            const processingSection = document.getElementById('processing');
             if (processingSection) {
                 processingSection.style.display = 'block';
+                console.log('✅ Processing section shown');
+            } else {
+                console.error('❌ Processing section not found');
+                showError('無法找到處理區域元素');
+                return;
             }
             
             updateProgress(1, '載入待審核圖片...');
@@ -467,6 +484,11 @@
             const timeoutId = setTimeout(() => {
                 console.error('⏰ Request timeout after 30 seconds');
                 showError('載入超時，請重試');
+                
+                // 超時時隱藏處理中狀態
+                if (processingSection) {
+                    processingSection.style.display = 'none';
+                }
             }, 30000); // 30秒超時
             
             console.log('📡 Making API call to:', `/api/images/${imageId}/review`);
@@ -486,19 +508,44 @@
                     
                     if (data.success) {
                         console.log('✅ API call successful, setting up review data');
+                        
+                        // 設置全局變量
                         currentResult = data;
                         currentSessionId = data.session_id;
                         currentImageId = data.image_id;
                         selectedPath = 'human_review';
                         
+                        console.log('📊 Global variables set:', {
+                            currentSessionId,
+                            currentImageId,
+                            hasClaudeResult: !!data.claude_result
+                        });
+                        
                         updateProgress(5, '載入完成，準備審核...');
+                        
+                        // 延遲調用處理函數，確保 DOM 更新完成
                         setTimeout(() => {
                             console.log('🎯 Calling handleHumanReviewResult');
-                            handleHumanReviewResult(data);
+                            try {
+                                handleHumanReviewResult(data);
+                            } catch (error) {
+                                console.error('💥 Error in handleHumanReviewResult:', error);
+                                showError('處理審核數據時發生錯誤: ' + error.message);
+                                
+                                // 發生錯誤時隱藏處理中狀態
+                                if (processingSection) {
+                                    processingSection.style.display = 'none';
+                                }
+                            }
                         }, 500);
                     } else {
                         console.error('❌ API returned error:', data.error);
                         showError('載入審核資料失敗: ' + data.error);
+                        
+                        // API 錯誤時隱藏處理中狀態
+                        if (processingSection) {
+                            processingSection.style.display = 'none';
+                        }
                     }
                 })
                 .catch(error => {
@@ -506,6 +553,11 @@
                     console.error('💥 Load review error:', error);
                     console.error('Error stack:', error.stack);
                     showError('載入審核資料失敗: ' + error.message);
+                    
+                    // 網絡錯誤時隱藏處理中狀態
+                    if (processingSection) {
+                        processingSection.style.display = 'none';
+                    }
                 });
         }
 
@@ -624,13 +676,18 @@
         function handleHumanReviewResult(data) {
             console.log('🎯 handleHumanReviewResult called with data:', data);
             
-            document.getElementById('processing').style.display = 'none';
+            // 確保隱藏處理中狀態
+            const processingSection = document.getElementById('processing');
+            if (processingSection) {
+                processingSection.style.display = 'none';
+                console.log('✅ Processing section hidden');
+            }
             
             if (data.success) {
                 console.log('✅ Data success, setting up current variables');
                 currentResult = data;
                 currentSessionId = data.session_id;
-                currentImageId = data.image_id;  // 保存 image_id
+                currentImageId = data.image_id;
                 
                 console.log('📊 Current variables set:', {
                     currentSessionId,
@@ -638,7 +695,12 @@
                     hasClaudeResult: !!data.claude_result
                 });
                 
-                displayHumanReview(data);
+                try {
+                    displayHumanReview(data);
+                } catch (error) {
+                    console.error('💥 Error in displayHumanReview:', error);
+                    showError('顯示審核界面時發生錯誤: ' + error.message);
+                }
             } else {
                 console.error('❌ Data indicates failure:', data.error);
                 showError(data.error);
@@ -653,23 +715,32 @@
                 console.log('📊 Extracted data:', extractedData);
                 
                 try {
+                    // 創建可編輯的審核表單
                     createEditableReviewForm(extractedData);
+                    console.log('✅ Editable review form created');
                     
                     // 顯示文件預覽
                     const previewElement = document.getElementById('documentPreview');
-                    if (previewElement) {
+                    if (previewElement && data.image_data) {
                         previewElement.src = data.image_data;
                         console.log('🖼️ Document preview set');
                     } else {
-                        console.warn('⚠️ documentPreview element not found');
+                        console.warn('⚠️ documentPreview element not found or no image data');
                     }
                     
+                    // 顯示審核區域
                     const reviewSection = document.getElementById('human-review-section');
                     if (reviewSection) {
                         reviewSection.style.display = 'block';
                         console.log('✅ Human review section displayed');
+                        
+                        // 滾動到審核區域
+                        setTimeout(() => {
+                            reviewSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }, 100);
                     } else {
                         console.error('❌ human-review-section element not found');
+                        showError('無法找到審核區域元素');
                     }
                 } catch (error) {
                     console.error('💥 Error in displayHumanReview:', error);
@@ -677,7 +748,8 @@
                 }
             } else {
                 console.error('❌ Claude result failed:', data.claude_result);
-                showError('Amazon Bedrock 處理失敗: ' + (data.claude_result ? data.claude_result.error : '未知錯誤'));
+                const errorMsg = data.claude_result ? data.claude_result.error : '未知錯誤';
+                showError('Amazon Bedrock 處理失敗: ' + errorMsg);
             }
         }
 
@@ -1261,8 +1333,36 @@
         }
 
         function showError(message) {
-            document.getElementById('error-message').textContent = message;
-            document.getElementById('error').style.display = 'block';
+            console.error('🚨 Showing error:', message);
+            
+            // 隱藏處理中狀態
+            const processingSection = document.getElementById('processing');
+            if (processingSection) {
+                processingSection.style.display = 'none';
+            }
+            
+            // 顯示錯誤信息
+            const errorElement = document.getElementById('error-message');
+            const errorContainer = document.getElementById('error');
+            
+            if (errorElement && errorContainer) {
+                errorElement.textContent = message;
+                errorContainer.style.display = 'block';
+                
+                // 滾動到錯誤信息
+                errorContainer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            } else {
+                // 如果錯誤元素不存在，使用 alert
+                alert('錯誤: ' + message);
+            }
+            
+            // 可選：顯示上傳區域讓用戶重試
+            if (!reviewMode) {
+                const uploadSection = document.getElementById('upload-section');
+                if (uploadSection) {
+                    uploadSection.style.display = 'block';
+                }
+            }
         }
 
         function handleError(message) {
