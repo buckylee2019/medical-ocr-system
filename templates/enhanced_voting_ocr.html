@@ -448,6 +448,8 @@
         });
 
         function loadImageForReview(imageId) {
+            console.log('🔍 Starting loadImageForReview for imageId:', imageId);
+            
             // 隱藏路徑選擇，直接進入人工審核模式
             document.getElementById('path-selection').style.display = 'none';
             document.getElementById('processing').style.display = 'block';
@@ -456,19 +458,27 @@
             
             // 設置超時處理
             const timeoutId = setTimeout(() => {
+                console.error('⏰ Request timeout after 30 seconds');
                 showError('載入超時，請重試');
             }, 30000); // 30秒超時
+            
+            console.log('📡 Making API call to:', `/api/images/${imageId}/review`);
             
             fetch(`/api/images/${imageId}/review`)
                 .then(response => {
                     clearTimeout(timeoutId);
+                    console.log('📥 API Response status:', response.status, response.statusText);
+                    
                     if (!response.ok) {
                         throw new Error(`HTTP ${response.status}: ${response.statusText}`);
                     }
                     return response.json();
                 })
                 .then(data => {
+                    console.log('📋 API Response data:', data);
+                    
                     if (data.success) {
+                        console.log('✅ API call successful, setting up review data');
                         currentResult = data;
                         currentSessionId = data.session_id;
                         currentImageId = data.image_id;
@@ -476,15 +486,18 @@
                         
                         updateProgress(5, '載入完成，準備審核...');
                         setTimeout(() => {
+                            console.log('🎯 Calling handleHumanReviewResult');
                             handleHumanReviewResult(data);
                         }, 500);
                     } else {
+                        console.error('❌ API returned error:', data.error);
                         showError('載入審核資料失敗: ' + data.error);
                     }
                 })
                 .catch(error => {
                     clearTimeout(timeoutId);
-                    console.error('Load review error:', error);
+                    console.error('💥 Load review error:', error);
+                    console.error('Error stack:', error.stack);
                     showError('載入審核資料失敗: ' + error.message);
                 });
         }
@@ -595,32 +608,62 @@
         }
 
         function handleHumanReviewResult(data) {
+            console.log('🎯 handleHumanReviewResult called with data:', data);
+            
             document.getElementById('processing').style.display = 'none';
             
             if (data.success) {
+                console.log('✅ Data success, setting up current variables');
                 currentResult = data;
                 currentSessionId = data.session_id;
                 currentImageId = data.image_id;  // 保存 image_id
+                
+                console.log('📊 Current variables set:', {
+                    currentSessionId,
+                    currentImageId,
+                    hasClaudeResult: !!data.claude_result
+                });
+                
                 displayHumanReview(data);
             } else {
+                console.error('❌ Data indicates failure:', data.error);
                 showError(data.error);
             }
         }
 
         function displayHumanReview(data) {
-            console.log('displayHumanReview called with data:', data);
-            if (data.claude_result.success) {
+            console.log('🖼️ displayHumanReview called with data:', data);
+            
+            if (data.claude_result && data.claude_result.success) {
                 const extractedData = data.claude_result.extracted_data;
-                console.log('Extracted data:', extractedData);
-                createEditableReviewForm(extractedData);
+                console.log('📊 Extracted data:', extractedData);
                 
-                // 顯示文件預覽
-                document.getElementById('documentPreview').src = data.image_data;
-                
-                document.getElementById('human-review-section').style.display = 'block';
+                try {
+                    createEditableReviewForm(extractedData);
+                    
+                    // 顯示文件預覽
+                    const previewElement = document.getElementById('documentPreview');
+                    if (previewElement) {
+                        previewElement.src = data.image_data;
+                        console.log('🖼️ Document preview set');
+                    } else {
+                        console.warn('⚠️ documentPreview element not found');
+                    }
+                    
+                    const reviewSection = document.getElementById('human-review-section');
+                    if (reviewSection) {
+                        reviewSection.style.display = 'block';
+                        console.log('✅ Human review section displayed');
+                    } else {
+                        console.error('❌ human-review-section element not found');
+                    }
+                } catch (error) {
+                    console.error('💥 Error in displayHumanReview:', error);
+                    showError('顯示審核界面時發生錯誤: ' + error.message);
+                }
             } else {
-                console.error('Claude result failed:', data.claude_result);
-                showError('Amazon Bedrock 處理失敗: ' + data.claude_result.error);
+                console.error('❌ Claude result failed:', data.claude_result);
+                showError('Amazon Bedrock 處理失敗: ' + (data.claude_result ? data.claude_result.error : '未知錯誤'));
             }
         }
 
