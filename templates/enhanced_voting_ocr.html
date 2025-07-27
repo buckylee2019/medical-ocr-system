@@ -450,9 +450,16 @@
         function loadImageForReview(imageId) {
             console.log('🔍 Starting loadImageForReview for imageId:', imageId);
             
-            // 隱藏路徑選擇，直接進入人工審核模式
-            document.getElementById('path-selection').style.display = 'none';
-            document.getElementById('processing').style.display = 'block';
+            // 隱藏上傳區域，直接進入人工審核模式
+            const uploadSection = document.getElementById('upload-section');
+            if (uploadSection) {
+                uploadSection.style.display = 'none';
+            }
+            
+            const processingSection = document.getElementById('processing');
+            if (processingSection) {
+                processingSection.style.display = 'block';
+            }
             
             updateProgress(1, '載入待審核圖片...');
             
@@ -503,9 +510,16 @@
         }
 
         function loadImageForEdit(imageId) {
-            // 隱藏路徑選擇，直接進入編輯模式
-            document.getElementById('path-selection').style.display = 'none';
-            document.getElementById('processing').style.display = 'block';
+            // 隱藏上傳區域，直接進入編輯模式
+            const uploadSection = document.getElementById('upload-section');
+            if (uploadSection) {
+                uploadSection.style.display = 'none';
+            }
+            
+            const processingSection = document.getElementById('processing');
+            if (processingSection) {
+                processingSection.style.display = 'block';
+            }
             
             updateProgress(1, '載入圖片進行編輯...');
             
