@@ -303,7 +303,7 @@ S3_BUCKET = os.getenv('S3_BUCKET', 'medical-ocr-documents')
 # Model Configuration - Multi-model voting + Final validation
 CLAUDE_SONNET_MODEL_ID = 'us.anthropic.claude-sonnet-4-20250514-v1:0'
 CLAUDE_HAIKU_MODEL_ID = 'anthropic.claude-3-haiku-20240307-v1:0'
-CLAUDE_SONNET_LATEST_MODEL_ID = 'us.anthropic.claude-sonnet-4-20250514-v1:0'  # For automatic validation
+CLAUDE_SONNET_LATEST_MODEL_ID = 'us.anthropic.claude-3-7-sonnet-20250219-v1:0'  # For automatic validation
 
 # DynamoDB Configuration
 DYNAMODB_TABLE_NAME = os.getenv('DYNAMODB_TABLE_NAME', 'medical-ocr-results')

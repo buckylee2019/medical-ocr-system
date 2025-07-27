@@ -649,8 +649,60 @@
                                 <table class="table table-sm">
                     `;
                     
+                    // 特殊處理飼主資料部分 - 確保字段順序一致
+                    if (section.key === 'owner_info') {
+                        // 定義飼主資料字段的固定順序
+                        const ownerFieldOrder = [
+                            'owner_id',
+                            'owner_name', 
+                            'owner_birth_date',
+                            'owner_gender',
+                            'phone',
+                            'line_id',
+                            'email',
+                            'registered_address',
+                            'mailing_address'
+                        ];
+                        
+                        // 按照預定義順序處理字段
+                        ownerFieldOrder.forEach(field => {
+                            if (data[section.key][field] !== undefined) {
+                                const fieldId = `${section.key}_${field}`;
+                                const value = data[section.key][field];
+                                console.log(`Creating ordered field: ${fieldId} with value: ${value}`);
+                                html += `
+                                    <tr>
+                                        <td style="width: 30%;"><strong>${getFieldDisplayName(field)}</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control editable-field" 
+                                                   id="${fieldId}" value="${value || ''}" 
+                                                   data-section="${section.key}" data-field="${field}">
+                                        </td>
+                                    </tr>
+                                `;
+                            }
+                        });
+                        
+                        // 處理任何不在預定義順序中的額外字段
+                        Object.entries(data[section.key]).forEach(([field, value]) => {
+                            if (!ownerFieldOrder.includes(field)) {
+                                const fieldId = `${section.key}_${field}`;
+                                console.log(`Creating additional field: ${fieldId} with value: ${value}`);
+                                html += `
+                                    <tr>
+                                        <td style="width: 30%;"><strong>${getFieldDisplayName(field)}</strong></td>
+                                        <td>
+                                            <input type="text" class="form-control editable-field" 
+                                                   id="${fieldId}" value="${value || ''}" 
+                                                   data-section="${section.key}" data-field="${field}">
+                                        </td>
+                                    </tr>
+                                `;
+                            }
+                        });
+                    }
                     // 特殊處理預防醫療資料部分
-                    if (section.key === 'preventive_care') {
+                    else if (section.key === 'preventive_care') {
                         // 處理每月定期施打預防針 - 合併為一個欄位
                         let monthlyPreventiveValue = '';
                         if (data[section.key].monthly_preventive_yes) {
