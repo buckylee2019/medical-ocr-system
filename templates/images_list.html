@@ -1243,7 +1243,14 @@
 
         // 進入審核按鈕事件
         document.getElementById('reviewBtn').addEventListener('click', function() {
-            window.open(`/review/${currentImageId}`, '_blank');
+            console.log('🔍 Review button clicked for imageId:', currentImageId);
+            if (currentImageId) {
+                // 直接跳轉到審核頁面，而不是打開新標籤頁
+                window.location.href = `/review/${currentImageId}`;
+            } else {
+                console.error('❌ No currentImageId available for review');
+                alert('無法進入審核：缺少圖片ID');
+            }
         });
 
         // 重新編輯按鈕事件
