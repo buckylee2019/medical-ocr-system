@@ -447,6 +447,21 @@
             }
         });
 
+        function updateProgress(step, message) {
+            console.log(`📊 Progress update - Step ${step}: ${message}`);
+            
+            const processingTitle = document.getElementById('processingTitle');
+            const processingDescription = document.getElementById('processingDescription');
+            
+            if (processingTitle) {
+                processingTitle.textContent = '處理中...';
+            }
+            
+            if (processingDescription) {
+                processingDescription.textContent = message;
+            }
+        }
+
         function loadImageForReview(imageId) {
             console.log('🔍 Starting loadImageForReview for imageId:', imageId);
             
